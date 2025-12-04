@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - ECC Sistema</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      padding: 40px;
+    }
+    .container {
+      width: 400px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #0002;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 18px;
+      background: #0066ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .success {
+      color: green;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Login</h2>
+
+  <label>Email:</label>
+  <input type="email" id="email" placeholder="seu@email.com">
+
+  <label>Senha:</label>
+  <input type="password" id="senha" placeholder="Sua senha">
+
+  <button onclick="login()">Entrar</button>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+  async function login() {
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+    const msgBox = document.getElementById("msg");
+
+    msgBox.innerHTML = "";
+
+    if (!email || !senha) {
+      msgBox.innerHTML = "<p class='error'>Preencha todos os campos.</p>";
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3001/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: senha })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        msgBox.innerHTML = `<p class="error">${data.error || "Erro no login."}</p>`;
+        return;
+      }
+
+      // SALVA O JWT NO LOCALSTORAGE
+      localStorage.setItem("token", data.token);
+
+      msgBox.innerHTML = "<p class='success'>Login realizado! Redirecionando...</p>";
+
+      // REDIRECIONA AO DASHBOARD
+      setTimeout(() => {
+        window.location.href = "./dashboard.html";
+      }, 1000);
+
+    } catch (err) {
+      msgBox.innerHTML = "<p class='error'>Erro ao conectar ao servidor.</p>";
+      console.error(err);
+    }
+  }
+</script>
+
+</body>
+</html>

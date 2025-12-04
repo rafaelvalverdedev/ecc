@@ -1,94 +1,125 @@
-// src/controllers/auth.controller.js
 import supabase from "../config/supabase.js";
+import pkg from "bcryptjs";
+const bcrypt = pkg;
+import jwt from "jsonwebtoken";
+import { z } from "zod";
 
-/**
- * POST /auth/link
- * - Deve ser chamado com Authorization: Bearer <access_token>
- * - Cria um registro em pessoas (se não existir) e seta pessoas.auth_uid = authUser.id
- * - Retorna a pessoa vinculada
- */
-export async function linkAuthToPessoa(req, res) {
+const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+
+// ==========================
+// Zod Schemas
+// ==========================
+export const registerSchema = z.object({
+  nome: z.string().min(3, "Nome muito curto"),
+  email: z.string().email("Email inválido"),
+  telefone: z.string().optional(),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  role: z.string().optional(),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6),
+});
+
+// ==========================
+// Função para gerar token JWT
+// ==========================
+function gerarToken(pessoa) {
+  return jwt.sign(
+    {
+      sub: pessoa.id,
+      role: pessoa.role || null,
+      email: pessoa.email,
+    },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+// ==========================
+// POST /auth/register
+// ==========================
+export async function register(req, res) {
   try {
-    const authUser = req.authUser;
-    if (!authUser) return res.status(401).json({ error: "Usuário não autenticado" });
+    const parsed = registerSchema.parse(req.body);
+    const { nome, email, telefone, password, role } = parsed;
 
-    // Checa se já existe pessoa com auth_uid
-    const { data: existing, error: existingError } = await supabase
+    const { data: existente } = await supabase
       .from("pessoas")
-      .select("*")
-      .eq("auth_uid", authUser.id)
+      .select("id")
+      .eq("email", email)
       .maybeSingle();
 
-    if (existingError) {
-      console.error(existingError);
-      return res.status(500).json({ error: "Erro ao verificar pessoa existente" });
+    if (existente) {
+      return res.status(400).json({ error: "Email já cadastrado" });
     }
 
-    if (existing && existing.id) {
-      return res.status(200).json(existing);
-    }
+    const password_hash = await bcrypt.hash(password, 10);
 
-    // Se não existe, tenta encontrar por email (opcional)
-    let pessoaToLink = null;
-    if (authUser.email) {
-      const { data: byEmail } = await supabase
-        .from("pessoas")
-        .select("*")
-        .eq("email", authUser.email)
-        .maybeSingle();
-
-      if (byEmail && byEmail.id) pessoaToLink = byEmail;
-    }
-
-    // Se não encontrou por email, cria nova pessoa
-    if (!pessoaToLink) {
-      const nome = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email || "Usuário";
-      const { data: created, error: createErr } = await supabase
-        .from("pessoas")
-        .insert([{ nome, email: authUser.email || null, telefone: null, auth_uid: authUser.id }])
-        .select()
-        .single();
-
-      if (createErr) {
-        console.error("Erro ao criar pessoa:", createErr);
-        return res.status(500).json({ error: "Erro ao criar pessoa" });
-      }
-
-      return res.status(201).json(created);
-    }
-
-    // Se encontrou por email, atualiza auth_uid
-    const { data: updated, error: updateErr } = await supabase
+    const { data, error } = await supabase
       .from("pessoas")
-      .update({ auth_uid: authUser.id })
-      .eq("id", pessoaToLink.id)
+      .insert([{ nome, email, telefone, password_hash, role }])
       .select()
       .single();
 
-    if (updateErr) {
-      console.error("Erro ao atualizar pessoa com auth_uid:", updateErr);
-      return res.status(500).json({ error: "Erro ao vincular conta" });
-    }
+    if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json(updated);
+    const token = gerarToken(data);
+
+    return res.status(201).json({ pessoa: data, token });
   } catch (err) {
-    console.error("Erro em linkAuthToPessoa:", err);
-    return res.status(500).json({ error: "Erro interno" });
+    console.error("REGISTER ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-/**
- * GET /auth/me
- * - Retorna o usuário auth + pessoa vinculada (se houver)
- */
-export async function me(req, res) {
+// ==========================
+// POST /auth/login
+// ==========================
+export async function login(req, res) {
   try {
-    const authUser = req.authUser;
-    if (!authUser) return res.status(401).json({ error: "Usuário não autenticado" });
+    const parsed = loginSchema.parse(req.body);
+    const { email, password } = parsed;
 
-    return res.status(200).json({ authUser, pessoa: req.pessoa || null });
+    const { data: pessoa, error } = await supabase
+      .from("pessoas")
+      .select("id, nome, email, telefone, password_hash")
+      .eq("email", email)
+      .single();
+
+    if (error || !pessoa) {
+      console.log("Usuário não encontrado:", email);
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    if (!pessoa.password_hash) {
+      return res.status(400).json({ error: "Usuário sem senha cadastrada" });
+    }
+
+    const senhaCorreta = password === pessoa.password_hash;
+
+    if (!senhaCorreta) {
+      console.log("Senha incorreta:", password, pessoa.password_hash);
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    const token = gerarToken(pessoa);
+
+    return res.status(200).json({
+      pessoa: {
+        id: pessoa.id,
+        nome: pessoa.nome,
+        email: pessoa.email,
+        telefone: pessoa.telefone,
+        role: pessoa.role,
+      },
+      token,
+    });
+
   } catch (err) {
-    console.error("Erro em /auth/me:", err);
-    return res.status(500).json({ error: "Erro interno" });
+    console.error("LOGIN ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }

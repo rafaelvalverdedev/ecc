@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
-import cors from "cors";
+dotenv.config();
+
+
 import express from "express";
+import cors from "cors";
 
 import eventosRoutes from "./routes/eventos.routes.js";
 import equipeRoutes from "./routes/equipe.routes.js";
@@ -19,7 +22,7 @@ import webhookRoutes from "./routes/webhook.routes.js";
 
 import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 
-dotenv.config();
+import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
 app.use(cors());
@@ -33,7 +36,7 @@ app.use("/auth", authRoutes);
 
 app.use("/dev", devRoutes);
 
-app.use("/eventos", eventosRoutes);
+app.use("/eventos", authMiddleware, eventosRoutes);
 app.use("/equipes", equipeRoutes);
 app.use("/inscricoes", inscricoesRoutes);
 app.use("/pessoas", pessoasRoutes);
@@ -48,7 +51,7 @@ app.use("/api", pagamentoRoutes);
 app.use("/webhook", webhookRoutes);
 
 app.get("/", (req, res) => {
-  res.send("🚀 Backend ECC (modelo pessoas/teamrole/inscricoes) funcionando!");
+  res.send("🚀 Backend ECC funcionando!");
 });
 
 const PORT = process.env.PORT || 3001;
