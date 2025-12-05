@@ -3,61 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard • ECC</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-top: 10px;
-      margin-right: 5px;
-    }
-
-    .logout-btn {
-      background: #e63946;
-      color: white;
-      float: right;
-    }
-
-    .nav-btn {
-      background: #457b9d;
-      color: white;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-
-    th {
-      background: #eee;
-    }
-  </style>
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 
 <body>
@@ -69,11 +16,12 @@
   <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('teamrole')">Team Role</button>
-  <button class="nav-btn" onclick="goTo('equipes_evento')">Equipe x Evento</button>
-  <button class="nav-btn" onclick="goTo('regras')">Regras</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+
+
 
   <h1>Dashboard ECC</h1>
 
@@ -109,6 +57,52 @@
     </table>
   </div>
 
+  <!-- Coordenadores -->
+  <div class="card">
+    <h2>Coordenadores das equipes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pessoa</th>
+          <th>Equipe</th>
+          <th>Email</th>
+          <th>Telefone</th>
+        </tr>
+      </thead>
+      <tbody id="coordenadores-list"></tbody>
+    </table>
+  </div>
+
+  <!-- Pessoas — Encontreiros -->
+  <div class="card">
+    <h2>Pessoas — Encontreiros</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+        </tr>
+      </thead>
+      <tbody id="encontreiros-list"></tbody>
+    </table>
+  </div>
+
+  <!-- Encontristas -->
+  <div class="card">
+    <h2>Pessoas — Encontristas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+        </tr>
+      </thead>
+      <tbody id="encontristas-list"></tbody>
+    </table>
+  </div>
+
   <!-- Pessoas -->
   <div class="card">
     <h2>Pessoas cadastradas</h2>
@@ -124,51 +118,51 @@
     </table>
   </div>
 
-<script>
-  // ====================================
-  // 🔐 Autenticação
-  // ====================================
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  <script>
+    // ====================================
+    // 🔐 Autenticação
+    // ====================================
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-  if (!token) {
-    window.location.href = "./auth-login.html";
-  }
+    if (!token) {
+      window.location.href = "./auth-login.html";
+    }
 
-  document.getElementById("user-email").innerText = user?.email ?? "";
+    document.getElementById("user-email").innerText = user?.email ?? "";
 
 
-  // ====================================
-  // 🔓 Logout
-  // ====================================
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "./auth-login.html";
-  }
+    // ====================================
+    // 🔓 Logout
+    // ====================================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
 
-  // ====================================
-  // 🔄 Navegação
-  // ====================================
-  function goTo(page) {
-    window.location.href = `./${page}.html`;
-  }
+    // ====================================
+    // 🔄 Navegação
+    // ====================================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
 
-  // ====================================
-  // 📌 CARREGAR DADOS DO BACKEND
-  // ====================================
+    // ====================================
+    // 📌 CARREGAR DADOS DO BACKEND
+    // ====================================
 
-  async function carregarEventos() {
-    const res = await fetch("http://localhost:3001/eventos", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const eventos = await res.json();
+    async function carregarEventos() {
+      const res = await fetch("http://localhost:3001/eventos", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const eventos = await res.json();
 
-    const tbody = document.getElementById("eventos-list");
-    tbody.innerHTML = "";
+      const tbody = document.getElementById("eventos-list");
+      tbody.innerHTML = "";
 
-    eventos.forEach(e => {
-      tbody.innerHTML += `
+      eventos.forEach(e => {
+        tbody.innerHTML += `
         <tr>
           <td>${e.nome}</td>
           <td>${e.local}</td>
@@ -176,55 +170,147 @@
           <td>${e.capacity ?? "-"}</td>
         </tr>
       `;
-    });
-  }
+      });
+    }
 
-  async function carregarEquipes() {
-    const res = await fetch("http://localhost:3001/equipes", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const equipes = await res.json();
+    async function carregarEquipes() {
+      const res = await fetch("http://localhost:3001/equipes", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const equipes = await res.json();
 
-    const tbody = document.getElementById("equipes-list");
-    tbody.innerHTML = "";
+      const tbody = document.getElementById("equipes-list");
+      tbody.innerHTML = "";
 
-    equipes.forEach(eq => {
-      tbody.innerHTML += `
+      equipes.forEach(eq => {
+        tbody.innerHTML += `
         <tr>
           <td>${eq.nome}</td>
           <td>${eq.descricao ?? "-"}</td>
         </tr>
       `;
-    });
-  }
+      });
+    }
 
-  async function carregarPessoas() {
-    const res = await fetch("http://localhost:3001/pessoas", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const pessoas = await res.json();
+    async function carregarCoordenadores() {
+      const res = await fetch("http://localhost:3001/teamrole", {
+        headers: { Authorization: "Bearer " + token }
+      });
 
-    const tbody = document.getElementById("pessoas-list");
-    tbody.innerHTML = "";
+      const vinculos = await res.json();
+      const tbody = document.getElementById("coordenadores-list");
+      tbody.innerHTML = "";
 
-    pessoas.forEach(p => {
-      tbody.innerHTML += `
+      vinculos
+        .filter(v => v.is_leader === true)
+        .forEach(v => {
+          tbody.innerHTML += `
+        <tr>
+          <td>${v.pessoa?.nome ?? "-"}</td>
+          <td>${v.equipe?.nome ?? "-"}</td>
+          <td>${v.pessoa?.email ?? "-"}</td>
+          <td>${v.pessoa?.telefone ?? "-"}</td>
+        </tr>
+      `;
+        });
+    }
+
+
+    async function carregarEncontreiros() {
+      try {
+        const res = await fetch("http://localhost:3001/inscricoes", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const inscricoes = await res.json();
+
+        const tbody = document.getElementById("encontreiros-list");
+        tbody.innerHTML = "";
+
+        inscricoes
+          .filter(i => i.tipo?.toUpperCase() === "ENCONTREIRO")
+          .forEach(i => {
+            const p = i.pessoa; // pessoa já vem no JSON
+
+            tbody.innerHTML += `
+          <tr>
+            <td>${p?.nome ?? "-"}</td>
+            <td>${p?.email ?? "-"}</td>
+            <td>${p?.telefone ?? "-"}</td>
+          </tr>
+        `;
+          });
+
+      } catch (error) {
+        console.error("Erro ao carregar encontreiros:", error);
+      }
+    }
+
+
+
+
+    async function carregarEncontristas() {
+      try {
+        const res = await fetch("http://localhost:3001/inscricoes", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const inscricoes = await res.json();
+
+        const tbody = document.getElementById("encontristas-list");
+        tbody.innerHTML = "";
+
+        inscricoes
+          .filter(i => i.tipo?.toUpperCase() === "ENCONTRISTA")
+          .forEach(i => {
+            const p = i.pessoa;
+
+            tbody.innerHTML += `
+          <tr>
+            <td>${p?.nome ?? "-"}</td>
+            <td>${p?.email ?? "-"}</td>
+            <td>${p?.telefone ?? "-"}</td>
+          </tr>
+        `;
+          });
+
+      } catch (error) {
+        console.error("Erro ao carregar encontristas:", error);
+      }
+    }
+
+
+    async function carregarPessoas() {
+      const res = await fetch("http://localhost:3001/pessoas", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const pessoas = await res.json();
+
+      const tbody = document.getElementById("pessoas-list");
+      tbody.innerHTML = "";
+
+      pessoas.forEach(p => {
+        tbody.innerHTML += `
         <tr>
           <td>${p.nome}</td>
           <td>${p.email ?? "-"}</td>
           <td>${p.telefone ?? "-"}</td>
         </tr>
       `;
-    });
-  }
+      });
+    }
 
-  // ====================================
-  // ▶ INICIALIZAR
-  // ====================================
-  carregarEventos();
-  carregarEquipes();
-  carregarPessoas();
-</script>
+    // ====================================
+    // ▶ INICIALIZAR
+    // ====================================
+    carregarEventos();
+    carregarEquipes();
+    carregarCoordenadores();
+    carregarEncontreiros();
+    carregarEncontristas();
+    carregarPessoas();
+  </script>
 
 </body>
+
 </html>

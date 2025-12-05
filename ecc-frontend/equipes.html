@@ -4,58 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    .logout-btn {
-      background: #e63946;
-      color: white;
-      float: right;
-    }
-
-    .nav-btn {
-      background: #457b9d;
-      color: white;
-      margin-right: 5px;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-
-    th {
-      background: #eee;
-    }
-  </style>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 
 <body>
@@ -67,11 +16,28 @@
   <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('teamrole')">Regras</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+
 
   <h1>Gerenciar Equipes</h1>
+
+  <div class="card">
+    <h2>Equipes cadastradas</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="lista-equipes"></tbody>
+    </table>
+  </div>
 
   <div class="card">
     <h2>Criar / Editar Equipe</h2>
@@ -89,65 +55,49 @@
       <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
     </form>
   </div>
+  <script>
+    // ============================
+    // 🔐 AUTENTICAÇÃO
+    // ============================
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-  <div class="card">
-    <h2>Equipes cadastradas</h2>
+    if (!token) {
+      window.location.href = "./auth-login.html";
+    }
 
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Descrição</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="lista-equipes"></tbody>
-    </table>
-  </div>
+    // ============================
+    // 🔓 Logout
+    // ============================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
 
-<script>
-  // ============================
-  // 🔐 AUTENTICAÇÃO
-  // ============================
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+    // ============================
+    // 🔄 Navegação
+    // ============================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
 
-  if (!token) {
-    window.location.href = "./auth-login.html";
-  }
+    const API_URL = "http://localhost:3001/equipes";
 
-  // ============================
-  // 🔓 Logout
-  // ============================
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "./auth-login.html";
-  }
+    // ============================
+    // 📌 LISTAR EQUIPES
+    // ============================
+    async function listarEquipes() {
+      const res = await fetch(API_URL, {
+        headers: { Authorization: "Bearer " + token }
+      });
 
-  // ============================
-  // 🔄 Navegação
-  // ============================
-  function goTo(page) {
-    window.location.href = `./${page}.html`;
-  }
+      const equipes = await res.json();
+      const tbody = document.getElementById("lista-equipes");
+      tbody.innerHTML = "";
 
-  const API_URL = "http://localhost:3001/equipes";
-
-  // ============================
-  // 📌 LISTAR EQUIPES
-  // ============================
-  async function listarEquipes() {
-    const res = await fetch(API_URL, {
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    const equipes = await res.json();
-    const tbody = document.getElementById("lista-equipes");
-    tbody.innerHTML = "";
-
-    equipes.forEach(eq => {
-      tbody.innerHTML += `
+      equipes.forEach(eq => {
+        tbody.innerHTML += `
         <tr>
           <td>${eq.nome}</td>
           <td>${eq.descricao ?? "-"}</td>
@@ -157,86 +107,87 @@
           </td>
         </tr>
       `;
-    });
-  }
-
-  // ============================
-  // 📌 SALVAR (CRIAR OU EDITAR)
-  // ============================
-  async function salvarEquipe(event) {
-    event.preventDefault();
-
-    const id = document.getElementById("equipe_id").value;
-    const payload = {
-      nome: document.getElementById("nome").value,
-      descricao: document.getElementById("descricao").value
-    };
-
-    const method = id ? "PUT" : "POST";
-    const url = id ? `${API_URL}/${id}` : API_URL;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      alert("Erro ao salvar equipe");
-      return;
+      });
     }
 
-    alert("Equipe salva!");
-    cancelarEdicao();
+    // ============================
+    // 📌 SALVAR (CRIAR OU EDITAR)
+    // ============================
+    async function salvarEquipe(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("equipe_id").value;
+      const payload = {
+        nome: document.getElementById("nome").value,
+        descricao: document.getElementById("descricao").value
+      };
+
+      const method = id ? "PUT" : "POST";
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        alert("Erro ao salvar equipe");
+        return;
+      }
+
+      alert("Equipe salva!");
+      cancelarEdicao();
+      listarEquipes();
+    }
+
+    // ============================
+    // 📌 EDITAR
+    // ============================
+    async function editarEquipe(id) {
+      const res = await fetch(`${API_URL}/${id}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const eq = await res.json();
+
+      document.getElementById("equipe_id").value = eq.id;
+      document.getElementById("nome").value = eq.nome;
+      document.getElementById("descricao").value = eq.descricao;
+
+      document.getElementById("btnCancelar").style.display = "inline-block";
+    }
+
+    // ============================
+    // 📌 CANCELAR EDIÇÃO
+    // ============================
+    function cancelarEdicao() {
+      document.getElementById("equipe_id").value = "";
+      document.getElementById("formEquipe").reset();
+      document.getElementById("btnCancelar").style.display = "none";
+    }
+
+    // ============================
+    // 📌 EXCLUIR
+    // ============================
+    async function excluirEquipe(id) {
+      if (!confirm("Excluir esta equipe?")) return;
+
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      listarEquipes();
+    }
+
+    // ▶ INICIAR
     listarEquipes();
-  }
-
-  // ============================
-  // 📌 EDITAR
-  // ============================
-  async function editarEquipe(id) {
-    const res = await fetch(`${API_URL}/${id}`, {
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    const eq = await res.json();
-
-    document.getElementById("equipe_id").value = eq.id;
-    document.getElementById("nome").value = eq.nome;
-    document.getElementById("descricao").value = eq.descricao;
-
-    document.getElementById("btnCancelar").style.display = "inline-block";
-  }
-
-  // ============================
-  // 📌 CANCELAR EDIÇÃO
-  // ============================
-  function cancelarEdicao() {
-    document.getElementById("equipe_id").value = "";
-    document.getElementById("formEquipe").reset();
-    document.getElementById("btnCancelar").style.display = "none";
-  }
-
-  // ============================
-  // 📌 EXCLUIR
-  // ============================
-  async function excluirEquipe(id) {
-    if (!confirm("Excluir esta equipe?")) return;
-
-    await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    listarEquipes();
-  }
-
-  // ▶ INICIAR
-  listarEquipes();
-</script>
+  </script>
 
 </body>
+
 </html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Equipe x Evento</button>
+  <button class="nav-btn" onclick="goTo('regras')">Regras</button>
+
+
+  <h1>Regras do Sistema</h1>
+
+  <h23>Vincula uma pessoa a equipe</h3>
+
+  <div class="card">
+    <h2>Criar / Editar Regra</h2>
+
+    <div class="card">
+      <h2>Regras cadastradas</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Ativa?</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="lista-regras"></tbody>
+      </table>
+    </div>
+
+    <form id="formRegra" onsubmit="salvarRegra(event)">
+      <input type="hidden" id="regra_id">
+
+      <label>Título:</label>
+      <input id="titulo" required>
+
+      <label>Descrição:</label>
+      <textarea id="descricao" rows="4" required></textarea>
+
+      <label>
+        <input type="checkbox" id="ativo">
+        Ativa?
+      </label>
+
+      <button type="submit">Salvar</button>
+      <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">
+        Cancelar
+      </button>
+    </form>
+  </div>
+  <script>
+    // ============================
+    // 🔐 Autenticação
+    // ============================
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "./auth-login.html";
+
+    // ============================
+    // 🔓 Logout
+    // ============================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
+
+    // ============================
+    // 🔄 Navegação
+    // ============================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
+
+    const API_REGRAS = "http://localhost:3001/teamrole";
+
+    // ============================
+    // 📌 Listar regras
+    // ============================
+    async function listarRegras() {
+      const res = await fetch(API_REGRAS, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const regras = await res.json();
+      const tbody = document.getElementById("lista-regras");
+      tbody.innerHTML = "";
+
+      regras.forEach(r => {
+        tbody.innerHTML += `
+        <tr>
+          <td>${r.titulo}</td>
+          <td>${r.ativo ? "Sim" : "Não"}</td>
+          <td>
+            <button onclick="editarRegra('${r.id}')">Editar</button>
+            <button onclick="excluirRegra('${r.id}')">Excluir</button>
+          </td>
+        </tr>
+      `;
+      });
+    }
+
+    // ============================
+    // 📌 Criar/Editar regra
+    // ============================
+    async function salvarRegra(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("regra_id").value;
+
+      const payload = {
+        titulo: document.getElementById("titulo").value,
+        descricao: document.getElementById("descricao").value,
+        ativo: document.getElementById("ativo").checked
+      };
+
+      const url = id ? `${API_REGRAS}/${id}` : API_REGRAS;
+      const method = id ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        alert("Erro ao salvar regra");
+        return;
+      }
+
+      alert("Regra salva com sucesso!");
+      cancelarEdicao();
+      listarRegras();
+    }
+
+    // ============================
+    // 📌 Editar regra
+    // ============================
+    async function editarRegra(id) {
+      const res = await fetch(`${API_REGRAS}/${id}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const r = await res.json();
+
+      document.getElementById("regra_id").value = r.id;
+      document.getElementById("titulo").value = r.titulo;
+      document.getElementById("descricao").value = r.descricao;
+      document.getElementById("ativo").checked = r.ativo;
+
+      document.getElementById("btnCancelar").style.display = "inline-block";
+    }
+
+    // ============================
+    // 📌 Cancelar edição
+    // ============================
+    function cancelarEdicao() {
+      document.getElementById("regra_id").value = "";
+      document.getElementById("formRegra").reset();
+      document.getElementById("btnCancelar").style.display = "none";
+    }
+
+    // ============================
+    // 📌 Excluir regra
+    // ============================
+    async function excluirRegra(id) {
+      if (!confirm("Tem certeza que deseja excluir esta regra?")) return;
+
+      await fetch(`${API_REGRAS}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      listarRegras();
+    }
+
+    // ▶ INICIAR
+    listarRegras();
+
+  </script>
+
+</body>
+
+</html>

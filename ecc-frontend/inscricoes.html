@@ -3,70 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Inscrições • ECC</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    .logout-btn {
-      background: #e63946;
-      color: white;
-      float: right;
-    }
-
-    .nav-btn {
-      background: #457b9d;
-      color: white;
-      margin-right: 5px;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-
-    th {
-      background: #eee;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-    }
-  </style>
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 
 <body>
@@ -78,11 +16,30 @@
   <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('teamrole')">Regras</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+
 
   <h1>Gerenciar Inscrições</h1>
+
+  <div class="card">
+    <h2>Inscrições cadastradas</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Pessoa</th>
+          <th>Evento</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="lista-inscricoes"></tbody>
+    </table>
+  </div>
 
   <div class="card">
     <h2>Criar / Editar Inscrição</h2>
@@ -113,90 +70,93 @@
       <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
     </form>
   </div>
+  <script>
+    // ============================
+    // 🔐 Autenticação
+    // ============================
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "./auth-login.html";
 
-  <div class="card">
-    <h2>Inscrições cadastradas</h2>
+    // ============================
+    // 🔓 Logout
+    // ============================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
 
-    <table>
-      <thead>
-        <tr>
-          <th>Pessoa</th>
-          <th>Evento</th>
-          <th>Tipo</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="lista-inscricoes"></tbody>
-    </table>
-  </div>
+    // ============================
+    // 🔄 Navegação
+    // ============================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
 
-<script>
-  // ============================
-  // 🔐 Autenticação
-  // ============================
-  const token = localStorage.getItem("token");
-  if (!token) window.location.href = "./auth-login.html";
+    const API_INSCRICOES = "http://localhost:3001/inscricoes";
+    const API_PESSOAS = "http://localhost:3001/pessoas";
+    const API_EVENTOS = "http://localhost:3001/eventos";
 
-  // ============================
-  // 🔓 Logout
-  // ============================
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "./auth-login.html";
-  }
+    // ============================
+    // 📌 Carregar listas (pessoas + eventos)
+    // ============================
+    async function carregarPessoasEeventos() {
+      const pessoasRes = await fetch(API_PESSOAS, {
+        headers: { Authorization: "Bearer " + token }
+      });
 
-  // ============================
-  // 🔄 Navegação
-  // ============================
-  function goTo(page) {
-    window.location.href = `./${page}.html`;
-  }
+      const eventosRes = await fetch(API_EVENTOS, {
+        headers: { Authorization: "Bearer " + token }
+      });
 
-  const API_INSCRICOES = "http://localhost:3001/inscricoes";
-  const API_PESSOAS = "http://localhost:3001/pessoas";
-  const API_EVENTOS = "http://localhost:3001/eventos";
+      const inscricoesRes = await fetch(API_INSCRICOES, {
+        headers: { Authorization: "Bearer " + token }
+      });
 
-  // ============================
-  // 📌 Carregar listas (pessoas + eventos)
-  // ============================
-  async function carregarPessoasEeventos() {
-    const pessoasRes = await fetch(API_PESSOAS, { headers: { Authorization: "Bearer " + token } });
-    const eventosRes = await fetch(API_EVENTOS, { headers: { Authorization: "Bearer " + token } });
+      const pessoas = await pessoasRes.json();
+      const eventos = await eventosRes.json();
+      const inscricoes = await inscricoesRes.json();
 
-    const pessoas = await pessoasRes.json();
-    const eventos = await eventosRes.json();
+      const pessoaSelect = document.getElementById("pessoa_id");
+      const eventoSelect = document.getElementById("evento_id");
 
-    const pessoaSelect = document.getElementById("pessoa_id");
-    const eventoSelect = document.getElementById("evento_id");
+      pessoaSelect.innerHTML = "";
+      eventoSelect.innerHTML = "";
 
-    pessoaSelect.innerHTML = "";
-    eventoSelect.innerHTML = "";
+      // 📌 Lista de pessoas já inscritas
+      const pessoasInscritasIDs = inscricoes.map(i => i.pessoa_id);
 
-    pessoas.forEach(p => {
-      pessoaSelect.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
-    });
+      // 📌 Filtrar pessoas NÃO inscritas
+      const pessoasDisponiveis = pessoas.filter(
+        p => !pessoasInscritasIDs.includes(p.id)
+      );
 
-    eventos.forEach(ev => {
-      eventoSelect.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
-    });
-  }
+      // 📌 Preencher select com pessoas não inscritas
+      pessoasDisponiveis.forEach(p => {
+        pessoaSelect.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+      });
 
-  // ============================
-  // 📌 Listar inscrições
-  // ============================
-  async function listarInscricoes() {
-    const res = await fetch(API_INSCRICOES, {
-      headers: { Authorization: "Bearer " + token }
-    });
+      // 📌 Preencher lista de eventos
+      eventos.forEach(ev => {
+        eventoSelect.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+      });
+    }
 
-    const inscricoes = await res.json();
-    const tbody = document.getElementById("lista-inscricoes");
-    tbody.innerHTML = "";
 
-    inscricoes.forEach(i => {
-      tbody.innerHTML += `
+    // ============================
+    // 📌 Listar inscrições
+    // ============================
+    async function listarInscricoes() {
+      const res = await fetch(API_INSCRICOES, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const inscricoes = await res.json();
+      const tbody = document.getElementById("lista-inscricoes");
+      tbody.innerHTML = "";
+
+      inscricoes.forEach(i => {
+        tbody.innerHTML += `
         <tr>
           <td>${i.pessoa?.nome ?? "-"}</td>
           <td>${i.evento?.nome ?? "-"}</td>
@@ -208,88 +168,89 @@
           </td>
         </tr>
       `;
-    });
-  }
+      });
+    }
 
-  // ============================
-  // 📌 Criar/Editar
-  // ============================
-  async function salvarInscricao(event) {
-    event.preventDefault();
+    // ============================
+    // 📌 Criar/Editar
+    // ============================
+    async function salvarInscricao(event) {
+      event.preventDefault();
 
-    const id = document.getElementById("inscricao_id").value;
+      const id = document.getElementById("inscricao_id").value;
 
-    const payload = {
-      pessoa_id: document.getElementById("pessoa_id").value,
-      evento_id: document.getElementById("evento_id").value,
-      tipo: document.getElementById("tipo").value,
-      status: document.getElementById("status").value
-    };
+      const payload = {
+        pessoa_id: document.getElementById("pessoa_id").value,
+        evento_id: document.getElementById("evento_id").value,
+        tipo: document.getElementById("tipo").value,
+        status: document.getElementById("status").value
+      };
 
-    const url = id ? `${API_INSCRICOES}/${id}` : API_INSCRICOES;
-    const method = id ? "PUT" : "POST";
+      const url = id ? `${API_INSCRICOES}/${id}` : API_INSCRICOES;
+      const method = id ? "PUT" : "POST";
 
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(payload)
-    });
+      await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
 
-    alert("Inscrição salva!");
-    cancelarEdicao();
+      alert("Inscrição salva!");
+      cancelarEdicao();
+      listarInscricoes();
+    }
+
+    // ============================
+    // 📌 Editar
+    // ============================
+    async function editarInscricao(id) {
+      const res = await fetch(`${API_INSCRICOES}/${id}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const i = await res.json();
+
+      document.getElementById("inscricao_id").value = i.id;
+      document.getElementById("pessoa_id").value = i.pessoa_id;
+      document.getElementById("evento_id").value = i.evento_id;
+      document.getElementById("tipo").value = i.tipo;
+      document.getElementById("status").value = i.status;
+
+      document.getElementById("btnCancelar").style.display = "inline-block";
+    }
+
+    // ============================
+    // 📌 Cancelar edição
+    // ============================
+    function cancelarEdicao() {
+      document.getElementById("inscricao_id").value = "";
+      document.getElementById("formInscricao").reset();
+      document.getElementById("btnCancelar").style.display = "none";
+    }
+
+    // ============================
+    // 📌 Excluir
+    // ============================
+    async function excluirInscricao(id) {
+      if (!confirm("Excluir esta inscrição?")) return;
+
+      await fetch(`${API_INSCRICOES}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      listarInscricoes();
+    }
+
+    // ▶ INICIAR
+    carregarPessoasEeventos();
     listarInscricoes();
-  }
 
-  // ============================
-  // 📌 Editar
-  // ============================
-  async function editarInscricao(id) {
-    const res = await fetch(`${API_INSCRICOES}/${id}`, {
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    const i = await res.json();
-
-    document.getElementById("inscricao_id").value = i.id;
-    document.getElementById("pessoa_id").value = i.pessoa_id;
-    document.getElementById("evento_id").value = i.evento_id;
-    document.getElementById("tipo").value = i.tipo;
-    document.getElementById("status").value = i.status;
-
-    document.getElementById("btnCancelar").style.display = "inline-block";
-  }
-
-  // ============================
-  // 📌 Cancelar edição
-  // ============================
-  function cancelarEdicao() {
-    document.getElementById("inscricao_id").value = "";
-    document.getElementById("formInscricao").reset();
-    document.getElementById("btnCancelar").style.display = "none";
-  }
-
-  // ============================
-  // 📌 Excluir
-  // ============================
-  async function excluirInscricao(id) {
-    if (!confirm("Excluir esta inscrição?")) return;
-
-    await fetch(`${API_INSCRICOES}/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    listarInscricoes();
-  }
-
-  // ▶ INICIAR
-  carregarPessoasEeventos();
-  listarInscricoes();
-
-</script>
+  </script>
 
 </body>
+
 </html>

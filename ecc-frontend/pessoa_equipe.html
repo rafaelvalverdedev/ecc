@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+
+
+    <h1>Vincular Pessoa à Equipe</h1>
+
+    <div class="card">
+        <h2>Pessoas vinculadas às equipes</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Pessoa</th>
+                    <th>Equipe</th>
+                    <th>Coordenador?</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-vinculos"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Criar / Editar vínculo</h2>
+
+        <form id="formVinculo" onsubmit="salvarVinculo(event)">
+            <input type="hidden" id="teamrole_id">
+
+            <label>Pessoa:</label>
+            <select id="pessoa_id" required></select>
+
+            <label>Equipe:</label>
+            <select id="equipe_id" required></select>
+
+            <label>
+                <input type="checkbox" id="is_leader">É um coordenador?
+            </label>
+
+            <button type="submit">Salvar</button>
+            <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
+        </form>
+    </div>
+
+
+
+    <script>
+        // ============================
+        // AUTENTICAÇÃO
+        // ============================
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "./auth-login.html";
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "./auth-login.html";
+        }
+
+        function goTo(page) {
+            window.location.href = `./${page}.html`;
+        }
+
+        const API_PESSOAS = "http://localhost:3001/pessoas";
+        const API_EQUIPES = "http://localhost:3001/equipes";
+        const API_TEAMROLE = "http://localhost:3001/teamrole";
+
+        // ============================
+        // CARREGAR PESSOAS + EQUIPES
+        // ============================
+        async function carregarSelects() {
+            const pessoasRes = await fetch(API_PESSOAS);
+            const equipesRes = await fetch(API_EQUIPES);
+
+            const pessoas = await pessoasRes.json();
+            const equipes = await equipesRes.json();
+
+            const pessoaSelect = document.getElementById("pessoa_id");
+            const equipeSelect = document.getElementById("equipe_id");
+
+            pessoas.forEach(p => {
+                pessoaSelect.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+            });
+
+            equipes.forEach(e => {
+                equipeSelect.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
+            });
+        }
+
+        // ============================
+        // LISTAR VÍNCULOS
+        // ============================
+        async function listarVinculos() {
+            const res = await fetch(API_TEAMROLE);
+            const lista = await res.json();
+
+            const tbody = document.getElementById("lista-vinculos");
+            tbody.innerHTML = "";
+
+            lista.forEach(v => {
+                tbody.innerHTML += `
+        <tr>
+          <td>${v.pessoa?.nome}</td>
+          <td>${v.equipe?.nome}</td>
+          <td>${v.is_leader ? "Sim" : "Não"}</td>
+          <td>
+            <button onclick="editarVinculo('${v.id}')">Editar</button>
+            <button onclick="excluirVinculo('${v.id}')">Excluir</button>
+          </td>
+        </tr>
+      `;
+            });
+        }
+
+        // ============================
+        // SALVAR (CRIAR / EDITAR)
+        // ============================
+        async function salvarVinculo(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("teamrole_id").value;
+
+            const payload = {
+                pessoa_id: document.getElementById("pessoa_id").value,
+                equipe_id: document.getElementById("equipe_id").value,
+                is_leader: document.getElementById("is_leader").checked
+            };
+
+            const url = id ? `${API_TEAMROLE}/${id}` : API_TEAMROLE;
+            const method = id ? "PUT" : "POST";
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.error || "Erro ao salvar");
+                return;
+            }
+
+            alert("Vínculo salvo!");
+            cancelarEdicao();
+            listarVinculos();
+        }
+
+        // ============================
+        // EDITAR
+        // ============================
+        async function editarVinculo(id) {
+            const res = await fetch(`${API_TEAMROLE}/${id}`);
+            const v = await res.json();
+
+            document.getElementById("teamrole_id").value = v.id;
+            document.getElementById("pessoa_id").value = v.pessoa_id;
+            document.getElementById("equipe_id").value = v.equipe_id;
+            document.getElementById("is_leader").checked = v.is_leader;
+
+            document.getElementById("btnCancelar").style.display = "inline-block";
+        }
+
+        // ============================
+        // CANCELAR EDIÇÃO
+        // ============================
+        function cancelarEdicao() {
+            document.getElementById("teamrole_id").value = "";
+            document.getElementById("formVinculo").reset();
+            document.getElementById("btnCancelar").style.display = "none";
+        }
+
+        // ============================
+        // EXCLUIR
+        // ============================
+        async function excluirVinculo(id) {
+            if (!confirm("Excluir vínculo?")) return;
+
+            await fetch(`${API_TEAMROLE}/${id}`, { method: "DELETE" });
+
+            listarVinculos();
+        }
+
+        // ============================
+        // INICIAR
+        // ============================
+        carregarSelects();
+        listarVinculos();
+    </script>
+
+</body>
+
+</html>

@@ -3,71 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Vínculo Equipe x Evento • ECC</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    .logout-btn {
-      background: #e63946;
-      color: white;
-      float: right;
-    }
-
-    .nav-btn {
-      background: #457b9d;
-      color: white;
-      margin-right: 5px;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-
-    th {
-      background: #eee;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      box-sizing: border-box;
-    }
-  </style>
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 
 <body>
@@ -79,201 +16,292 @@
   <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('teamrole')">Team Role</button>
-  <button class="nav-btn" onclick="goTo('equipes_evento')">Equipe x Evento</button>
-  <button class="nav-btn" onclick="goTo('teamrole')">Regras</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
 
   <h1>Vínculo Equipe x Evento</h1>
 
   <div class="card">
-    <h2>Criar / Editar Vínculo</h2>
-
-    <form id="formVinculo" onsubmit="salvarVinculo(event)">
-      <input type="hidden" id="vinculo_id">
-
-      <label>Evento:</label>
-      <select id="evento_id" required></select>
-
-      <label>Equipe:</label>
-      <select id="equipe_id" required></select>
-
-      <button type="submit">Salvar</button>
-      <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">
-        Cancelar
-      </button>
-    </form>
-  </div>
-
-  <div class="card">
-    <h2>Vínculos cadastrados</h2>
+    <h2>Eventos cadastrados</h2>
 
     <table>
-      <thead>
-        <tr>
-          <th>Evento</th>
-          <th>Equipe</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
       <tbody id="lista-vinculos"></tbody>
     </table>
   </div>
 
-<script>
-  // ============================
-  // 🔐 Autenticação
-  // ============================
-  const token = localStorage.getItem("token");
-  if (!token) window.location.href = "./auth-login.html";
+  <div class="card">
+    <h2>Criar/Atualizar Vínculos</h2>
 
-  // ============================
-  // 🔓 Logout
-  // ============================
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "./auth-login.html";
-  }
+    <label>Evento:</label>
+    <select id="evento_id" onchange="renderizarCheckboxes()" required></select>
 
-  // ============================
-  // 🔄 Navegação
-  // ============================
-  function goTo(page) {
-    window.location.href = `./${page}.html`;
-  }
+    <label>Equipes:</label>
+    <div id="checkboxContainer" class="checkbox-list"></div>
 
-  const API_EVENTOS = "http://localhost:3001/eventos";
-  const API_EQUIPES = "http://localhost:3001/equipes";
-  const API_VINCULOS = "http://localhost:3001/equipe_evento";
+    <button onclick="salvarVinculos()">Salvar Vínculos</button>
+  </div>
 
-  // ============================
-  // 📌 Carregar Eventos e Equipes
-  // ============================
-  async function carregarListas() {
-    const eventosRes = await fetch(API_EVENTOS, { headers: { Authorization: "Bearer " + token } });
-    const equipesRes = await fetch(API_EQUIPES, { headers: { Authorization: "Bearer " + token } });
 
-    const eventos = await eventosRes.json();
-    const equipes = await equipesRes.json();
 
-    const eventoSelect = document.getElementById("evento_id");
-    const equipeSelect = document.getElementById("equipe_id");
+  <script>
+    // ============================
+    // 🔐 Autenticação
+    // ============================
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "./auth-login.html";
 
-    eventoSelect.innerHTML = "";
-    equipeSelect.innerHTML = "";
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
 
-    eventos.forEach(e => {
-      eventoSelect.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
-    });
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
 
-    equipes.forEach(eq => {
-      equipeSelect.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
-    });
-  }
+    const API_EVENTOS = "http://localhost:3001/eventos";
+    const API_EQUIPES = "http://localhost:3001/equipes";
+    const API_VINCULOS = "http://localhost:3001/equipe_evento";
 
-  // ============================
-  // 📌 Listar vínculos
-  // ============================
-  async function listarVinculos() {
-    const res = await fetch(API_VINCULOS, {
-      headers: { Authorization: "Bearer " + token }
-    });
+    let eventos = [];
+    let equipes = [];
+    let vinculos = [];
 
-    const vinculos = await res.json();
-    const tbody = document.getElementById("lista-vinculos");
-    tbody.innerHTML = "";
-
-    vinculos.forEach(v => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${v.evento?.nome ?? "-"}</td>
-          <td>${v.equipe?.nome ?? "-"}</td>
-          <td>
-            <button onclick="editarVinculo('${v.id}')">Editar</button>
-            <button onclick="excluirVinculo('${v.id}')">Excluir</button>
-          </td>
-        </tr>
-      `;
-    });
-  }
-
-  // ============================
-  // 📌 Criar/Editar vínculo
-  // ============================
-  async function salvarVinculo(event) {
-    event.preventDefault();
-
-    const id = document.getElementById("vinculo_id").value;
-
-    const payload = {
-      evento_id: document.getElementById("evento_id").value,
-      equipe_id: document.getElementById("equipe_id").value
+    // Cabeçalho padrão com token
+    const authHeaders = {
+      Authorization: "Bearer " + token
     };
 
-    const url = id ? `${API_VINCULOS}/${id}` : API_VINCULOS;
-    const method = id ? "PUT" : "POST";
+    // ===========================================
+    // 1️⃣ CARREGAR EVENTOS, EQUIPES E VÍNCULOS
+    // ===========================================
+    async function carregarListas() {
+      try {
+        const eventosRes = await fetch(API_EVENTOS, { headers: authHeaders });
+        const equipesRes = await fetch(API_EQUIPES, { headers: authHeaders });
+        const vinculosRes = await fetch(API_VINCULOS, { headers: authHeaders });
 
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(payload)
-    });
+        eventos = await eventosRes.json();
+        equipes = await equipesRes.json();
+        vinculos = await vinculosRes.json();
 
-    alert("Vínculo salvo!");
-    cancelarEdicao();
-    listarVinculos();
-  }
+        const eventoSelect = document.getElementById("evento_id");
+        eventoSelect.innerHTML = "";
 
-  // ============================
-  // 📌 Editar vínculo
-  // ============================
-  async function editarVinculo(id) {
-    const res = await fetch(`${API_VINCULOS}/${id}`, {
-      headers: { Authorization: "Bearer " + token }
-    });
+        eventos.forEach(e => {
+          eventoSelect.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
+        });
 
-    const v = await res.json();
+        // Se tiver ao menos um evento, renderiza os checkboxes
+        if (eventos.length > 0) {
+          renderizarCheckboxes();
+        }
+        listarVinculos();
+      } catch (err) {
+        console.error("Erro ao carregar listas:", err);
+        alert("Erro ao carregar eventos/equipes. Verifique se o backend está rodando e se o token é válido.");
+      }
+    }
 
-    document.getElementById("vinculo_id").value = v.id;
-    document.getElementById("evento_id").value = v.evento_id;
-    document.getElementById("equipe_id").value = v.equipe_id;
+    // ===========================================
+    // 2️⃣ RENDERIZAR LISTA DE CHECKBOXES
+    // ===========================================
+    function renderizarCheckboxes() {
+      const eventoId = document.getElementById("evento_id").value;
+      const container = document.getElementById("checkboxContainer");
 
-    document.getElementById("btnCancelar").style.display = "inline-block";
-  }
+      container.innerHTML = "";
 
-  // ============================
-  // 📌 Cancelar edição
-  // ============================
-  function cancelarEdicao() {
-    document.getElementById("vinculo_id").value = "";
-    document.getElementById("formVinculo").reset();
-    document.getElementById("btnCancelar").style.display = "none";
-  }
+      if (!eventoId) return;
 
-  // ============================
-  // 📌 Excluir vínculo
-  // ============================
-  async function excluirVinculo(id) {
-    if (!confirm("Excluir este vínculo?")) return;
+      // equipes já vinculadas ao evento selecionado
+      const vinculadas = vinculos
+        .filter(v => v.evento_id === eventoId)
+        .map(v => v.equipe_id);
 
-    await fetch(`${API_VINCULOS}/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "Bearer " + token }
-    });
+      equipes.forEach(eq => {
+        const marcado = vinculadas.includes(eq.id) ? "checked" : "";
 
-    listarVinculos();
-  }
+        container.innerHTML += `
+        <div class="checkbox-item">
+          <input type="checkbox" value="${eq.id}" ${marcado}>
+          <label>${eq.nome}</label>
+        </div>
+      `;
+      });
+    }
 
-  // ▶ INICIAR
-  carregarListas();
-  listarVinculos();
+    // ===========================================
+    // 3️⃣ SALVAR MÚLTIPLOS VÍNCULOS DE UMA VEZ
+    // ===========================================
+    async function salvarVinculos() {
+      const eventoId = document.getElementById("evento_id").value;
+      if (!eventoId) {
+        alert("Selecione um evento.");
+        return;
+      }
 
-</script>
+      const checkboxes = document.querySelectorAll("#checkboxContainer input[type='checkbox']");
+      const selecionadas = [];
+      checkboxes.forEach(cb => { if (cb.checked) selecionadas.push(cb.value); });
+
+      // vínculos que o evento já tem no banco
+      const vinculadasAntes = vinculos
+        .filter(v => v.evento_id === eventoId)
+        .map(v => v.equipe_id);
+
+      // criar = marcadas agora mas não estavam antes
+      const paraCriar = selecionadas.filter(id => !vinculadasAntes.includes(id));
+
+      // excluir = estavam antes mas não estão mais marcadas
+      const paraExcluir = vinculadasAntes.filter(id => !selecionadas.includes(id));
+
+      try {
+        // ----- CRIAR NOVOS VÍNCULOS -----
+        for (const equipeId of paraCriar) {
+          await fetch(API_VINCULOS, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders
+            },
+            body: JSON.stringify({ evento_id: eventoId, equipe_id: equipeId })
+          });
+        }
+
+        // ----- EXCLUIR VÍNCULOS DESMARCADOS -----
+        for (const equipeId of paraExcluir) {
+          const vinculo = vinculos.find(v => v.evento_id === eventoId && v.equipe_id === equipeId);
+          if (vinculo) {
+            await fetch(`${API_VINCULOS}/${vinculo.id}`, {
+              method: "DELETE",
+              headers: authHeaders
+            });
+          }
+        }
+
+        alert("Vínculos atualizados com sucesso!");
+
+        // recarregar tudo
+        await atualizarDados();
+      } catch (err) {
+        console.error("Erro ao salvar vínculos:", err);
+        alert("Erro ao salvar vínculos. Veja o console para mais detalhes.");
+      }
+    }
+
+    // ===========================================
+    // 4️⃣ ATUALIZAR LISTA COMPLETA
+    // ===========================================
+    async function atualizarDados() {
+      const vinculosRes = await fetch(API_VINCULOS, { headers: authHeaders });
+      vinculos = await vinculosRes.json();
+
+      renderizarCheckboxes();
+      listarVinculos();
+    }
+
+    // ===========================================
+    // 5️⃣ LISTAR NA TABELA
+    // ===========================================
+    function listarVinculos() {
+      const tbody = document.getElementById("lista-vinculos");
+      tbody.innerHTML = "";
+
+      // Agrupar vínculos por evento
+      const grupos = {};
+
+      vinculos.forEach(v => {
+        const eventoNome = v.evento?.nome ?? "Sem nome";
+        if (!grupos[eventoNome]) grupos[eventoNome] = [];
+        grupos[eventoNome].push(v);
+      });
+
+      const eventosOrdenados = Object.keys(grupos).sort((a, b) =>
+        a.localeCompare(b)
+      );
+
+      eventosOrdenados.forEach(eventoNome => {
+        const lista = grupos[eventoNome];
+        const eventoId = eventoNome.replace(/\s+/g, "_");
+
+        // Linha do evento (CABEÇALHO)
+        tbody.innerHTML += `
+      <tr class="grupo-header" data-id="${eventoId}" style="background:#eef;cursor:pointer;font-weight:bold;">
+        <td colspan="3">▶ ${eventoNome} — ${lista.length} equipe(s)</td>
+      </tr>
+    `;
+
+        // Linhas da equipe (COMEÇAM OCULTAS)
+        lista.forEach(v => {
+          tbody.innerHTML += `
+        <tr class="grupo-linha grupo-${eventoId}" style="display:none;">
+          <td>• ${v.equipe?.nome ?? "-"}</td>
+          <td><button onclick="excluirVinculo('${v.id}')">Excluir</button></td>
+        </tr>
+      `;
+        });
+      });
+
+      ativarToggle();
+    }
+
+
+    // ===========================================
+    // ▶ TOGGLE GRUPO
+    function ativarToggle() {
+      document.querySelectorAll(".grupo-header").forEach(header => {
+        header.onclick = function () {
+          const id = header.dataset.id;
+          const linhas = document.querySelectorAll(".grupo-" + id);
+
+          const aberto = linhas[0]?.style.display !== "none";
+
+          // Fecha todos antes
+          document.querySelectorAll(".grupo-linha").forEach(l => l.style.display = "none");
+          document.querySelectorAll(".grupo-header td").forEach(td => {
+            td.innerText = td.innerText.replace("▼", "▶");
+          });
+
+          // Se estava aberto → fechar
+          if (aberto) {
+            return;
+          }
+
+          // Abrir este grupo
+          linhas.forEach(l => l.style.display = "table-row");
+
+          // Alterar indicador
+          const td = header.querySelector("td");
+          td.innerText = td.innerText.replace("▶", "▼");
+        };
+      });
+    }
+
+
+
+
+
+
+    async function excluirVinculo(id) {
+      if (!confirm("Deseja realmente excluir este vínculo?")) return;
+
+      await fetch(`${API_VINCULOS}/${id}`, {
+        method: "DELETE",
+        headers: authHeaders
+      });
+
+      // Recarrega dados e atualiza tela
+      await atualizarDados();
+    }
+
+    // ▶ INICIAR
+    carregarListas();
+  </script>
 
 </body>
+
 </html>
