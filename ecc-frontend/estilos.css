@@ -121,7 +121,7 @@
    SELECT DE EVENTOS (ESTILO PRO)
    ============================ */
 
-#evento_id {
+#evento_id, #pessoa_id, #criar_pessoa_id, #criar_equipe_id, #editar_pessoa_id, #editar_equipe_id, #tipo, #status {
   width: 100%;
   padding: 12px 14px;
   font-size: 16px;

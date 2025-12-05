@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-
 import express from "express";
 import cors from "cors";
 
@@ -11,16 +10,17 @@ import inscricoesRoutes from "./routes/inscricoes.routes.js";
 import pessoasRoutes from "./routes/pessoas.routes.js";
 import teamroleRoutes from "./routes/teamrole.routes.js";
 import momentosRoutes from "./routes/momentos.routes.js";
-import devRoutes from "./routes/dev.routes.js";
+import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
+import coordenadoresRoutes from "./routes/coordenadores.routes.js";
+
 
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
-import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 
 import pagamentoRoutes from "./routes/pagamento.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
 
-import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
+import devRoutes from "./routes/dev.routes.js";
 
 import { authMiddleware } from "./middlewares/auth.js";
 

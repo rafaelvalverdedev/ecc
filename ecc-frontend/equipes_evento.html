@@ -239,7 +239,7 @@
         lista.forEach(v => {
           tbody.innerHTML += `
         <tr class="grupo-linha grupo-${eventoId}" style="display:none;">
-          <td>• ${v.equipe?.nome ?? "-"}</td>
+          <td>${v.equipe?.nome ?? "-"}</td>
           <td><button onclick="excluirVinculo('${v.id}')">Excluir</button></td>
         </tr>
       `;

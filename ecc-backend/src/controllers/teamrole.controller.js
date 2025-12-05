@@ -164,3 +164,78 @@ export async function listarTeamroles(req, res) {
     return res.status(500).json({ error: "Erro interno ao listar teamroles" });
   }
 }
+
+
+// ======================================================
+// 📌 Buscar um teamrole por ID  (necessária para o EDITAR)
+// ======================================================
+export async function buscarTeamrolePorId(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        pessoa_id,
+        equipe_id,
+        is_leader,
+        pessoa:pessoa_id ( id, nome, email ),
+        equipe:equipe_id ( id, nome )
+      `)
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Erro Supabase:", error);
+      return res.status(404).json({ error: "Vínculo não encontrado" });
+    }
+
+    return res.status(200).json(data);
+
+  } catch (err) {
+    console.error("Erro ao buscar teamrole:", err);
+    return res.status(500).json({ error: "Erro interno ao buscar vínculo" });
+  }
+}
+// ======================================================
+// 📌 Atualizar um teamrole (editar vínculo)
+// ======================================================
+export async function atualizarTeamrole(req, res) {
+  try {
+    const { id } = req.params;
+    const { pessoa_id, equipe_id, is_leader } = req.body;
+
+    // Verificar se o vínculo existe
+    const { data: atual, error: erroBusca } = await supabase
+      .from("teamrole")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (erroBusca || !atual) {
+      return res.status(404).json({ error: "Vínculo não encontrado" });
+    }
+
+    // Atualizar registro
+    const { error } = await supabase
+      .from("teamrole")
+      .update({
+        pessoa_id,
+        equipe_id,
+        is_leader
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro Supabase:", error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json({ message: "Vínculo atualizado com sucesso" });
+
+  } catch (err) {
+    console.error("Erro ao atualizar vínculo:", err);
+    return res.status(500).json({ error: "Erro interno ao atualizar vínculo" });
+  }
+}

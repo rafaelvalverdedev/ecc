@@ -6,10 +6,15 @@ const BASE_URL = "http://localhost:3001";
 /* -----------------------------------
    Função auxiliar para requests
 ----------------------------------- */
+const ADMIN_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOGZmY2ViZS03NTZhLTRlYWYtYjJmMS04NTY5YjRkYTNmZTUiLCJyb2xlIjpudWxsLCJlbWFpbCI6InJhZmFlbHZhbHZlcmRlZm9uc2VjYUBnbWFpbC5jb20iLCJpYXQiOjE3NjQ5NjY5ODAsImV4cCI6MTc2NTA1MzM4MH0.RRLiFMItm2GVFVg4qK138tLgSxRqUsnGKje97FiB0Ek";
+
 async function request(method, endpoint, data = null) {
   const options = {
     method,
-    headers: { "Content-Type": "application/json" }
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + ADMIN_TOKEN
+    }
   };
 
   if (data) options.body = JSON.stringify(data);
@@ -35,7 +40,7 @@ async function runSeed() {
   /* -----------------------------------
      0) APAGAR TUDO (truncate)
   ----------------------------------- */
-  await request("DELETE", "/dev/reset"); 
+  await request("DELETE", "/dev/reset");
   // Você ainda NÃO tem essa rota. 
   // Vou criar ela depois, veja nota ao final.
 
@@ -89,11 +94,11 @@ async function runSeed() {
   /* -----------------------------------
      4) Criar 200 ENCONTREIROS e distribuí-los nas equipes
   ----------------------------------- */
-  console.log("\n📌 Criando 200 encontreiros...");
+  console.log("\n📌 Criando 50 encontreiros...");
 
   const encontreiros = [];
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 50; i++) {
     const pessoa = await request("POST", "/pessoas", {
       nome: faker.person.fullName(),
       email: faker.internet.email(),
