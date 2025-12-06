@@ -84,10 +84,10 @@
       <input type="text" id="nome" required><br>
 
       <label>Email:</label><br>
-      <input type="email" id="email" required><br>
+      <input type="email" id="email"><br>
 
       <label>Telefone:</label><br>
-      <input type="text" id="telefone" required><br>
+      <input type="text" id="telefone"><br>
 
       <label>Tipo de participação:</label><br>
       <select id="tipo_participacao" onchange="tipoSelecionado()" required>
@@ -171,7 +171,7 @@
     }
 
     // =======================
-    // Eventos
+    // Carregar eventos
     // =======================
     async function carregarEventos() {
       const res = await fetch(API_EVENTOS, {
@@ -224,11 +224,7 @@
       document.getElementById("box_evento").classList.add("hidden");
       document.getElementById("box_encontreiro").classList.add("hidden");
 
-      if (tipo === "encontrista") {
-        document.getElementById("box_evento").classList.remove("hidden");
-      }
-
-      if (tipo === "encontreiro") {
+      if (tipo === "encontrista" || tipo === "encontreiro") {
         document.getElementById("box_evento").classList.remove("hidden");
       }
     }
@@ -273,21 +269,7 @@
 
       const pessoa_id = pessoa.id;
 
-      // 2️⃣ Criar Inscrição
-      const resInsc = await fetch(API_INSCRICOES, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pessoa_id,
-          evento_id,
-          tipo,
-          status: "pending"
-        })
-      });
-
-      if (!resInsc.ok) return alert("Erro ao criar inscrição");
-
-      // 3️⃣ Criar vínculo com equipe (somente encontreiro)
+      // 2️⃣ Criar vínculo com equipe (somente encontreiro)
       if (tipo === "encontreiro") {
         const equipe_id = document.getElementById("equipe_id").value;
         const is_leader = document.getElementById("is_leader").checked;
@@ -307,7 +289,22 @@
         if (!resV.ok) return alert("Erro ao criar vínculo com equipe");
       }
 
+      // 3️⃣ Criar inscrição (AGORA funciona!)
+      const resInsc = await fetch(API_INSCRICOES, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pessoa_id,
+          evento_id,
+          tipo,
+          status: "pending"
+        })
+      });
+
+      if (!resInsc.ok) return alert("Erro ao criar inscrição");
+
       alert("Pessoa cadastrada com sucesso!");
+
       document.getElementById("formPessoa").reset();
       document.getElementById("box_evento").classList.add("hidden");
       document.getElementById("box_encontreiro").classList.add("hidden");
