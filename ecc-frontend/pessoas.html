@@ -2,9 +2,45 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Gerenciar Equipes • ECC</title>
+  <meta charset="UTF-8">
+  <title>Gerenciar Pessoas • ECC</title>
   <link rel="stylesheet" href="estilos.css">
+
+  <style>
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 6px 14px;
+    }
+
+    select,
+    input {
+      margin-bottom: 10px;
+      padding: 6px;
+      width: 250px;
+    }
+  </style>
 </head>
 
 <body>
@@ -23,180 +59,264 @@
 
   <h1>Gerenciar Pessoas</h1>
 
+  <!-- LISTA -->
   <div class="card">
-    <h2>Pessoas cadastradas</h2>
-
+    <h2>Pessoas Cadastradas</h2>
     <table>
       <thead>
         <tr>
           <th>Nome</th>
           <th>Email</th>
           <th>Telefone</th>
-          <th>Ações</th>
         </tr>
       </thead>
       <tbody id="lista-pessoas"></tbody>
     </table>
   </div>
 
+  <!-- FORMULÁRIO -->
   <div class="card">
-    <h2>Criar / Editar Pessoa</h2>
+    <h2>Cadastrar Pessoa</h2>
 
     <form id="formPessoa" onsubmit="salvarPessoa(event)">
-      <input type="hidden" id="pessoa_id">
 
-      <label>Nome:</label>
-      <input id="nome" required>
+      <label>Nome:</label><br>
+      <input type="text" id="nome" required><br>
 
-      <label>Email:</label>
-      <input id="email" type="email">
+      <label>Email:</label><br>
+      <input type="email" id="email" required><br>
 
-      <label>Telefone:</label>
-      <input id="telefone">
+      <label>Telefone:</label><br>
+      <input type="text" id="telefone" required><br>
 
-      <button type="submit" id="btnSalvar">Salvar</button>
-      <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
+      <label>Tipo de participação:</label><br>
+      <select id="tipo_participacao" onchange="tipoSelecionado()" required>
+        <option value="">Selecione</option>
+        <option value="">-----</option>
+        <option value="encontrista">Encontrista</option>
+        <option value="encontreiro">Encontreiro</option>
+      </select><br>
+
+      <!-- EVENTO -->
+      <div id="box_evento" class="hidden">
+        <label>Evento:</label><br>
+        <select id="evento_id">
+          <option value="">Selecione</option>
+          <option value="">-----</option>
+        </select><br>
+      </div>
+
+      <!-- ENCONTREIRO -->
+      <div id="box_encontreiro" class="hidden">
+        <label>Equipe:</label><br>
+        <select id="equipe_id">
+          <option value="">Selecione um evento</option>
+        </select><br>
+
+        <label>
+          <input type="checkbox" id="is_leader">
+          É coordenador?
+        </label>
+        <br>
+      </div>
+
+      <button type="submit">Salvar</button>
     </form>
   </div>
+
   <script>
-    // ============================
-    // 🔐 AUTENTICAÇÃO
-    // ============================
+    // =======================
+    // Autenticação
+    // =======================
     const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
+    if (!token) window.location.href = "./auth-login.html";
 
-    if (!token) {
-      window.location.href = "./auth-login.html";
-    }
-
-    // ============================
-    // 🔓 Logout
-    // ============================
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "./auth-login.html";
     }
 
-    // ============================
-    // 🔄 Navegação
-    // ============================
     function goTo(page) {
-      window.location.href = `./${page}.html`;
+      window.location.href = `${page}.html`;
     }
 
-    const API_URL = "http://localhost:3001/pessoas";
+    // APIs
+    const API_PESSOAS = "http://localhost:3001/pessoas";
+    const API_EVENTOS = "http://localhost:3001/eventos";
+    const API_INSCRICOES = "http://localhost:3001/inscricoes";
+    const API_TEAMROLE = "http://localhost:3001/teamrole";
 
-    // ============================
-    // 📌 LISTAR PESSOAS
-    // ============================
+    // =======================
+    // Carregar lista de pessoas
+    // =======================
     async function listarPessoas() {
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_PESSOAS, {
         headers: { Authorization: "Bearer " + token }
       });
 
       const pessoas = await res.json();
       const tbody = document.getElementById("lista-pessoas");
-      tbody.innerHTML = "";
 
+      tbody.innerHTML = "";
       pessoas.forEach(p => {
         tbody.innerHTML += `
-        <tr>
-          <td>${p.nome}</td>
-          <td>${p.email ?? "-"}</td>
-          <td>${p.telefone ?? "-"}</td>
-          <td>
-            <button onclick="editarPessoa('${p.id}')">Editar</button>
-            <button onclick="excluirPessoa('${p.id}')">Excluir</button>
-          </td>
-        </tr>
-      `;
+          <tr>
+            <td>${p.nome}</td>
+            <td>${p.email}</td>
+            <td>${p.telefone}</td>
+          </tr>
+        `;
       });
     }
 
-    // ============================
-    // 📌 SALVAR (CRIAR OU EDITAR)
-    // ============================
+    // =======================
+    // Eventos
+    // =======================
+    async function carregarEventos() {
+      const res = await fetch(API_EVENTOS, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const eventos = await res.json();
+      const eventoSelect = document.getElementById("evento_id");
+
+      eventoSelect.innerHTML = `
+        <option value="">Selecione</option>
+        <option value="">-----</option>
+      `;
+
+      eventos.forEach(ev => {
+        eventoSelect.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+      });
+    }
+
+    // =======================
+    // Carregar equipes do evento
+    // =======================
+    async function carregarEquipesDoEvento(evento_id) {
+      const equipeSelect = document.getElementById("equipe_id");
+
+      equipeSelect.innerHTML = `<option value="">Carregando...</option>`;
+
+      const res = await fetch(`${API_EVENTOS}/${evento_id}/equipes`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const equipes = await res.json();
+
+      equipeSelect.innerHTML = `
+        <option value="">Selecione</option>
+        <option value="">-----</option>
+      `;
+
+      equipes.forEach(eq => {
+        equipeSelect.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
+      });
+    }
+
+    // =======================
+    // Mostrar campos dinâmicos
+    // =======================
+    function tipoSelecionado() {
+      const tipo = document.getElementById("tipo_participacao").value;
+
+      document.getElementById("box_evento").classList.add("hidden");
+      document.getElementById("box_encontreiro").classList.add("hidden");
+
+      if (tipo === "encontrista") {
+        document.getElementById("box_evento").classList.remove("hidden");
+      }
+
+      if (tipo === "encontreiro") {
+        document.getElementById("box_evento").classList.remove("hidden");
+      }
+    }
+
+    document.getElementById("evento_id").addEventListener("change", async function () {
+      const tipo = document.getElementById("tipo_participacao").value;
+      const evento_id = this.value;
+
+      if (tipo === "encontreiro" && evento_id) {
+        await carregarEquipesDoEvento(evento_id);
+        document.getElementById("box_encontreiro").classList.remove("hidden");
+      }
+    });
+
+    // =======================
+    // Salvar pessoa
+    // =======================
     async function salvarPessoa(event) {
       event.preventDefault();
 
-      const id = document.getElementById("pessoa_id").value;
-      const payload = {
-        nome: document.getElementById("nome").value,
-        email: document.getElementById("email").value,
-        telefone: document.getElementById("telefone").value
-      };
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const telefone = document.getElementById("telefone").value;
+      const tipo = document.getElementById("tipo_participacao").value;
+      const evento_id = document.getElementById("evento_id").value;
 
-      const method = id ? "PUT" : "POST";
-      const url = id ? `${API_URL}/${id}` : API_URL;
+      if (!tipo) return alert("Selecione o tipo de participação");
+      if (!evento_id) return alert("Selecione um evento");
 
-      const res = await fetch(url, {
-        method,
+      // 1️⃣ Criar Pessoa
+      const resPessoa = await fetch(API_PESSOAS, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ nome, email, telefone })
       });
 
-      if (!res.ok) {
-        let msg = "Erro ao salvar pessoa";
-        try {
-          const err = await res.json();
-          if (err.error) msg = err.error;
-        } catch (_) { }
-        alert(msg);
-        return;
+      const pessoa = await resPessoa.json();
+      if (!resPessoa.ok) return alert("Erro ao criar pessoa");
+
+      const pessoa_id = pessoa.id;
+
+      // 2️⃣ Criar Inscrição
+      const resInsc = await fetch(API_INSCRICOES, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pessoa_id,
+          evento_id,
+          tipo,
+          status: "pending"
+        })
+      });
+
+      if (!resInsc.ok) return alert("Erro ao criar inscrição");
+
+      // 3️⃣ Criar vínculo com equipe (somente encontreiro)
+      if (tipo === "encontreiro") {
+        const equipe_id = document.getElementById("equipe_id").value;
+        const is_leader = document.getElementById("is_leader").checked;
+
+        if (!equipe_id) return alert("Selecione uma equipe!");
+
+        const resV = await fetch(API_TEAMROLE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pessoa_id,
+            equipe_id,
+            is_leader
+          })
+        });
+
+        if (!resV.ok) return alert("Erro ao criar vínculo com equipe");
       }
 
-      alert("Pessoa salva!");
-      cancelarEdicao();
-      listarPessoas();
-    }
-
-    // ============================
-    // 📌 EDITAR
-    // ============================
-    async function editarPessoa(id) {
-      const res = await fetch(`${API_URL}/${id}`, {
-        headers: { Authorization: "Bearer " + token }
-      });
-
-      const p = await res.json();
-
-      document.getElementById("pessoa_id").value = p.id;
-      document.getElementById("nome").value = p.nome;
-      document.getElementById("email").value = p.email || "";
-      document.getElementById("telefone").value = p.telefone || "";
-
-      document.getElementById("btnCancelar").style.display = "inline-block";
-    }
-
-    // ============================
-    // 📌 CANCELAR EDIÇÃO
-    // ============================
-    function cancelarEdicao() {
-      document.getElementById("pessoa_id").value = "";
+      alert("Pessoa cadastrada com sucesso!");
       document.getElementById("formPessoa").reset();
-      document.getElementById("btnCancelar").style.display = "none";
-    }
-
-    // ============================
-    // 📌 EXCLUIR
-    // ============================
-    async function excluirPessoa(id) {
-      if (!confirm("Excluir esta pessoa?")) return;
-
-      await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token }
-      });
-
+      document.getElementById("box_evento").classList.add("hidden");
+      document.getElementById("box_encontreiro").classList.add("hidden");
       listarPessoas();
     }
 
-    // ▶ INICIAR
+    // Inicialização
     listarPessoas();
+    carregarEventos();
   </script>
 
 </body>

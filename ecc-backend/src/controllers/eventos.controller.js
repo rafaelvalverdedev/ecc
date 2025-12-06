@@ -161,3 +161,38 @@ export async function deletarEvento(req, res) {
     return res.status(500).json({ error: "Erro interno ao deletar evento" });
   }
 }
+
+export async function listarEquipesDoEvento(req, res) {
+  try {
+    const { id } = req.params;
+
+    // 1) Buscar vínculos evento → equipe
+    const { data: vinculos, error: errorVinculo } = await supabase
+      .from("equipes_evento")
+      .select("equipe_id")
+      .eq("evento_id", id);
+
+    if (errorVinculo)
+      return res.status(400).json({ error: errorVinculo.message });
+
+    if (!vinculos || vinculos.length === 0)
+      return res.json([]); // evento sem equipes vinculadas
+
+    const equipeIds = vinculos.map(v => v.equipe_id);
+
+    // 2) Buscar dados das equipes vinculadas
+    const { data: equipes, error: errorEquipe } = await supabase
+      .from("equipes")
+      .select("id, nome")
+      .in("id", equipeIds);
+
+    if (errorEquipe)
+      return res.status(400).json({ error: errorEquipe.message });
+
+    return res.json(equipes);
+
+  } catch (err) {
+    console.error("Erro ao listar equipes do evento:", err);
+    return res.status(500).json({ error: "Erro interno ao listar equipes do evento" });
+  }
+}
