@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+    <button class="logout-btn" onclick="logout()">Sair</button>
+    <br><br>
+
+    <!-- Navegação -->
+    <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+    <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+    <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+    <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+    <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+    <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+    <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+    <h1>Gerenciar Encontreiros</h1>
+
+    <!-- LISTAGEM -->
+    <div class="card">
+        <h2>Encontreiros Cadastrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pessoa</th>
+                    <th>Evento</th>
+                    <th>Equipe</th>
+                    <th>Pago?</th>
+                    <th>Coordenador?</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-encontreiros"></tbody>
+        </table>
+    </div>
+
+    <!-- CADASTRO -->
+    <div class="card" id="box_cadastro">
+        <h2>Cadastrar Encontreiro</h2>
+
+        <form id="formEncontreiro" onsubmit="salvarNovo(event)">
+
+            <label>Nome:</label><br>
+            <input type="text" id="nome"><br>
+
+            <label>Email:</label><br>
+            <input type="email" id="email"><br>
+
+            <label>Telefone:</label>
+            <input type="text" id="telefone"><br>
+
+            <label>Evento:</label>
+            <select id="evento_id" required></select><br>
+
+            <label>Equipe:</label>
+            <select id="equipe_id" required>
+                <option value="">Selecione um evento</option>
+            </select><br>
+
+            <label>
+                <input type="checkbox" id="is_leader">
+                É coordenador?
+            </label>
+
+            <button type="submit">Salvar</button>
+        </form>
+    </div>
+
+    <!-- EDIÇÃO -->
+    <div class="card hidden" id="box_editar">
+        <h2>Editar Encontreiro</h2>
+
+        <form id="formEditar" onsubmit="salvarEdicao(event)">
+
+            <input type="hidden" id="edit_pessoa_id">
+            <input type="hidden" id="edit_teamrole_id">
+
+            <label>Nome:</label><br>
+            <input type="text" id="edit_nome"><br>
+
+            <label>Email:</label><br>
+            <input type="email" id="edit_email"><br>
+
+            <label>Telefone:</label><br>
+            <input type="text" id="edit_telefone"><br>
+
+            <label>Evento:</label><br>
+            <select id="edit_evento_id"></select><br>
+
+            <label>Equipe:</label><br>
+            <select id="edit_equipe_id"></select><br>
+
+            <label>
+                <input type="checkbox" id="edit_is_leader"> É coordenador?
+            </label><br><br>
+
+            <button type="submit">Salvar alterações</button>
+            <button type="button" onclick="cancelarEdicao()">Cancelar</button>
+        </form>
+    </div>
+
+    <script>
+
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "./auth-login.html";
+
+        // NAV
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "./auth-login.html";
+        }
+
+        function goTo(p) {
+            window.location.href = `${p}.html`;
+        }
+
+        const API_PESSOAS = "http://localhost:3001/pessoas";
+        const API_EVENTOS = "http://localhost:3001/eventos";
+        const API_TEAMROLE = "http://localhost:3001/teamrole";
+
+        // -------------------------
+        // CARREGAR EVENTOS
+        // -------------------------
+        async function carregarEventos(select) {
+            const res = await fetch(API_EVENTOS, {
+                headers: { Authorization: "Bearer " + token }
+            });
+            const eventos = await res.json();
+
+            select.innerHTML = `<option value="">Selecione</option>`;
+            eventos.forEach(ev => {
+                select.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+            });
+        }
+
+        // -------------------------
+        // CARREGAR EQUIPES DO EVENTO
+        // -------------------------
+        async function carregarEquipesDoEvento(evento_id, select) {
+            if (!evento_id) return;
+
+            const res = await fetch(`${API_EVENTOS}/${evento_id}/equipes`, {
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            const data = await res.json();
+
+            const equipes = Array.isArray(data) ? data : [];
+
+            select.innerHTML = `<option value="">Selecione</option>`;
+            equipes.forEach(eq => {
+                select.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
+            });
+        }
+
+        // Eventos mudanças
+        document.addEventListener("DOMContentLoaded", () => {
+            evento_id.addEventListener("change", async function () {
+                await carregarEquipesDoEvento(this.value, equipe_id);
+            });
+
+            edit_evento_id.addEventListener("change", async function () {
+                await carregarEquipesDoEvento(this.value, edit_equipe_id);
+            });
+        });
+
+        // -------------------------
+        // LISTAR
+        // -------------------------
+        async function listarEncontreiros() {
+            const res = await fetch(API_TEAMROLE, {
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            const lista = await res.json();
+            const tbody = document.getElementById("lista-encontreiros");
+
+            tbody.innerHTML = "";
+
+            lista.forEach(tr => {
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${tr.pessoa?.nome ?? "-"}</td>
+                    <td>${tr.evento?.nome ?? "-"}</td>
+                    <td>${tr.equipe?.nome ?? "-"}</td>
+                    <td> ${tr.pagou ? "Sim" : "Não"}
+                    </td>
+                    <td>${tr.is_leader ? "Sim" : "Não"}</td>
+                    <td>
+                        <button onclick="editar('${tr.id}')">Editar</button>
+                        <button onclick="excluir('${tr.id}', '${tr.pessoa_id}')">Excluir</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // -------------------------
+        // CADASTRAR
+        // -------------------------
+        async function salvarNovo(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById("nome").value;
+            const email = document.getElementById("email").value;
+            const telefone = document.getElementById("telefone").value;
+
+            const eventoSelecionado = document.getElementById("evento_id").value;
+            const equipeSelecionada = document.getElementById("equipe_id").value;
+            const isLeader = document.getElementById("is_leader").checked;
+
+            // 1) Criar pessoa
+            const resPessoa = await fetch(API_PESSOAS, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({ nome, email, telefone })
+            });
+
+            const pessoa = await resPessoa.json();
+            if (!resPessoa.ok) return alert("Erro ao criar pessoa");
+
+            // 2) Criar vínculo teamrole
+            const resTeam = await fetch(API_TEAMROLE, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({
+                    pessoa_id: pessoa.id,
+                    evento_id: eventoSelecionado,
+                    equipe_id: equipeSelecionada,
+                    is_leader: isLeader
+                })
+            });
+
+            if (!resTeam.ok) return alert("Erro ao vincular encontreiro");
+
+            alert("Encontreiro cadastrado com sucesso!");
+
+            formEncontreiro.reset();
+            listarEncontreiros();
+        }
+
+        // -------------------------
+        // EDITAR
+        // -------------------------
+        async function editar(id) {
+            const res = await fetch(`${API_TEAMROLE}/${id}`, {
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            const tr = await res.json();
+
+            edit_teamrole_id.value = tr.id;
+            edit_pessoa_id.value = tr.pessoa_id;
+
+            edit_nome.value = tr.pessoa?.nome ?? "";
+            edit_email.value = tr.pessoa?.email ?? "";
+            edit_telefone.value = tr.pessoa?.telefone ?? "";
+
+            await carregarEventos(edit_evento_id);
+            edit_evento_id.value = tr.evento_id;
+
+            await carregarEquipesDoEvento(tr.evento_id, edit_equipe_id);
+            edit_equipe_id.value = tr.equipe_id;
+
+            edit_is_leader.checked = tr.is_leader;
+
+            box_cadastro.classList.add("hidden");
+            box_editar.classList.remove("hidden");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // -------------------------
+        // SALVAR EDIÇÃO
+        // -------------------------
+        async function salvarEdicao(event) {
+            event.preventDefault();
+
+            const id = edit_teamrole_id.value;
+
+            const pessoa_id = edit_pessoa_id.value;
+            const nome = edit_nome.value;
+            const email = edit_email.value;
+            const telefone = edit_telefone.value;
+
+            const evento_id = edit_evento_id.value;
+            const equipe_id = edit_equipe_id.value;
+            const is_leader = edit_is_leader.checked;
+
+            // Atualiza pessoa
+            await fetch(`${API_PESSOAS}/${pessoa_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({ nome, email, telefone })
+            });
+
+            // Atualiza vínculo
+            await fetch(`${API_TEAMROLE}/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({
+                    pessoa_id,
+                    equipe_id,
+                    evento_id,
+                    is_leader
+                })
+            });
+
+            alert("Alterações salvas!");
+
+            cancelarEdicao();
+            listarEncontreiros();
+        }
+
+        // -------------------------
+        // CANCELAR EDIÇÃO
+        // -------------------------
+        function cancelarEdicao() {
+            box_editar.classList.add("hidden");
+            box_cadastro.classList.remove("hidden");
+            formEditar.reset();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // -------------------------
+        // REMOVER
+        // -------------------------
+        async function excluir(teamrole_id, pessoa_id) {
+            if (!confirm("Tem certeza que deseja excluir?")) return;
+
+            // 1. Apaga o vínculo
+            await fetch(`${API_TEAMROLE}/${teamrole_id}`, {
+                method: "DELETE",
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            // 2. Apaga a pessoa
+            await fetch(`${API_PESSOAS}/${pessoa_id}`, {
+                method: "DELETE",
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            listarEncontreiros();
+        }
+
+        // Início
+        listarEncontreiros();
+        carregarEventos(evento_id);
+
+    </script>
+</body>
+
+</html>

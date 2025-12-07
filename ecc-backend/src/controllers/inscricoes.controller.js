@@ -9,120 +9,41 @@ export const inscricaoSchema = z.object({
   }),
 });
 
-
-// =========================
-// Criar inscrição
-// =========================
+// ======================================================
+// 📌 CRIAR INSCRIÇÃO (APENAS ENCONTRISTA)
+// ======================================================
 export async function criarInscricao(req, res) {
   try {
-    // 1) Validação ZOD
     const parseResult = inscricaoSchema.safeParse(req.body);
+
     if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error.errors });
+      return res.status(400).json({
+        error: parseResult.error.issues[0]?.message || "Dados inválidos"
+      });
     }
 
-    const { evento_id, pessoa_id, tipo, equipe_id } = parseResult.data;
+    const { evento_id, pessoa_id } = parseResult.data;
 
-    // 2) Verificar se evento existe
-    const { data: evento, error: eventoError } = await supabase
-      .from("eventos")
-      .select("*")
-      .eq("id", evento_id)
-      .single();
-
-    if (eventoError || !evento) {
-      return res.status(404).json({ error: "Evento não encontrado" });
-    }
-
-    // 3) Verificar se pessoa existe
-    const { data: pessoa, error: pessoaError } = await supabase
-      .from("pessoas")
-      .select("*")
-      .eq("id", pessoa_id)
-      .single();
-
-    if (pessoaError || !pessoa) {
-      return res.status(404).json({ error: "Pessoa não encontrada" });
-    }
-
-    // 4) Verificar se pessoa já está inscrita no evento
-    const { data: inscricaoExistente } = await supabase
-      .from("inscricoes")
-      .select("*")
-      .eq("evento_id", evento_id)
-      .eq("pessoa_id", pessoa_id)
-      .maybeSingle();
-
-    if (inscricaoExistente) {
-      return res.status(400).json({ error: "Esta pessoa já está inscrita neste evento" });
-    }
-
-    // ===============================
-    // 5) Regra ESPECIAL para ENCONTREIRO
-    // ===============================
-    if (tipo === "encontreiro") {
-
-      // 5.1) Encontrar o papel da pessoa
-      const { data: role, error: roleError } = await supabase
-        .from("teamrole")
-        .select("equipe_id")
-        .eq("pessoa_id", pessoa_id)
-        .single();
-
-      if (roleError || !role) {
-        return res.status(400).json({
-          error: "Esta pessoa não pertence a nenhuma equipe — não pode ser encontreiro"
-        });
-      }
-
-      const equipeDoEncontreiro = role.equipe_id;
-
-      // 5.2) Verificar se a equipe participa do evento
-      const { data: equipeEvento, error: equipeEventoError } = await supabase
-        .from("equipes_evento")
-        .select("*")
-        .eq("evento_id", evento_id)
-        .eq("equipe_id", equipeDoEncontreiro)
-        .maybeSingle();
-
-      if (equipeEventoError || !equipeEvento) {
-        return res.status(400).json({
-          error: "A equipe deste encontreiro não participa deste evento"
-        });
-      }
-    }
-
-    // ===============================
-    // 6) Criar inscrição
-    // ===============================
+    // Criar inscrição de encontrista
     const { data, error } = await supabase
       .from("inscricoes")
-      .insert([
-        {
-          evento_id,
-          pessoa_id,
-          tipo,
-          status: "pending"
-        }
-      ])
+      .insert([{ evento_id, pessoa_id, tipo: "encontrista" }])
       .select()
       .single();
 
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+    if (error) return res.status(400).json({ error: error.message });
 
     return res.status(201).json(data);
 
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao criar inscrição:", err);
     return res.status(500).json({ error: "Erro interno ao criar inscrição" });
   }
 }
 
-// =========================
-// Listar todas as inscrições
-// =========================
+// ======================================================
+// 📌 LISTAR INSCRIÇÕES
+// ======================================================
 export async function listarInscricoes(req, res) {
   try {
     const { data, error } = await supabase
@@ -139,16 +60,15 @@ export async function listarInscricoes(req, res) {
     if (error) return res.status(400).json({ error: error.message });
 
     return res.status(200).json(data);
-
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao listar inscrições" });
+    console.error("Erro ao listar inscrições:", err);
+    return res.status(500).json({ error: "Erro ao listar inscrições" });
   }
 }
 
-// =========================
-// Buscar por ID
-// =========================
+// ======================================================
+// 📌 BUSCAR INSCRIÇÃO POR ID
+// ======================================================
 export async function buscarInscricao(req, res) {
   try {
     const { id } = req.params;
@@ -159,54 +79,56 @@ export async function buscarInscricao(req, res) {
         id,
         status,
         tipo,
-        pessoa:pessoa_id ( id, nome ),
-        evento:evento_id ( id, nome )
+        pessoa:pessoa_id ( id, nome, email, telefone ),
+        evento:evento_id ( id, nome, start_date )
       `)
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
-      return res.status(404).json({ error: "Inscrição não encontrada" });
-    }
+    if (error) return res.status(400).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: "Inscrição não encontrada" });
 
     return res.status(200).json(data);
-
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao buscar inscrição" });
+    console.error("Erro ao buscar inscrição:", err);
+    return res.status(500).json({ error: "Erro interno" });
   }
 }
 
-// =========================
-// Atualizar inscrição
-// =========================
+// ======================================================
+// 📌 ATUALIZAR INSCRIÇÃO
+// ======================================================
 export async function atualizarInscricao(req, res) {
   try {
     const { id } = req.params;
-    const { status, tipo } = req.body;
 
-    const { data, error } = await supabase
-      .from("inscricoes")
-      .update({ status, tipo })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error || !data) {
-      return res.status(404).json({ error: "Inscrição não encontrada" });
+    const parseResult = inscricaoSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: parseResult.error.issues[0]?.message || "Dados inválidos"
+      });
     }
 
-    return res.status(200).json({ message: "Inscrição atualizada", data });
+    const { pessoa_id, evento_id } = parseResult.data;
+
+    const { error } = await supabase
+      .from("inscricoes")
+      .update({ pessoa_id, evento_id })
+      .eq("id", id);
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    return res.status(200).json({ message: "Inscrição atualizada com sucesso" });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao atualizar inscrição" });
+    console.error("Erro ao atualizar inscrição:", err);
+    return res.status(500).json({ error: "Erro ao atualizar inscrição" });
   }
 }
 
-// =========================
-// Remover inscrição
-// =========================
+// ======================================================
+// 📌 DELETAR INSCRIÇÃO
+// ======================================================
 export async function deletarInscricao(req, res) {
   try {
     const { id } = req.params;
@@ -216,14 +138,12 @@ export async function deletarInscricao(req, res) {
       .delete()
       .eq("id", id);
 
-    if (error) {
-      return res.status(404).json({ error: "Inscrição não encontrada" });
-    }
+    if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json({ message: "Inscrição removida" });
+    return res.status(200).json({ message: "Inscrição removida com sucesso" });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao deletar inscrição" });
+    console.error("Erro ao remover inscrição:", err);
+    return res.status(500).json({ error: "Erro ao remover inscrição" });
   }
 }

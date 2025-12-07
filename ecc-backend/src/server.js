@@ -12,7 +12,7 @@ import teamroleRoutes from "./routes/teamrole.routes.js";
 import momentosRoutes from "./routes/momentos.routes.js";
 import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 import coordenadoresRoutes from "./routes/coordenadores.routes.js";
-
+import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -49,6 +49,8 @@ app.use("/inscricoes", inscricoesRoutes);
 
 app.use("/api", pagamentoRoutes);
 app.use("/webhook", webhookRoutes);
+
+app.use("/encontrista_inscricao", encontristaInscricaoRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend ECC funcionando!");

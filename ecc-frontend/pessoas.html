@@ -2,45 +2,9 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Gerenciar Pessoas • ECC</title>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
   <link rel="stylesheet" href="estilos.css">
-
-  <style>
-    .card {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 6px 14px;
-    }
-
-    select,
-    input {
-      margin-bottom: 10px;
-      padding: 6px;
-      width: 250px;
-    }
-  </style>
 </head>
 
 <body>
@@ -53,6 +17,7 @@
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
   <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
@@ -80,16 +45,7 @@
 
     <form id="formPessoa" onsubmit="salvarPessoa(event)">
 
-      <label>Nome:</label><br>
-      <input type="text" id="nome" required><br>
-
-      <label>Email:</label><br>
-      <input type="email" id="email"><br>
-
-      <label>Telefone:</label><br>
-      <input type="text" id="telefone"><br>
-
-      <label>Tipo de participação:</label><br>
+      <label>Tipo de participação:</label>
       <select id="tipo_participacao" onchange="tipoSelecionado()" required>
         <option value="">Selecione</option>
         <option value="">-----</option>
@@ -99,12 +55,13 @@
 
       <!-- EVENTO -->
       <div id="box_evento" class="hidden">
-        <label>Evento:</label><br>
+        <label>Evento:</label>
         <select id="evento_id">
           <option value="">Selecione</option>
           <option value="">-----</option>
         </select><br>
       </div>
+
 
       <!-- ENCONTREIRO -->
       <div id="box_encontreiro" class="hidden">
@@ -119,6 +76,15 @@
         </label>
         <br>
       </div>
+
+      <label>Nome:</label>
+      <input type="text" id="nome" required><br>
+
+      <label>Email:</label><br>
+      <input type="email" id="email" required><br>
+
+      <label>Telefone:</label><br>
+      <input type="text" id="telefone"><br>
 
       <button type="submit">Salvar</button>
     </form>

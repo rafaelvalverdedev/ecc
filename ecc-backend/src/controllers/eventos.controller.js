@@ -5,7 +5,7 @@ export async function criarEvento(req, res) {
   try {
     const { nome, descricao, local, start_date, end_date, capacity } = req.body;
 
-    if (!nome || !start_date || !local) {
+    if (!nome || !descricao || !start_date) {
       return res.status(400).json({ error: "Os campos 'nome', 'local' e 'start_date' são obrigatórios" });
     }
 

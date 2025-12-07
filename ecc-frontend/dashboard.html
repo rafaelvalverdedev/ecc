@@ -17,10 +17,10 @@
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
   <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
-
 
 
   <h1>Dashboard ECC</h1>
@@ -59,44 +59,44 @@
 
   <!-- Coordenadores -->
   <div class="card">
-    <h2>Coordenadores das equipes</h2>
+    <h2>Encontreiros Coordenador de Equipe</h2>
     <table>
       <thead>
         <tr>
           <th>Pessoa</th>
-          <th>Equipe</th>
-          <th>Email</th>
           <th>Telefone</th>
+          <th>Evento</th>
+          <th>Equipe</th>
         </tr>
       </thead>
-      <tbody id="coordenadores-list"></tbody>
+      <tbody id="lista-coordenadores"></tbody>
     </table>
   </div>
 
-  <!-- Pessoas — Encontreiros -->
   <div class="card">
-    <h2>Pessoas — Encontreiros</h2>
+    <h2>Encontreiros Cadastrados</h2>
     <table>
       <thead>
         <tr>
-          <th>Nome</th>
-          <th>Email</th>
+          <th>Pessoa</th>
           <th>Telefone</th>
+          <th>Evento</th>
+          <th>Equipe</th>
         </tr>
       </thead>
-      <tbody id="encontreiros-list"></tbody>
+      <tbody id="lista-encontreiros"></tbody>
     </table>
   </div>
+
 
   <!-- Encontristas -->
   <div class="card">
-    <h2>Pessoas — Encontristas</h2>
+    <h2>Encontristas - Inscritos</h2>
     <table>
       <thead>
         <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Telefone</th>
+          <th>Nome do Esposo</th>
+          <th>Nome da Esposa</th>
         </tr>
       </thead>
       <tbody id="encontristas-list"></tbody>
@@ -198,46 +198,48 @@
       });
 
       const vinculos = await res.json();
-      const tbody = document.getElementById("coordenadores-list");
+      const tbody = document.getElementById("lista-coordenadores");
       tbody.innerHTML = "";
 
       vinculos
-        .filter(v => v.is_leader === true)
-        .forEach(v => {
+        .filter(i => i.is_leader === true)
+        .forEach(i => {
+          const p = i.pessoa; // pessoa já vem no JSON
+
           tbody.innerHTML += `
-        <tr>
-          <td>${v.pessoa?.nome ?? "-"}</td>
-          <td>${v.equipe?.nome ?? "-"}</td>
-          <td>${v.pessoa?.email ?? "-"}</td>
-          <td>${v.pessoa?.telefone ?? "-"}</td>
-        </tr>
-      `;
+          <tr>
+            <td>${p?.nome ?? "-"}</td>
+            <td>${p?.telefone ?? "-"}</td>
+            <td>${i?.evento?.nome ?? "-"}</td>
+            <td>${i?.equipe?.nome ?? "-"}</td>
+           </tr>
+        `;
         });
     }
 
-
     async function carregarEncontreiros() {
       try {
-        const res = await fetch("http://localhost:3001/inscricoes", {
+        const res = await fetch("http://localhost:3001/teamrole", {
           headers: { Authorization: "Bearer " + token }
         });
 
         const inscricoes = await res.json();
 
-        const tbody = document.getElementById("encontreiros-list");
+        const tbody = document.getElementById("lista-encontreiros");
         tbody.innerHTML = "";
 
         inscricoes
-          .filter(i => i.tipo?.toUpperCase() === "ENCONTREIRO")
+          .filter(i => i.is_leader === false)
           .forEach(i => {
             const p = i.pessoa; // pessoa já vem no JSON
 
             tbody.innerHTML += `
           <tr>
             <td>${p?.nome ?? "-"}</td>
-            <td>${p?.email ?? "-"}</td>
             <td>${p?.telefone ?? "-"}</td>
-          </tr>
+            <td>${i?.evento?.nome ?? "-"}</td>
+            <td>${i?.equipe?.nome ?? "-"}</td>
+           </tr>
         `;
           });
 
@@ -251,7 +253,7 @@
 
     async function carregarEncontristas() {
       try {
-        const res = await fetch("http://localhost:3001/inscricoes", {
+        const res = await fetch("http://localhost:3001/encontrista_inscricao", {
           headers: { Authorization: "Bearer " + token }
         });
 
@@ -261,15 +263,13 @@
         tbody.innerHTML = "";
 
         inscricoes
-          .filter(i => i.tipo?.toUpperCase() === "ENCONTRISTA")
           .forEach(i => {
             const p = i.pessoa;
 
             tbody.innerHTML += `
           <tr>
-            <td>${p?.nome ?? "-"}</td>
-            <td>${p?.email ?? "-"}</td>
-            <td>${p?.telefone ?? "-"}</td>
+            <td>${i.nome_completo_esposo ?? "-"}</td>
+            <td>${i.nome_completo_esposo ?? "-"}</td>
           </tr>
         `;
           });

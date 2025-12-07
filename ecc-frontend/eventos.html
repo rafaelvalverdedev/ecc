@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Eventos • ECC</title>
+  <title>Gerenciar Equipes • ECC</title>
   <link rel="stylesheet" href="estilos.css">
 </head>
 
@@ -17,6 +17,7 @@
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
   <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
   <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
@@ -51,10 +52,10 @@
       <input id="nome" required>
 
       <label>Descrição:</label>
-      <input id="descricao">
+      <input id="descricao" required>
 
       <label>Local:</label>
-      <input id="local" required>
+      <input id="local">
 
       <label>Data Início:</label>
       <input type="date" id="start_date" required>
