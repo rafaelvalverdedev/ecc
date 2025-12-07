@@ -7,44 +7,43 @@ import { z } from "zod";
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
-// ==========================
-// Zod Schemas
-// ==========================
-export const registerSchema = z.object({
+// ================================
+// ZOD Schemas
+// ================================
+const registerSchema = z.object({
   nome: z.string().min(3, "Nome muito curto"),
   email: z.string().email("Email inválido"),
   telefone: z.string().optional(),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  role: z.string().optional(),
 });
 
-export const loginSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6),
 });
 
-// ==========================
-// Função para gerar token JWT
-// ==========================
+// ================================
+// Gerar Token
+// ================================
 function gerarToken(pessoa) {
   return jwt.sign(
     {
       sub: pessoa.id,
-      role: pessoa.role || null,
       email: pessoa.email,
+      role: pessoa.role,
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
 }
 
-// ==========================
-// POST /auth/register
-// ==========================
+// ================================
+// REGISTRO
+// ================================
 export async function register(req, res) {
   try {
     const parsed = registerSchema.parse(req.body);
-    const { nome, email, telefone, password, role } = parsed;
+    const { nome, email, telefone, password } = parsed;
 
     const { data: existente } = await supabase
       .from("pessoas")
@@ -53,18 +52,27 @@ export async function register(req, res) {
       .maybeSingle();
 
     if (existente) {
-      return res.status(400).json({ error: "Email já cadastrado" });
+      return res.status(400).json({ error: "Email já cadastrado." });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
 
     const { data, error } = await supabase
       .from("pessoas")
-      .insert([{ nome, email, telefone, password_hash, role }])
+      .insert({
+        nome,
+        email,
+        telefone,
+        password_hash,
+        role: "user", // padrão
+      })
       .select()
       .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) {
+      console.error("REGISTER DB ERROR:", error);
+      return res.status(400).json({ error: error.message });
+    }
 
     const token = gerarToken(data);
 
@@ -75,9 +83,9 @@ export async function register(req, res) {
   }
 }
 
-// ==========================
-// POST /auth/login
-// ==========================
+// ================================
+// LOGIN
+// ================================
 export async function login(req, res) {
   try {
     const parsed = loginSchema.parse(req.body);
@@ -85,7 +93,7 @@ export async function login(req, res) {
 
     const { data: pessoa, error } = await supabase
       .from("pessoas")
-      .select("id, nome, email, telefone, password_hash")
+      .select("id, nome, email, telefone, role, password_hash")
       .eq("email", email)
       .single();
 
@@ -98,10 +106,10 @@ export async function login(req, res) {
       return res.status(400).json({ error: "Usuário sem senha cadastrada" });
     }
 
-    const senhaCorreta = password === pessoa.password_hash;
+    const senhaCorreta = await bcrypt.compare(password, pessoa.password_hash);
 
     if (!senhaCorreta) {
-      console.log("Senha incorreta:", password, pessoa.password_hash);
+      console.log("Senha incorreta para:", email);
       return res.status(401).json({ error: "Credenciais inválidas" });
     }
 
@@ -117,7 +125,6 @@ export async function login(req, res) {
       },
       token,
     });
-
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     return res.status(400).json({ error: err.message });

@@ -1,8 +1,14 @@
 import { Router } from "express";
 import { createUserByAdmin } from "../controllers/admin.controller.js";
-import { ensureAuthenticated } from "../middleware/auth.middleware.js";
-import { requireAdmin } from "../middleware/roles.middleware.js";
+import { authMiddleware, requireRole, Roles } from "../middlewares/auth.js";
 
 const router = Router();
-router.post("/create-user", ensureAuthenticated, requireAdmin, createUserByAdmin);
+
+router.post(
+  "/create-user",
+  authMiddleware,
+  requireRole(Roles.ADMIN),
+  createUserByAdmin
+);
+
 export default router;

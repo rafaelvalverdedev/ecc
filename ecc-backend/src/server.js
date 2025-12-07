@@ -14,8 +14,9 @@ import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
 
-import authRoutes from "./routes/auth.routes.js";
+
 import adminRoutes from "./routes/admin.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 import pagamentoRoutes from "./routes/pagamento.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
@@ -28,29 +29,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/admin", adminRoutes);
-
-app.use("/coordenadores", coordenadoresRoutes);
-
 app.use("/auth", authRoutes);
-
-app.use("/dev", devRoutes);
-
+app.use("/admin", adminRoutes);
+app.use("/coordenadores", coordenadoresRoutes);
 app.use("/eventos", authMiddleware, eventosRoutes);
-app.use("/equipes", equipeRoutes);
-app.use("/inscricoes", inscricoesRoutes);
 app.use("/pessoas", pessoasRoutes);
+app.use("/inscricoes", inscricoesRoutes);
+app.use("/equipe", equipeRoutes);
+app.use("/equipes-evento", equipesEventoRoutes);
 app.use("/teamrole", teamroleRoutes);
 app.use("/momentos", momentosRoutes);
-
-app.use("/equipe_evento", equipesEventoRoutes);
-
-app.use("/inscricoes", inscricoesRoutes);
-
-app.use("/api", pagamentoRoutes);
+app.use("/pagamento", pagamentoRoutes);
 app.use("/webhook", webhookRoutes);
+app.use("/dev", devRoutes);
+app.use("/encontrista-inscricao", encontristaInscricaoRoutes);
 
-app.use("/encontrista_inscricao", encontristaInscricaoRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend ECC funcionando!");
