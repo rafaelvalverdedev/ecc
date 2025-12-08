@@ -1,27 +1,32 @@
 import { Router } from "express";
 import {
+  listarInscricoes,
+  listarPorPessoa,
+  listarPorEvento,
+  buscarInscricao,
   criarInscricao,
   atualizarInscricao,
-  listarInscricoes,
-  buscarInscricao,
+  cancelarInscricao,
   deletarInscricao
 } from "../controllers/inscricoes.controller.js";
 
+import { authMiddleware } from "../middlewares/auth.js";
+import { requireRole, Roles } from "../middlewares/auth.js";
+
 const router = Router();
 
-// Criar inscrição
-router.post("/", criarInscricao);
-
-// Atualizar inscrição
-router.put("/:id", atualizarInscricao);
-
-// Listar todas
+// listagens
 router.get("/", listarInscricoes);
-
-// Buscar inscrição específica
 router.get("/:id", buscarInscricao);
+router.get("/pessoa/:pessoaId", listarPorPessoa);
+router.get("/evento/:eventoId", listarPorEvento);
 
-// DELETAR inscrição (FALTAVA)
-router.delete("/:id", deletarInscricao);
+// criação e edição (requer login)
+router.post("/", authMiddleware, criarInscricao);
+router.put("/:id", authMiddleware, atualizarInscricao);
+router.patch("/:id/cancelar", authMiddleware, cancelarInscricao);
+
+// somente admin pode remover
+router.delete("/:id", authMiddleware, requireRole(Roles.ADMIN), deletarInscricao);
 
 export default router;

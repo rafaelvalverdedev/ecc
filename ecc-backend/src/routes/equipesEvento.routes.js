@@ -1,16 +1,21 @@
 import { Router } from "express";
 import {
-  criarEquipeEvento,
-  listarEquipesEvento,
-  buscarEquipeEventoPorId,
-  deletarEquipeEvento
+  listarVinculos,
+  listarPorEvento,
+  listarPorEquipe,
+  criarVinculo,
+  deletarVinculo
 } from "../controllers/equipesEvento.controller.js";
+
+import { authMiddleware } from "../middlewares/auth.js";
 
 const router = Router();
 
-router.post("/", criarEquipeEvento);
-router.get("/", listarEquipesEvento);
-router.get("/:id", buscarEquipeEventoPorId);
-router.delete("/:id", deletarEquipeEvento);
+router.get("/", listarVinculos);
+router.get("/evento/:eventoId", listarPorEvento);
+router.get("/equipe/:equipeId", listarPorEquipe);
+
+router.post("/", authMiddleware, criarVinculo);
+router.delete("/:id", authMiddleware, deletarVinculo);
 
 export default router;

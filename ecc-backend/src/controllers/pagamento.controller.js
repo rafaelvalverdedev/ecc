@@ -1,10 +1,5 @@
+import supabase from "../config/supabase.js";
 import { mpPayment } from "../config/mercadoPago.js";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 // ===========================
 // HELPERS
@@ -44,7 +39,6 @@ export async function criarPagamentoPix(req, res) {
 
     const payment = await mpPayment.create({ body });
 
-    // salvar no banco
     const { data: pagamentoDB, error: pgError } = await supabase
       .from("pagamentos_inscricao")
       .insert({

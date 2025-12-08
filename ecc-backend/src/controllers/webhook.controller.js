@@ -1,7 +1,7 @@
 import supabase from "../config/supabase.js";
 import mercadopago from "mercadopago";
 
-// auxilia evitar que o mesmo evento seja processado mais de 1 vez
+// Evitar processar o mesmo pagamento 2x
 const processedEvents = new Set();
 
 export async function mpWebhook(req, res) {
@@ -13,7 +13,7 @@ export async function mpWebhook(req, res) {
       return res.sendStatus(400);
     }
 
-    const paymentId = data.id;
+    const paymentId = data.id.toString();
 
     if (processedEvents.has(paymentId)) {
       console.log("⚠ Evento já processado:", paymentId);
@@ -25,8 +25,8 @@ export async function mpWebhook(req, res) {
     const result = await mercadopago.payment.get(paymentId);
     const p = result.response;
 
-    const status = p.status; // approved, pending, rejected
-    const externalReference = p.external_reference;
+    const status = p.status; // approved, pending, rejected...
+    const externalReference = p.external_reference; // usamos como inscricao_id
 
     if (!externalReference) {
       console.error("❌ Pagamento sem external_reference!");
@@ -35,23 +35,28 @@ export async function mpWebhook(req, res) {
 
     processedEvents.add(paymentId);
 
-    // Atualiza pagamento
+    // Atualiza registro de pagamento
     await supabase
       .from("pagamentos_inscricao")
       .update({
         mp_status: status,
-        mp_status_detail: p.status_detail
+        mp_status_detail: p.status_detail,
+        raw_payload: p
       })
       .eq("mp_payment_id", paymentId);
 
-    // Se aprovado → atualiza inscrição
+    // Se aprovado → marcar inscrição como CONFIRMADA
     if (status === "approved") {
-      await supabase
+      const { error } = await supabase
         .from("inscricoes")
-        .update({ status: "pago" })
+        .update({ status: "confirmed" })
         .eq("id", externalReference);
 
-      console.log(`🎉 Inscrição ${externalReference} marcada como PAGA!`);
+      if (error) {
+        console.error("❌ Erro ao atualizar inscrição:", error);
+      } else {
+        console.log(`🎉 Inscrição ${externalReference} marcada como CONFIRMED!`);
+      }
     }
 
     console.log("✅ Webhook finalizado com sucesso.");

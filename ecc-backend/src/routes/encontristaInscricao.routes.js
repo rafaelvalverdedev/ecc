@@ -1,20 +1,22 @@
 import { Router } from "express";
 import {
-  criarEncontristaInscricao,
-  listarEncontristaInscricoes,
-  buscarEncontristaInscricao,
-  atualizarEncontristaInscricao,
-  deletarEncontristaInscricao
+  listar,
+  buscar,
+  criar,
+  atualizar,
+  deletar
 } from "../controllers/encontristaInscricao.controller.js";
+
+import { authMiddleware, requireRole, Roles } from "../middlewares/auth.js";
 
 const router = Router();
 
-router.post("/", criarEncontristaInscricao);
-router.get("/", listarEncontristaInscricoes);
-router.get("/:id", buscarEncontristaInscricao);
+router.get("/", listar);
+router.get("/:id", buscar);
 
-router.put("/:id", atualizarEncontristaInscricao);
+router.post("/", authMiddleware, criar);
+router.put("/:id", authMiddleware, atualizar);
 
-router.delete("/:id", deletarEncontristaInscricao);
+router.delete("/:id", authMiddleware, requireRole(Roles.ADMIN), deletar);
 
 export default router;

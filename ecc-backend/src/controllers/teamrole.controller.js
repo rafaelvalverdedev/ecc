@@ -1,159 +1,195 @@
-// ======================================================
-// 📌 TEAMROLE CONTROLLER — SEM LÓGICA DE PAGAMENTOS
-// ======================================================
-
 import supabase from "../config/supabase.js";
 import { z } from "zod";
 
-// ======================================================
-// 📌 ZOD SCHEMAS
-// ======================================================
-
-const teamroleSchema = z.object({
-  pessoa_id: z.string().uuid("pessoa_id deve ser um UUID válido"),
-  equipe_id: z.string().uuid("equipe_id deve ser um UUID válido"),
-  evento_id: z.string().uuid("evento_id deve ser um UUID válido"),
-  is_leader: z.boolean().optional().default(false)
+// ===============================
+// VALIDAÇÃO
+// ===============================
+const teamRoleSchema = z.object({
+  pessoa_id: z.string().uuid("pessoa_id inválido"),
+  equipe_id: z.string().uuid("equipe_id inválido"),
+  evento_id: z.string().uuid("evento_id inválido"),
+  is_leader: z.boolean().optional(),
+  pagou: z.boolean().optional(),
 });
 
-const teamroleUpdateSchema = z.object({
-  pessoa_id: z.string().uuid("pessoa_id deve ser um UUID válido"),
-  equipe_id: z.string().uuid("equipe_id deve ser um UUID válido"),
-  evento_id: z.string().uuid("evento_id deve ser um UUID válido"),
-  is_leader: z.boolean()
-});
-
-// ======================================================
-// 📌 CRIAR VÍNCULO TEAMROLE (cadastro do encontreiro)
-// ======================================================
-export async function adicionarTeamrole(req, res) {
-  try {
-    const parsed = teamroleSchema.safeParse(req.body);
-
-    if (!parsed.success) {
-      return res.status(400).json({
-        error: parsed.error.issues[0]?.message || "Dados inválidos"
-      });
-    }
-
-    const { pessoa_id, equipe_id, evento_id, is_leader } = parsed.data;
-
-    const { data, error } = await supabase
-      .from("teamrole")
-      .insert([{ pessoa_id, equipe_id, evento_id, is_leader }])
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    return res.status(201).json(data);
-
-  } catch (err) {
-    console.error("Erro ao adicionar teamrole:", err);
-    return res.status(500).json({ error: "Erro interno ao criar vínculo" });
-  }
-}
-
-// ======================================================
-// 📌 LISTAR TEAMROLES
-// ======================================================
-export async function listarTeamroles(req, res) {
+// ===============================
+// LISTAR TODOS OS VÍNCULOS
+// ===============================
+export async function listarTeamRoles(req, res) {
   try {
     const { data, error } = await supabase
       .from("teamrole")
       .select(`
-          id,
-          pessoa_id,
-          equipe_id,
-          evento_id,
-          is_leader,
-          pagou,
-          pessoa:pessoa_id ( id, nome, email, telefone ),
-          equipe:equipe_id ( id, nome ),
-          evento:evento_id ( id, nome )
-      `);
+        id,
+        is_leader,
+        pagou,
+        pessoa:pessoa_id (id, nome, email),
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome)
+      `)
+      .order("created_at", { ascending: false });
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.json({ data });
   } catch (err) {
-    console.error("Erro ao listar teamroles:", err);
-    return res.status(500).json({ error: "Erro interno ao listar vínculos" });
+    console.error("LISTAR TEAMROLE ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// ======================================================
-// 📌 BUSCAR POR ID
-// ======================================================
-export async function buscarTeamrolePorId(req, res) {
+// ===============================
+// LISTAR POR PESSOA
+// ===============================
+export async function listarPorPessoa(req, res) {
   try {
-    const { id } = req.params;
+    const { pessoaId } = req.params;
 
     const { data, error } = await supabase
       .from("teamrole")
       .select(`
         id,
-        pessoa_id,
-        equipe_id,
-        evento_id,
         is_leader,
-        pessoa:pessoa_id ( id, nome, email, telefone ),
-        equipe:equipe_id ( id, nome ),
-        evento:evento_id ( id, nome )
+        pagou,
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome)
       `)
-      .eq("id", id)
-      .maybeSingle();
+      .eq("pessoa_id", pessoaId);
 
-    if (error) return res.status(400).json({ error: error.message });
-    if (!data) return res.status(404).json({ error: "Vínculo não encontrado" });
+    if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.json({ data });
   } catch (err) {
-    console.error("Erro ao buscar teamrole:", err);
-    return res.status(500).json({ error: "Erro interno" });
+    console.error("LISTAR POR PESSOA ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// ======================================================
-// 📌 ATUALIZAR
-// ======================================================
-export async function atualizarTeamrole(req, res) {
+// ===============================
+// LISTAR POR EQUIPE
+// ===============================
+export async function listarPorEquipe(req, res) {
+  try {
+    const { equipeId } = req.params;
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        is_leader,
+        pagou,
+        pessoa:pessoa_id (id, nome, email),
+        evento:evento_id (id, nome)
+      `)
+      .eq("equipe_id", equipeId);
+
+    if (error) throw error;
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("LISTAR POR EQUIPE ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ===============================
+// LISTAR POR EVENTO
+// ===============================
+export async function listarPorEvento(req, res) {
+  try {
+    const { eventoId } = req.params;
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        is_leader,
+        pagou,
+        pessoa:pessoa_id (id, nome),
+        equipe:equipe_id (id, nome)
+      `)
+      .eq("evento_id", eventoId);
+
+    if (error) throw error;
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("LISTAR POR EVENTO ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ===============================
+// CRIAR VÍNCULO
+// ===============================
+export async function criarTeamRole(req, res) {
+  try {
+    const parsed = teamRoleSchema.parse(req.body);
+
+    // Verificar duplicidade
+    const { data: existente } = await supabase
+      .from("teamrole")
+      .select("id")
+      .eq("pessoa_id", parsed.pessoa_id)
+      .eq("equipe_id", parsed.equipe_id)
+      .eq("evento_id", parsed.evento_id)
+      .maybeSingle();
+
+    if (existente)
+      return res.status(400).json({ error: "Esta pessoa já está vinculada a esta equipe neste evento." });
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .insert(parsed)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json({
+      message: "Vínculo criado com sucesso",
+      data,
+    });
+
+  } catch (err) {
+    console.error("CRIAR TEAMROLE ERROR:", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+// ===============================
+// ATUALIZAR VÍNCULO
+// ===============================
+export async function atualizarTeamRole(req, res) {
   try {
     const { id } = req.params;
 
-    const parsed = teamroleUpdateSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({
-        error: parsed.error.issues[0]?.message || "Dados inválidos"
-      });
-    }
+    const parsed = teamRoleSchema.partial().parse(req.body);
 
-    const { pessoa_id, equipe_id, evento_id, is_leader } = parsed.data;
-
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("teamrole")
-      .update({
-        pessoa_id,
-        equipe_id,
-        evento_id,
-        is_leader
-      })
-      .eq("id", id);
+      .update(parsed)
+      .eq("id", id)
+      .select()
+      .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.status(200).json({ message: "Vínculo atualizado com sucesso" });
+    return res.json({
+      message: "Vínculo atualizado com sucesso",
+      data,
+    });
 
   } catch (err) {
-    console.error("Erro ao atualizar teamrole:", err);
-    return res.status(500).json({ error: "Erro interno ao atualizar vínculo" });
+    console.error("ATUALIZAR TEAMROLE ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// ======================================================
-// 📌 REMOVER
-// ======================================================
-export async function removerTeamrole(req, res) {
+// ===============================
+// DELETAR VÍNCULO
+// ===============================
+export async function deletarTeamRole(req, res) {
   try {
     const { id } = req.params;
 
@@ -162,39 +198,12 @@ export async function removerTeamrole(req, res) {
       .delete()
       .eq("id", id);
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.status(200).json({ message: "Vínculo removido com sucesso" });
-
-  } catch (err) {
-    console.error("Erro ao remover teamrole:", err);
-    return res.status(500).json({ error: "Erro interno ao remover vínculo" });
-  }
-}
-
-// ======================================================
-// 📌 LISTAR MEMBROS POR EQUIPE
-// ======================================================
-export async function listarMembrosPorEquipe(req, res) {
-  try {
-    const { equipe_id } = req.params;
-
-    const { data, error } = await supabase
-      .from("teamrole")
-      .select(`
-        id,
-        is_leader,
-        pessoa:pessoa_id ( id, nome ),
-        evento:evento_id ( id, nome )
-      `)
-      .eq("equipe_id", equipe_id);
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    return res.status(200).json(data);
+    return res.json({ message: "Vínculo removido com sucesso" });
 
   } catch (err) {
-    console.error("Erro ao listar membros por equipe:", err);
-    return res.status(500).json({ error: "Erro interno" });
+    console.error("DELETAR TEAMROLE ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }

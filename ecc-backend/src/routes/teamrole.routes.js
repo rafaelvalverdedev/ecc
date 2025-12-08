@@ -1,22 +1,24 @@
 import { Router } from "express";
 import {
-  adicionarTeamrole,
-  removerTeamrole,
-  listarMembrosPorEquipe,
-  listarTeamroles,
-  buscarTeamrolePorId,
-  atualizarTeamrole 
+  listarTeamRoles,
+  listarPorPessoa,
+  listarPorEquipe,
+  listarPorEvento,
+  criarTeamRole,
+  atualizarTeamRole,
+  deletarTeamRole,
 } from "../controllers/teamrole.controller.js";
+import { authMiddleware } from "../middlewares/auth.js";
 
 const router = Router();
 
-router.post("/", adicionarTeamrole);
+router.get("/", listarTeamRoles);
+router.get("/pessoa/:pessoaId", listarPorPessoa);
+router.get("/equipe/:equipeId", listarPorEquipe);
+router.get("/evento/:eventoId", listarPorEvento);
 
-router.delete("/:id", removerTeamrole);
+router.post("/", authMiddleware, criarTeamRole);
+router.put("/:id", authMiddleware, atualizarTeamRole);
+router.delete("/:id", authMiddleware, deletarTeamRole);
 
-router.get("/equipe/:equipe_id", listarMembrosPorEquipe);
-router.get("/", listarTeamroles);
-router.get("/:id", buscarTeamrolePorId);
-
-router.put("/:id", atualizarTeamrole);
 export default router;

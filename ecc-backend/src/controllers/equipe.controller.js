@@ -1,161 +1,136 @@
 import supabase from "../config/supabase.js";
 import { z } from "zod";
 
-// ================================
-// ZOD SCHEMAS
-// ================================
+// ===============================
+// SCHEMA DE VALIDAÇÃO
+// ===============================
 const equipeSchema = z.object({
-  nome: z.string().min(1, "Campo 'nome' é obrigatório"),
-  descricao: z.string().optional().nullable(),
+  nome: z.string().min(3, "Nome muito curto"),
+  descricao: z.string().optional(),
 });
 
-const equipeUpdateSchema = equipeSchema.partial();
-
-
-// ================================
-// Criar equipe
-// ================================
-export async function criarEquipe(req, res) {
-  const parsed = equipeSchema.safeParse(req.body);
-
-  if (!parsed.success) {
-    const firstError =
-      parsed.error?.issues?.[0]?.message ||
-      "Dados inválidos";
-
-    return res.status(400).json({ error: firstError });
-  }
-
-  const { nome, descricao } = parsed.data;
-
-  try {
-    const { data, error } = await supabase
-      .from("equipes")
-      .insert([{ nome, descricao }])
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    return res.status(201).json(data);
-  } catch (err) {
-    console.error("Erro ao criar equipe:", err);
-    return res.status(500).json({ error: "Erro interno ao criar equipe" });
-  }
-}
-
-
-
-// ================================
-// Listar equipes
-// ================================
+// ===============================
+// LISTAR EQUIPES
+// ===============================
 export async function listarEquipes(req, res) {
   try {
     const { data, error } = await supabase
       .from("equipes")
-      .select(`
-        id,
-        nome,
-        descricao,
-        created_at,
-        updated_at,
-        members:teamrole (
-          id,
-          is_leader,
-          pessoa:pessoa_id ( id, nome, email, telefone )
-        )
-      `);
+      .select("*")
+      .order("nome", { ascending: true });
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.json({ data });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao listar equipes" });
+    console.error("LISTAR EQUIPES ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-
-
-// ================================
-// Buscar equipe por ID
-// ================================
-export async function buscarEquipePorId(req, res) {
+// ===============================
+// BUSCAR EQUIPE POR ID
+// ===============================
+export async function buscarEquipe(req, res) {
   try {
     const { id } = req.params;
 
     const { data, error } = await supabase
       .from("equipes")
-      .select(`
-        id,
-        nome,
-        descricao,
-        members:teamrole (
-          id,
-          is_leader,
-          pessoa:pessoa_id ( id, nome, email, telefone )
-        )
-      `)
+      .select("*")
       .eq("id", id)
       .single();
 
-    if (error || !data)
-      return res.status(404).json({ error: "Equipe não encontrada" });
+    if (error) return res.status(404).json({ error: "Equipe não encontrada" });
 
-    return res.status(200).json(data);
+    return res.json({ data });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao buscar equipe" });
+    console.error("BUSCAR EQUIPE ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-
-
-// ================================
-// Atualizar equipe
-// ================================
-export async function atualizarEquipe(req, res) {
-  const parsed = equipeUpdateSchema.safeParse(req.body);
-
-  if (!parsed.success) {
-    const firstError =
-      parsed.error?.issues?.[0]?.message ||
-      "Dados inválidos";
-
-    return res.status(400).json({ error: firstError });
-  }
-
-  const updateData = parsed.data;
-
+// ===============================
+// CRIAR EQUIPE
+// ===============================
+export async function criarEquipe(req, res) {
   try {
-    const { id } = req.params;
+    const parsed = equipeSchema.parse(req.body);
+
+    // Garantir nome único
+    const { data: existente } = await supabase
+      .from("equipes")
+      .select("id")
+      .eq("nome", parsed.nome)
+      .maybeSingle();
+
+    if (existente)
+      return res.status(400).json({ error: "Nome de equipe já existe." });
 
     const { data, error } = await supabase
       .from("equipes")
-      .update(updateData)
+      .insert(parsed)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json({
+      message: "Equipe criada com sucesso",
+      data,
+    });
+  } catch (err) {
+    console.error("CRIAR EQUIPE ERROR:", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+// ===============================
+// ATUALIZAR EQUIPE
+// ===============================
+export async function atualizarEquipe(req, res) {
+  try {
+    const { id } = req.params;
+
+    const parsed = equipeSchema.partial().parse(req.body);
+
+    const { data, error } = await supabase
+      .from("equipes")
+      .update(parsed)
       .eq("id", id)
       .select()
       .single();
 
-    if (error || !data)
-      return res.status(404).json({ error: "Equipe não encontrada" });
+    if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json({ message: "Equipe atualizada", data });
+    return res.json({
+      message: "Equipe atualizada com sucesso",
+      data,
+    });
   } catch (err) {
-    console.error("Erro ao atualizar equipe:", err);
-    return res.status(500).json({ error: "Erro interno ao atualizar equipe" });
+    console.error("ATUALIZAR EQUIPE ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-
-
-// ================================
-// Deletar equipe
-// ================================
+// ===============================
+// DELETAR EQUIPE
+// ===============================
 export async function deletarEquipe(req, res) {
   try {
     const { id } = req.params;
 
+    // Validar se equipe existe
+    const { data: existente } = await supabase
+      .from("equipes")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!existente)
+      return res.status(404).json({ error: "Equipe não encontrada" });
+
+    // Excluir equipe
     const { error } = await supabase
       .from("equipes")
       .delete()
@@ -163,9 +138,9 @@ export async function deletarEquipe(req, res) {
 
     if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json({ message: "Equipe deletada" });
+    return res.json({ message: "Equipe removida com sucesso" });
   } catch (err) {
-    console.error("Erro ao deletar equipe:", err);
-    return res.status(500).json({ error: "Erro interno ao deletar equipe" });
+    console.error("DELETAR EQUIPE ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }

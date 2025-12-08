@@ -1,126 +1,138 @@
 import supabase from "../config/supabase.js";
+import { z } from "zod";
 
-// ---------------------------------------------------------------
-//  Criar relação equipe–evento
-// ---------------------------------------------------------------
-export async function criarEquipeEvento(req, res) {
+// ========================================================
+// VALIDAÇÃO
+// ========================================================
+const vinculoSchema = z.object({
+  equipe_id: z.string().uuid("equipe_id inválido"),
+  evento_id: z.string().uuid("evento_id inválido"),
+});
+
+// ========================================================
+// LISTAR TODOS
+// ========================================================
+export async function listarVinculos(req, res) {
   try {
-    const { evento_id, equipe_id } = req.body;
+    const { data, error } = await supabase
+      .from("equipes_evento")
+      .select(`
+        id,
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome, start_date)
+      `)
+      .order("created_at", { ascending: false });
 
-    if (!evento_id || !equipe_id) {
-      return res
-        .status(400)
-        .json({ error: "Os campos evento_id e equipe_id são obrigatórios" });
-    }
+    if (error) throw error;
 
-    // 1️⃣ Verifica se evento existe
-    const { data: evento, error: eventoErr } = await supabase
-      .from("eventos")
-      .select("id")
-      .eq("id", evento_id)
-      .single();
+    return res.json({ data });
 
-    if (eventoErr || !evento) {
-      return res.status(404).json({ error: "Evento não encontrado" });
-    }
+  } catch (err) {
+    console.error("LISTAR EQUIPES_EVENTO ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
 
-    // 2️⃣ Verifica se equipe existe
-    const { data: equipe, error: equipeErr } = await supabase
-      .from("equipes")
-      .select("id")
-      .eq("id", equipe_id)
-      .single();
+// ========================================================
+// LISTAR POR EVENTO
+// ========================================================
+export async function listarPorEvento(req, res) {
+  try {
+    const { eventoId } = req.params;
 
-    if (equipeErr || !equipe) {
-      return res.status(404).json({ error: "Equipe não encontrada" });
-    }
+    const { data, error } = await supabase
+      .from("equipes_evento")
+      .select(`
+        id,
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome)
+      `)
+      .eq("evento_id", eventoId)
+      .order("created_at", { ascending: true });
 
-    // 3️⃣ Verifica duplicidade (índice unique impede, mas validamos antes)
-    const { data: exists } = await supabase
+    if (error) throw error;
+
+    return res.json({ data });
+
+  } catch (err) {
+    console.error("LISTAR POR EVENTO ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ========================================================
+// LISTAR POR EQUIPE
+// ========================================================
+export async function listarPorEquipe(req, res) {
+  try {
+    const { equipeId } = req.params;
+
+    const { data, error } = await supabase
+      .from("equipes_evento")
+      .select(`
+        id,
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome, start_date)
+      `)
+      .eq("equipe_id", equipeId);
+
+    if (error) throw error;
+
+    return res.json({ data });
+
+  } catch (err) {
+    console.error("LISTAR POR EQUIPE ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ========================================================
+// CRIAR VÍNCULO
+// ========================================================
+export async function criarVinculo(req, res) {
+  try {
+    const parsed = vinculoSchema.parse(req.body);
+
+    // Evitar duplicidade de vinculo
+    const { data: existente } = await supabase
       .from("equipes_evento")
       .select("id")
-      .eq("evento_id", evento_id)
-      .eq("equipe_id", equipe_id)
+      .eq("equipe_id", parsed.equipe_id)
+      .eq("evento_id", parsed.evento_id)
       .maybeSingle();
 
-    if (exists) {
-      return res
-        .status(400)
-        .json({ error: "Esta equipe já está vinculada a este evento" });
-    }
+    if (existente)
+      return res.status(400).json({
+        error: "Esta equipe já está vinculada a este evento."
+      });
 
-    // 4️⃣ Inserção
     const { data, error } = await supabase
       .from("equipes_evento")
-      .insert([{ evento_id, equipe_id }])
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    return res.status(201).json({ message: "Equipe vinculada ao evento!", data });
-  } catch (err) {
-    console.error("Erro interno:", err);
-    return res.status(500).json({ error: "Erro interno no servidor" });
-  }
-}
-
-// ---------------------------------------------------------------
-//  Listar todas as equipes vinculadas a eventos
-// ---------------------------------------------------------------
-export async function listarEquipesEvento(req, res) {
-  try {
-    const { data, error } = await supabase
-      .from("equipes_evento")
+      .insert(parsed)
       .select(`
         id,
-        evento:evento_id ( id, nome ),
-        equipe:equipe_id ( id, nome )
-      `);
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    return res.status(200).json(data);
-  } catch (err) {
-    console.error("Erro:", err);
-    return res.status(500).json({ error: "Erro interno ao listar equipes_evento" });
-  }
-}
-
-// ---------------------------------------------------------------
-//  Buscar relação por ID
-// ---------------------------------------------------------------
-export async function buscarEquipeEventoPorId(req, res) {
-  try {
-    const { id } = req.params;
-
-    const { data, error } = await supabase
-      .from("equipes_evento")
-      .select(`
-        id,
-        evento:evento_id ( id, nome ),
-        equipe:equipe_id ( id, nome )
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome)
       `)
-      .eq("id", id)
       .single();
 
-    if (error || !data) {
-      return res.status(404).json({ error: "Vínculo equipe-evento não encontrado" });
-    }
+    if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.status(201).json({
+      message: "Vínculo criado com sucesso",
+      data
+    });
+
   } catch (err) {
-    console.error("Erro:", err);
-    return res.status(500).json({ error: "Erro interno ao buscar vínculo" });
+    console.error("CRIAR VINCULO ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// ---------------------------------------------------------------
-//  Remover vínculo equipe–evento
-// ---------------------------------------------------------------
-export async function deletarEquipeEvento(req, res) {
+// ========================================================
+// DELETAR VÍNCULO
+// ========================================================
+export async function deletarVinculo(req, res) {
   try {
     const { id } = req.params;
 
@@ -129,13 +141,12 @@ export async function deletarEquipeEvento(req, res) {
       .delete()
       .eq("id", id);
 
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+    if (error) throw error;
 
-    return res.status(200).json({ message: "Vínculo removido com sucesso" });
+    return res.json({ message: "Vínculo removido com sucesso" });
+
   } catch (err) {
-    console.error("Erro:", err);
-    return res.status(500).json({ error: "Erro interno ao deletar vínculo" });
+    console.error("DELETAR VINCULO ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }

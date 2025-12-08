@@ -1,103 +1,192 @@
 import supabase from "../config/supabase.js";
-import z from 'zod';
+import { z } from "zod";
+import bcrypt from "bcryptjs";
 
-// ESQUEMA ZOD PARA VALIDAR PESSOAS
+// ========================================================
+// VALIDAÇÃO ZOD
+// ========================================================
 const pessoaSchema = z.object({
-  nome: z.string().min(1, "O nome é obrigatório"),
+  nome: z.string().min(3, "Nome muito curto"),
   email: z.string().email("Email inválido").optional().nullable(),
   telefone: z.string().optional().nullable(),
+  role: z.enum(["user", "admin"]).optional(),
 });
 
-// Criar pessoa
-export async function criarPessoa(req, res) {
-  // VALIDAÇÃO ZOD (fora do try/catch)
-  const parsed = pessoaSchema.safeParse(req.body);
+const updateSchema = pessoaSchema.partial();
 
-  if (!parsed.success) {
-    const firstError =
-      parsed.error?.issues?.[0]?.message ||
-      parsed.error?.errors?.[0]?.message ||
-      "Dados inválidos";
+const passwordSchema = z.object({
+  password: z.string().min(6, "Senha muito curta"),
+});
 
-    return res.status(400).json({ error: firstError });
-  }
-
-  const { nome, email, telefone } = parsed.data;
-
+// ========================================================
+// LISTAR TODAS AS PESSOAS
+// ========================================================
+export async function listarPessoas(req, res) {
   try {
     const { data, error } = await supabase
-      .from('pessoas')
-      .insert([{ nome, email, telefone }])
+      .from("pessoas")
+      .select("id, nome, email, telefone, role, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("LISTAR PESSOAS ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ========================================================
+// BUSCAR PESSOA POR ID
+// ========================================================
+export async function buscarPessoa(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("pessoas")
+      .select("id, nome, email, telefone, role, created_at, updated_at")
+      .eq("id", id)
+      .single();
+
+    if (error) return res.status(404).json({ error: "Pessoa não encontrada." });
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("BUSCAR PESSOA ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ========================================================
+// CRIAR PESSOA
+// ========================================================
+export async function criarPessoa(req, res) {
+  try {
+    const parsed = pessoaSchema.parse(req.body);
+
+    // Evitar emails duplicados
+    if (parsed.email) {
+      const { data: existente } = await supabase
+        .from("pessoas")
+        .select("id")
+        .eq("email", parsed.email)
+        .maybeSingle();
+
+      if (existente)
+        return res.status(400).json({ error: "Email já cadastrado." });
+    }
+
+    const { data, error } = await supabase
+      .from("pessoas")
+      .insert(parsed)
       .select()
       .single();
 
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+    if (error) throw error;
 
-    return res.status(201).json(data);
+    return res.status(201).json({
+      message: "Pessoa criada com sucesso",
+      data,
+    });
+
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao criar pessoa" });
+    console.error("CRIAR PESSOA ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// Listar pessoas
-export async function listarPessoas(req, res) {
-  try {
-    const { data, error } = await supabase.from("pessoas").select("*");
-    if (error) return res.status(400).json({ error: error.message });
-    return res.status(200).json(data);
-  } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao listar pessoas" });
-  }
-}
-
-// Buscar pessoa por id
-export async function buscarPessoaPorId(req, res) {
+// ========================================================
+// ATUALIZAR PESSOA
+// ========================================================
+export async function atualizarPessoa(req, res) {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase.from("pessoas").select("*").eq("id", id).single();
-    if (error || !data) return res.status(404).json({ error: "Pessoa não encontrada" });
-    return res.status(200).json(data);
+
+    const parsed = updateSchema.parse(req.body);
+
+    // Checar duplicidade de email, se enviado
+    if (parsed.email) {
+      const { data: existente } = await supabase
+        .from("pessoas")
+        .select("id")
+        .eq("email", parsed.email)
+        .neq("id", id)
+        .maybeSingle();
+
+      if (existente)
+        return res.status(400).json({ error: "Email já está em uso." });
+    }
+
+    const { data, error } = await supabase
+      .from("pessoas")
+      .update(parsed)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({
+      message: "Pessoa atualizada com sucesso",
+      data,
+    });
+
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao buscar pessoa" });
+    console.error("ATUALIZAR PESSOA ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// Atualizar pessoa
-export async function atualizarPessoa(req, res) {
-  const { id } = req.params;
+// ========================================================
+// ATUALIZAR SENHA COM SEGURANÇA
+// ========================================================
+export async function atualizarSenha(req, res) {
+  try {
+    const { id } = req.params;
 
-  // VALIDAÇÃO PARCIAL (Zod .partial())
-  const parsed = pessoaSchema.partial().safeParse(req.body);
+    const parsed = passwordSchema.parse(req.body);
 
-  if (!parsed.success) {
-    const errorMessage = parsed.error.errors[0].message;
-    return res.status(400).json({ error: errorMessage });
+    const password_hash = await bcrypt.hash(parsed.password, 10);
+
+    const { data, error } = await supabase
+      .from("pessoas")
+      .update({ password_hash })
+      .eq("id", id)
+      .select("id, nome, email")
+      .single();
+
+    if (error) throw error;
+
+    return res.json({
+      message: "Senha atualizada com sucesso",
+      data,
+    });
+  } catch (err) {
+    console.error("ATUALIZAR SENHA ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
-
-  const updateData = parsed.data;
-
-  const { data, error } = await supabase
-    .from('pessoas')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  return res.json(data);
 }
 
-// Deletar pessoa
+// ========================================================
+// DELETAR PESSOA (apenas admin)
+// ========================================================
 export async function deletarPessoa(req, res) {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const { error } = await supabase.from('pessoas').delete().eq('id', id);
+    const { error } = await supabase
+      .from("pessoas")
+      .delete()
+      .eq("id", id);
 
-  if (error) {
-    return res.status(400).json({ error: "Erro ao excluir pessoa (verifique vínculos)" });
+    if (error) throw error;
+
+    return res.json({ message: "Pessoa removida com sucesso" });
+
+  } catch (err) {
+    console.error("DELETAR PESSOA ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
-  return res.json({ message: "Pessoa excluída com sucesso" });
 }

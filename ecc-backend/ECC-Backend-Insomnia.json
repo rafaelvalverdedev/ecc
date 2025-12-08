@@ -1,391 +1,239 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2025-01-01T00:00:00.000Z",
-  "__export_source": "insomnia.desktop.app",
+  "__export_date": "2025-02-15T00:00:00.000Z",
+  "__export_source": "chatgpt-insomnia-generator",
   "resources": [
     {
-      "_id": "env_ecc_main",
-      "parentId": "wrk_ecc_backend",
-      "modified": 1,
-      "created": 1,
+      "_id": "env_main",
+      "_type": "environment",
       "name": "Base Environment",
       "data": {
         "base_url": "http://localhost:3001",
-        "supabase_url": "https://YOUR-SUPABASE-URL.supabase.co",
-        "supabase_key": "",
-        "token_admin": ""
+        "token": ""
+      }
+    },
+    {
+      "_id": "req_2",
+      "_type": "request",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"email\": \"admin@ecc.com\", \"password\": \"123456\"}"
       },
-      "_type": "environment"
-    },
-    {
-      "_id": "wrk_ecc_backend",
-      "parentId": null,
-      "modified": 1,
-      "created": 1,
-      "name": "ECC Backend - FULL",
-      "_type": "workspace"
-    },
-
-    { "_id": "fld_auth", "parentId": "wrk_ecc_backend", "name": "🔐 AUTH", "_type": "request_group" },
-
-    {
-      "_id": "req_auth_login",
-      "parentId": "fld_auth",
-      "name": "Login (Supabase) - token_admin",
-      "method": "POST",
-      "url": "http://localhost:3001/auth/v1/token?grant_type=password",
       "headers": [
-        { "name": "apikey", "value": "{{ supabase_key }}" },
-        { "name": "Content-Type", "value": "application/json" }
-      ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"SenhaForte123!\"\n}" },
-      "_type": "request"
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
-
-    { "_id": "fld_pessoas", "parentId": "wrk_ecc_backend", "name": "🧍 Pessoas", "_type": "request_group" },
-
     {
-      "_id": "req_pessoas_create",
-      "parentId": "fld_pessoas",
-      "name": "POST /pessoas - criar pessoa",
-      "method": "POST",
-      "url": "http://localhost:3001/pessoas",
+      "_id": "req_3",
+      "_type": "request",
+      "name": "Listar Pessoas",
+      "method": "GET",
+      "url": "{{ _.base_url }}/pessoas",
+      "body": {},
       "headers": [
-        { "name": "Content-Type", "value": "application/json" }
-      ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@mail.com\",\n  \"telefone\": \"11999998888\"\n}" },
-      "_type": "request"
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_pessoas_list",
-      "parentId": "fld_pessoas",
-      "name": "GET /pessoas - listar pessoas",
-      "method": "GET",
-      "url": "http://localhost:3001/pessoas",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_pessoas_get",
-      "parentId": "fld_pessoas",
-      "name": "GET /pessoas/:id - buscar pessoa por id",
-      "method": "GET",
-      "url": "http://localhost:3001/pessoas/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_pessoas_update",
-      "parentId": "fld_pessoas",
-      "name": "PUT /pessoas/:id - atualizar pessoa",
-      "method": "PUT",
-      "url": "http://localhost:3001/pessoas/ID_AQUI",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"nome\": \"João Atualizado\",\n  \"telefone\": \"11988887777\"\n}" },
-      "_type": "request"
-    },
-    {
-      "_id": "req_pessoas_delete",
-      "parentId": "fld_pessoas",
-      "name": "DELETE /pessoas/:id - deletar pessoa",
-      "method": "DELETE",
-      "url": "http://localhost:3001/pessoas/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_equipes", "parentId": "wrk_ecc_backend", "name": "🧑‍🔧 Equipes", "_type": "request_group" },
-
-    {
-      "_id": "req_equipes_create",
-      "parentId": "fld_equipes",
-      "name": "POST /equipes - criar equipe",
+      "_id": "req_4",
+      "_type": "request",
+      "name": "Criar Pessoa",
       "method": "POST",
-      "url": "http://localhost:3001/equipes",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"nome\": \"Equipe Azul\",\n  \"descricao\": \"Acolhimento\"\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/pessoas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"nome\": \"Maria\", \"email\": \"maria@teste.com\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_equipes_list",
-      "parentId": "fld_equipes",
-      "name": "GET /equipes - listar equipes (com members)",
+      "_id": "req_5",
+      "_type": "request",
+      "name": "Listar Eventos",
       "method": "GET",
-      "url": "http://localhost:3001/equipes",
-      "headers": [],
-      "_type": "request"
+      "url": "{{ _.base_url }}/eventos",
+      "body": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_equipes_get",
-      "parentId": "fld_equipes",
-      "name": "GET /equipes/:id - buscar equipe (com members)",
-      "method": "GET",
-      "url": "http://localhost:3001/equipes/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_equipes_update",
-      "parentId": "fld_equipes",
-      "name": "PUT /equipes/:id - atualizar equipe",
-      "method": "PUT",
-      "url": "http://localhost:3001/equipes/ID_AQUI",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"nome\": \"Equipe Renomeada\",\n  \"descricao\": \"Texto atualizado\"\n}" },
-      "_type": "request"
-    },
-    {
-      "_id": "req_equipes_delete",
-      "parentId": "fld_equipes",
-      "name": "DELETE /equipes/:id - deletar equipe",
-      "method": "DELETE",
-      "url": "http://localhost:3001/equipes/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_eventos", "parentId": "wrk_ecc_backend", "name": "📅 Eventos", "_type": "request_group" },
-
-    {
-      "_id": "req_eventos_create",
-      "parentId": "fld_eventos",
-      "name": "POST /eventos - criar evento",
+      "_id": "req_6",
+      "_type": "request",
+      "name": "Criar Evento",
       "method": "POST",
-      "url": "http://localhost:3001/eventos",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"nome\": \"Encontro 2026\",\n  \"descricao\": \"Evento teste\",\n  \"local\": \"Igreja X\",\n  \"start_date\": \"2026-03-10\",\n  \"end_date\": \"2026-03-12\",\n  \"capacity\": 200\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/eventos",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"nome\": \"ECC\", \"local\": \"Par\\u00f3quia\", \"start_date\": \"2025-10-01\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_eventos_list",
-      "parentId": "fld_eventos",
-      "name": "GET /eventos - listar eventos",
+      "_id": "req_7",
+      "_type": "request",
+      "name": "Listar Equipes",
       "method": "GET",
-      "url": "http://localhost:3001/eventos",
-      "headers": [],
-      "_type": "request"
+      "url": "{{ _.base_url }}/equipes",
+      "body": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_eventos_get",
-      "parentId": "fld_eventos",
-      "name": "GET /eventos/:id - buscar evento",
-      "method": "GET",
-      "url": "http://localhost:3001/eventos/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_eventos_update",
-      "parentId": "fld_eventos",
-      "name": "PUT /eventos/:id - atualizar evento",
-      "method": "PUT",
-      "url": "http://localhost:3001/eventos/ID_AQUI",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"descricao\": \"Descrição atualizada\",\n  \"capacity\": 250\n}" },
-      "_type": "request"
-    },
-    {
-      "_id": "req_eventos_delete",
-      "parentId": "fld_eventos",
-      "name": "DELETE /eventos/:id - deletar evento",
-      "method": "DELETE",
-      "url": "http://localhost:3001/eventos/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_momentos", "parentId": "wrk_ecc_backend", "name": "⏱️ Momentos do Evento", "_type": "request_group" },
-
-    {
-      "_id": "req_momentos_create",
-      "parentId": "fld_momentos",
-      "name": "POST /momentos - criar momento",
+      "_id": "req_8",
+      "_type": "request",
+      "name": "Criar Equipe",
       "method": "POST",
-      "url": "http://localhost:3001/momentos",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"evento_id\": \"EVENTO_ID_AQUI\",\n  \"equipe_id\": \"EQUIPE_ID_AQUI\",\n  \"titulo\": \"Abertura\",\n  \"descricao\": \"Abertura do encontro\",\n  \"start_time\": \"2026-03-10T08:00:00Z\",\n  \"end_time\": \"2026-03-10T09:00:00Z\",\n  \"ordem\": 1\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/equipes",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"nome\": \"Cozinha\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_momentos_list_evento",
-      "parentId": "fld_momentos",
-      "name": "GET /momentos/evento/:evento_id - listar momentos",
-      "method": "GET",
-      "url": "http://localhost:3001/momentos/evento/EVENTO_ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_momentos_get",
-      "parentId": "fld_momentos",
-      "name": "GET /momentos/:id - buscar momento",
-      "method": "GET",
-      "url": "http://localhost:3001/momentos/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_momentos_delete",
-      "parentId": "fld_momentos",
-      "name": "DELETE /momentos/:id - deletar momento",
-      "method": "DELETE",
-      "url": "http://localhost:3001/momentos/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_teamrole", "parentId": "wrk_ecc_backend", "name": "🧱 Teamrole (membros)", "_type": "request_group" },
-
-    {
-      "_id": "req_team_add",
-      "parentId": "fld_teamrole",
-      "name": "POST /teamrole - adicionar membro",
+      "_id": "req_9",
+      "_type": "request",
+      "name": "Vincular Equipe a Evento",
       "method": "POST",
-      "url": "http://localhost:3001/teamrole",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"pessoa_id\": \"PESSOA_ID_AQUI\",\n  \"equipe_id\": \"EQUIPE_ID_AQUI\",\n  \"is_leader\": false\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/equipes-evento",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"equipe_id\": \"uuid\", \"evento_id\": \"uuid\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_team_list",
-      "parentId": "fld_teamrole",
-      "name": "GET /teamrole - listar teamroles",
-      "method": "GET",
-      "url": "http://localhost:3001/teamrole",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_team_list_equipe",
-      "parentId": "fld_teamrole",
-      "name": "GET /teamrole/equipe/:equipe_id - listar membros por equipe",
-      "method": "GET",
-      "url": "http://localhost:3001/teamrole/equipe/EQUIPE_ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_team_delete",
-      "parentId": "fld_teamrole",
-      "name": "DELETE /teamrole/:id - remover membro",
-      "method": "DELETE",
-      "url": "http://localhost:3001/teamrole/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_inscricoes", "parentId": "wrk_ecc_backend", "name": "📋 Inscrições (encontrista/encontreiro)", "_type": "request_group" },
-
-    {
-      "_id": "req_insc_create_encontrista",
-      "parentId": "fld_inscricoes",
-      "name": "POST /inscricoes - criar encontrista",
+      "_id": "req_10",
+      "_type": "request",
+      "name": "Vincular Pessoa \u00e0 Equipe",
       "method": "POST",
-      "url": "http://localhost:3001/inscricoes",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"evento_id\": \"EVENTO_ID_AQUI\",\n  \"pessoa_id\": \"PESSOA_ID_AQUI\",\n  \"tipo\": \"encontrista\"\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/teamrole",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"pessoa_id\": \"uuid\", \"equipe_id\": \"uuid\", \"evento_id\": \"uuid\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_insc_create_encontreiro",
-      "parentId": "fld_inscricoes",
-      "name": "POST /inscricoes - criar encontreiro",
+      "_id": "req_11",
+      "_type": "request",
+      "name": "Criar Inscri\u00e7\u00e3o",
       "method": "POST",
-      "url": "http://localhost:3001/inscricoes",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"evento_id\": \"EVENTO_ID_AQUI\",\n  \"pessoa_id\": \"PESSOA_ID_AQUI\",\n  \"tipo\": \"encontreiro\"\n}" },
-      "_type": "request"
+      "url": "{{ _.base_url }}/inscricoes",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"pessoa_id\": \"uuid\", \"evento_id\": \"uuid\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     },
     {
-      "_id": "req_insc_list",
-      "parentId": "fld_inscricoes",
-      "name": "GET /inscricoes - listar inscrições (filtros: evento_id, tipo, status)",
-      "method": "GET",
-      "url": "http://localhost:3001/inscricoes",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_insc_get",
-      "parentId": "fld_inscricoes",
-      "name": "GET /inscricoes/:id - buscar inscrição",
-      "method": "GET",
-      "url": "http://localhost:3001/inscricoes/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_insc_pay",
-      "parentId": "fld_inscricoes",
-      "name": "PUT /inscricoes/:id - registrar pagamento / atualizar status",
-      "method": "PUT",
-      "url": "http://localhost:3001/inscricoes/ID_AQUI",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"status\": \"paid\",\n  \"paid_by_pessoa_id\": \"PESSOA_PAGADORA_ID_AQUI\"\n}" },
-      "_type": "request"
-    },
-    {
-      "_id": "req_insc_delete",
-      "parentId": "fld_inscricoes",
-      "name": "DELETE /inscricoes/:id - deletar inscrição",
-      "method": "DELETE",
-      "url": "http://localhost:3001/inscricoes/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_equipe_evento", "parentId": "wrk_ecc_backend", "name": "🔗 Equipe_Evento (vincular equipes a eventos)", "_type": "request_group" },
-
-    {
-      "_id": "req_eq_ev_create",
-      "parentId": "fld_equipe_evento",
-      "name": "POST /equipe_evento - vincular equipe a evento",
+      "_id": "req_12",
+      "_type": "request",
+      "name": "Gerar Pagamento",
       "method": "POST",
-      "url": "http://localhost:3001/equipe_evento",
-      "headers": [ { "name": "Content-Type", "value": "application/json" } ],
-      "body": { "mimeType": "application/json", "text": "{\n  \"evento_id\": \"EVENTO_ID_AQUI\",\n  \"equipe_id\": \"EQUIPE_ID_AQUI\"\n}" },
-      "_type": "request"
-    },
-    {
-      "_id": "req_eq_ev_list",
-      "parentId": "fld_equipe_evento",
-      "name": "GET /equipe_evento - listar vínculos equipe↔evento",
-      "method": "GET",
-      "url": "http://localhost:3001/equipe_evento",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_eq_ev_list_evento",
-      "parentId": "fld_equipe_evento",
-      "name": "GET /equipe_evento/evento/:evento_id - listar equipes de um evento",
-      "method": "GET",
-      "url": "http://localhost:3001/equipe_evento/evento/EVENTO_ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-    {
-      "_id": "req_eq_ev_delete",
-      "parentId": "fld_equipe_evento",
-      "name": "DELETE /equipe_evento/:id - remover vínculo",
-      "method": "DELETE",
-      "url": "http://localhost:3001/equipe_evento/ID_AQUI",
-      "headers": [],
-      "_type": "request"
-    },
-
-    { "_id": "fld_misc", "parentId": "wrk_ecc_backend", "name": "🔎 Utilitários / Debug", "_type": "request_group" },
-
-    {
-      "_id": "req_health",
-      "parentId": "fld_misc",
-      "name": "GET / (health)",
-      "method": "GET",
-      "url": "http://localhost:3001/",
-      "headers": [],
-      "_type": "request"
+      "url": "{{ _.base_url }}/pagamento/gerar-pagamento",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"inscricao_id\": \"uuid\", \"valor\": 200, \"metodo\": \"pix\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ]
     }
-
   ]
 }

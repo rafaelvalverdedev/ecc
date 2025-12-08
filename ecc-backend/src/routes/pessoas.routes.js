@@ -1,18 +1,27 @@
 import { Router } from "express";
 import {
-  criarPessoa,
   listarPessoas,
-  buscarPessoaPorId,
+  buscarPessoa,
+  criarPessoa,
   atualizarPessoa,
+  atualizarSenha,
   deletarPessoa
 } from "../controllers/pessoas.controller.js";
 
+import { authMiddleware, requireRole, Roles } from "../middlewares/auth.js";
+
 const router = Router();
 
-router.post("/", criarPessoa);
+// públicas
 router.get("/", listarPessoas);
-router.get("/:id", buscarPessoaPorId);
-router.put("/:id", atualizarPessoa);
-router.delete("/:id", deletarPessoa);
+router.get("/:id", buscarPessoa);
+
+// requer login
+router.post("/", authMiddleware, criarPessoa);
+router.put("/:id", authMiddleware, atualizarPessoa);
+router.patch("/:id/senha", authMiddleware, atualizarSenha);
+
+// apenas admin
+router.delete("/:id", authMiddleware, requireRole(Roles.ADMIN), deletarPessoa);
 
 export default router;

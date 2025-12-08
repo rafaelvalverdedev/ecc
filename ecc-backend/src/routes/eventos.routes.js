@@ -1,24 +1,19 @@
 import { Router } from "express";
 import {
-  criarEvento,
   listarEventos,
-  buscarEventoPorId,
+  buscarEvento,
+  criarEvento,
   atualizarEvento,
-  deletarEvento,
-  listarEquipesDoEvento
+  deletarEvento
 } from "../controllers/eventos.controller.js";
-
+import { authMiddleware } from "../middlewares/auth.js";
 
 const router = Router();
 
-router.post("/", criarEvento);
-
 router.get("/", listarEventos);
-router.get("/:id", buscarEventoPorId);
-router.get("/:id/equipes", listarEquipesDoEvento);
-
-router.put("/:id", atualizarEvento);
-
-router.delete("/:id", deletarEvento);
+router.get("/:id", buscarEvento);
+router.post("/", authMiddleware, criarEvento);
+router.put("/:id", authMiddleware, atualizarEvento);
+router.delete("/:id", authMiddleware, deletarEvento);
 
 export default router;

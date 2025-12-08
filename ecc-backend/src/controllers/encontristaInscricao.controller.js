@@ -1,10 +1,13 @@
 import supabase from "../config/supabase.js";
-import z from "zod";
+import { z } from "zod";
 
-export const encontristaInscricaoSchema = z.object({
-  // Esposo
-  nome_completo_esposo: z.string().min(1),
-  data_nascimento_esposo: z.string().min(1),
+// ========================================================
+// VALIDAÇÃO DO FORMULÁRIO (ZOD)
+// ========================================================
+
+const pessoaSchema = z.object({
+  nome_completo_esposo: z.string().min(3),
+  data_nascimento_esposo: z.string().optional().nullable(),
   profissao_esposo: z.string().optional().nullable(),
   como_chamar_esposo: z.string().optional().nullable(),
   igreja_esposo: z.string().optional().nullable(),
@@ -16,9 +19,8 @@ export const encontristaInscricaoSchema = z.object({
   religiao_esposo: z.string().optional().nullable(),
   escolaridade_esposo: z.string().optional().nullable(),
 
-  // Esposa
-  nome_completo_esposa: z.string().min(1),
-  data_nascimento_esposa: z.string().min(1),
+  nome_completo_esposa: z.string().optional().nullable(),
+  data_nascimento_esposa: z.string().optional().nullable(),
   profissao_esposa: z.string().optional().nullable(),
   como_chamar_esposa: z.string().optional().nullable(),
   igreja_esposa: z.string().optional().nullable(),
@@ -30,152 +32,149 @@ export const encontristaInscricaoSchema = z.object({
   religiao_esposa: z.string().optional().nullable(),
   escolaridade_esposa: z.string().optional().nullable(),
 
-  // Casal
-  endereco: z.string().optional().nullable(),
+  endereco: z.string().min(3),
   numero: z.string().optional().nullable(),
   complemento: z.string().optional().nullable(),
   bairro: z.string().optional().nullable(),
   cidade: z.string().optional().nullable(),
   uf: z.string().optional().nullable(),
   cep: z.string().optional().nullable(),
+
   data_casamento: z.string().optional().nullable(),
   telefone_principal: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable(),
+  email: z.string().email("Email inválido").optional().nullable(),
+
   possui_filhos: z.boolean().optional(),
   quantidade_filhos: z.number().optional().nullable(),
-
+  grau_parentesco_outro: z.string().optional().nullable(),
   nome_responsavel_filhos: z.string().optional().nullable(),
+  endereco_responsavel: z.string().optional().nullable(),
+  numero_responsavel: z.string().optional().nullable(),
+  complemento_responsavel: z.string().optional().nullable(),
+  bairro_responsavel: z.string().optional().nullable(),
+  cidade_responsavel: z.string().optional().nullable(),
   telefone_responsavel: z.string().optional().nullable(),
 
   casal_que_convidou: z.string().optional().nullable(),
   telefone_casal_que_convidou: z.string().optional().nullable(),
 });
 
-
-
-// =========================
-// Criar Inscrição
-// =========================
-export async function criarEncontristaInscricao(req, res) {
-  const parsed = encontristaInscricaoSchema.safeParse(req.body);
-
-  if (!parsed.success) {
-    const firstError =
-      parsed.error?.issues?.[0]?.message || "Dados inválidos";
-
-    return res.status(400).json({ error: firstError });
-  }
-
-  const payload = parsed.data;
-
-  try {
-    const { data, error } = await supabase
-      .from("encontrista_inscricao")
-      .insert([payload])
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ error: error.message });
-
-    return res.status(201).json(data);
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao criar inscrição" });
-  }
-}
-
-// =========================
-// Listar Todas
-// =========================
-export async function listarEncontristaInscricoes(req, res) {
+// ========================================================
+// LISTAR TODAS AS INSCRIÇÕES
+// ========================================================
+export async function listar(req, res) {
   try {
     const { data, error } = await supabase
       .from("encontrista_inscricao")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.status(200).json(data);
+    return res.json({ data });
 
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao listar inscrições" });
+    console.error("LISTAR ENCONTRISTA ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// =========================
-// Buscar por ID
-// =========================
-export async function buscarEncontristaInscricao(req, res) {
-  const { id } = req.params;
-
+// ========================================================
+// BUSCAR POR ID
+// ========================================================
+export async function buscar(req, res) {
   try {
+    const { id } = req.params;
+
     const { data, error } = await supabase
       .from("encontrista_inscricao")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (error || !data)
-      return res.status(404).json({ error: "Inscrição não encontrada" });
+    if (error) return res.status(404).json({ error: "Registro não encontrado." });
 
-    return res.status(200).json(data);
+    return res.json({ data });
 
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao buscar inscrição" });
+    console.error("BUSCAR ENCONTRISTA ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// =========================
-// Atualizar inscrição
-// =========================
-export async function atualizarEncontristaInscricao(req, res) {
-  const { id } = req.params;
-
-  const parsed = encontristaInscricaoSchema.partial().safeParse(req.body);
-
-  if (!parsed.success) {
-    return res.status(400).json({ error: parsed.error.errors[0].message });
-  }
-
-  const updateData = parsed.data;
-
+// ========================================================
+// CRIAR INSCRIÇÃO
+// ========================================================
+export async function criar(req, res) {
   try {
+    const parsed = pessoaSchema.parse(req.body);
+
     const { data, error } = await supabase
       .from("encontrista_inscricao")
-      .update(updateData)
+      .insert(parsed)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json({
+      message: "Inscrição criada com sucesso",
+      data,
+    });
+
+  } catch (err) {
+    console.error("CRIAR ENCONTRISTA ERROR:", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+// ========================================================
+// ATUALIZAR INSCRIÇÃO
+// ========================================================
+export async function atualizar(req, res) {
+  try {
+    const { id } = req.params;
+
+    const parsed = pessoaSchema.partial().parse(req.body);
+
+    const { data, error } = await supabase
+      .from("encontrista_inscricao")
+      .update(parsed)
       .eq("id", id)
       .select()
       .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    return res.json(data);
+    return res.json({
+      message: "Inscrição atualizada",
+      data,
+    });
 
   } catch (err) {
-    return res.status(500).json({ error: "Erro ao atualizar inscrição" });
+    console.error("ATUALIZAR ENCONTRISTA ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// =========================
-// Deletar inscrição
-// =========================
-export async function deletarEncontristaInscricao(req, res) {
-  const { id } = req.params;
-
+// ========================================================
+// DELETAR INSCRIÇÃO (somente admin)
+// ========================================================
+export async function deletar(req, res) {
   try {
+    const { id } = req.params;
+
     const { error } = await supabase
       .from("encontrista_inscricao")
       .delete()
       .eq("id", id);
 
-    if (error)
-      return res.status(400).json({ error: "Erro ao excluir inscrição" });
+    if (error) throw error;
 
-    return res.json({ message: "Inscrição excluída com sucesso" });
+    return res.json({ message: "Inscrição removida com sucesso" });
 
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno ao excluir inscrição" });
+    console.error("DELETAR ENCONTRISTA ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }

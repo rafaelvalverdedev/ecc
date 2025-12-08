@@ -1,18 +1,21 @@
 import { Router } from "express";
 import {
-  criarEquipe,
   listarEquipes,
-  buscarEquipePorId,
+  buscarEquipe,
+  criarEquipe,
   atualizarEquipe,
-  deletarEquipe
+  deletarEquipe,
 } from "../controllers/equipe.controller.js";
+import { authMiddleware } from "../middlewares/auth.js";
 
 const router = Router();
 
-router.post("/", criarEquipe);
 router.get("/", listarEquipes);
-router.get("/:id", buscarEquipePorId);
-router.put("/:id", atualizarEquipe);
-router.delete("/:id", deletarEquipe);
+router.get("/:id", buscarEquipe);
+
+// protegidas (criar/editar/excluir)
+router.post("/", authMiddleware, criarEquipe);
+router.put("/:id", authMiddleware, atualizarEquipe);
+router.delete("/:id", authMiddleware, deletarEquipe);
 
 export default router;

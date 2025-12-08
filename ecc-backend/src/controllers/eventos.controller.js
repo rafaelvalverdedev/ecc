@@ -1,198 +1,139 @@
 import supabase from "../config/supabase.js";
+import { z } from "zod";
 
-// Criar evento
-export async function criarEvento(req, res) {
-  try {
-    const { nome, descricao, local, start_date, end_date, capacity } = req.body;
+// ===============================
+// SCHEMA DE VALIDAÇÃO
+// ===============================
+const eventoSchema = z.object({
+  nome: z.string().min(3, "Nome muito curto"),
+  descricao: z.string().optional(),
+  local: z.string().min(3, "Local obrigatório"),
+  start_date: z.string().refine(v => !isNaN(Date.parse(v)), "Data inicial inválida"),
+  end_date: z.string().optional(),
+  capacity: z.number().optional()
+});
 
-    if (!nome || !descricao || !start_date) {
-      return res.status(400).json({ error: "Os campos 'nome', 'local' e 'start_date' são obrigatórios" });
-    }
-
-    if (end_date && end_date < start_date) {
-      return res.status(400).json({ error: "A data final não pode ser menor que a data inicial" });
-    }
-
-    const { data, error } = await supabase
-      .from("eventos")
-      .insert([{ nome, descricao, local, start_date, end_date, capacity }])
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ error: error.message });
-    return res.status(201).json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao criar evento" });
-  }
-}
-
-// Listar eventos (com momentos, equipes, contadores)
+// ===============================
+// LISTAR EVENTOS
+// ===============================
 export async function listarEventos(req, res) {
   try {
     const { data, error } = await supabase
       .from("eventos")
-      .select(`
-        id,
-        nome,
-        descricao,
-        local,
-        start_date,
-        end_date,
-        capacity,
-        created_at,
-        updated_at,
-        momentos_do_evento (
-          id,
-          titulo,
-          start_time,
-          end_time,
-          equipe:equipes ( id, nome )
-        ),
-        inscricoes ( id, status )
-      `)
+      .select("*")
       .order("start_date", { ascending: true });
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw error;
 
-    const eventosFormatados = data.map(evento => ({
-      ...evento,
-      total_momentos: evento.momentos_do_evento ? evento.momentos_do_evento.length : 0,
-      total_inscricoes: evento.inscricoes ? evento.inscricoes.length : 0
-    }));
-
-    return res.status(200).json(eventosFormatados);
+    return res.json({ data });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao listar eventos" });
+    console.error("LISTAR EVENTOS ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// Buscar evento por id (com detalhes)
-export async function buscarEventoPorId(req, res) {
+// ===============================
+// BUSCAR EVENTO POR ID
+// ===============================
+export async function buscarEvento(req, res) {
   try {
     const { id } = req.params;
+
     const { data, error } = await supabase
       .from("eventos")
-      .select(`
-        id,
-        nome,
-        descricao,
-        local,
-        start_date,
-        end_date,
-        capacity,
-        created_at,
-        updated_at,
-        momentos_do_evento (
-          id,
-          titulo,
-          descricao,
-          start_time,
-          end_time,
-          ordem,
-          equipe:equipes ( id, nome, descricao )
-        ),
-        inscricoes (
-          id,
-          pessoa_id,
-          status,
-          created_at
-        )
-      `)
+      .select("*")
       .eq("id", id)
       .single();
 
-    if (error || !data) return res.status(404).json({ error: "Evento não encontrado" });
+    if (error) return res.status(404).json({ error: "Evento não encontrado" });
 
-    const total_inscricoes = data.inscricoes ? data.inscricoes.length : 0;
-    const eventoFormatado = {
-      ...data,
-      total_inscricoes,
-      vagas_restantes: data.capacity ? data.capacity - total_inscricoes : null,
-      lotado: data.capacity ? total_inscricoes >= data.capacity : false
-    };
-
-    return res.status(200).json(eventoFormatado);
+    return res.json({ data });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar evento completo" });
+    console.error("BUSCAR EVENTO ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// Atualizar evento
-export async function atualizarEvento(req, res) {
+// ===============================
+// CRIAR EVENTO
+// ===============================
+export async function criarEvento(req, res) {
   try {
-    const { id } = req.params;
-    const { nome, descricao, local, start_date, end_date, capacity } = req.body;
+    const parsed = eventoSchema.parse(req.body);
 
-    if (!nome && !descricao && !local && !start_date && !end_date && !capacity) {
-      return res.status(400).json({ error: "Informe ao menos um campo para atualização" });
-    }
+    // nome deve ser único
+    const { data: existente } = await supabase
+      .from("eventos")
+      .select("id")
+      .eq("nome", parsed.nome)
+      .maybeSingle();
 
-    if (start_date && end_date && end_date < start_date) {
-      return res.status(400).json({ error: "A data final não pode ser menor que a data inicial" });
-    }
+    if (existente)
+      return res.status(400).json({ error: "Já existe um evento com este nome" });
 
     const { data, error } = await supabase
       .from("eventos")
-      .update({ nome, descricao, local, start_date, end_date, capacity })
+      .insert(parsed)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json({
+      message: "Evento criado com sucesso",
+      data
+    });
+  } catch (err) {
+    console.error("CRIAR EVENTO ERROR:", err);
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+// ===============================
+// ATUALIZAR EVENTO
+// ===============================
+export async function atualizarEvento(req, res) {
+  try {
+    const { id } = req.params;
+    const parsed = eventoSchema.partial().parse(req.body);
+
+    const { data, error } = await supabase
+      .from("eventos")
+      .update(parsed)
       .eq("id", id)
       .select()
       .single();
 
-    if (error || !data) return res.status(404).json({ error: "Evento não encontrado" });
-    return res.status(200).json({ message: "Evento atualizado com sucesso", data });
+    if (error) return res.status(400).json({ error: error.message });
+
+    return res.json({
+      message: "Evento atualizado com sucesso",
+      data
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao atualizar evento" });
+    console.error("ATUALIZAR EVENTO ERROR:", err);
+    return res.status(400).json({ error: err.message });
   }
 }
 
-// Deletar evento
+// ===============================
+// DELETAR EVENTO
+// ===============================
 export async function deletarEvento(req, res) {
   try {
     const { id } = req.params;
-    const { error } = await supabase.from("eventos").delete().eq("id", id);
+
+    const { error } = await supabase
+      .from("eventos")
+      .delete()
+      .eq("id", id);
+
     if (error) return res.status(400).json({ error: error.message });
-    return res.status(200).json({ message: "Evento deletado com sucesso" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro interno ao deletar evento" });
-  }
-}
 
-export async function listarEquipesDoEvento(req, res) {
-  try {
-    const { id } = req.params;
-
-    // 1) Buscar vínculos evento → equipe
-    const { data: vinculos, error: errorVinculo } = await supabase
-      .from("equipes_evento")
-      .select("equipe_id")
-      .eq("evento_id", id);
-
-    if (errorVinculo)
-      return res.status(400).json({ error: errorVinculo.message });
-
-    if (!vinculos || vinculos.length === 0)
-      return res.json([]); // evento sem equipes vinculadas
-
-    const equipeIds = vinculos.map(v => v.equipe_id);
-
-    // 2) Buscar dados das equipes vinculadas
-    const { data: equipes, error: errorEquipe } = await supabase
-      .from("equipes")
-      .select("id, nome")
-      .in("id", equipeIds);
-
-    if (errorEquipe)
-      return res.status(400).json({ error: errorEquipe.message });
-
-    return res.json(equipes);
+    return res.json({ message: "Evento removido com sucesso" });
 
   } catch (err) {
-    console.error("Erro ao listar equipes do evento:", err);
-    return res.status(500).json({ error: "Erro interno ao listar equipes do evento" });
+    console.error("DELETAR EVENTO ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
