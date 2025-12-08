@@ -269,3 +269,22 @@ export async function getInscricaoPublica(req, res) {
     return res.status(404).json({ error: "Inscrição não encontrada" });
   }
 }
+
+export const obterInscricaoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await db
+      .from("inscricoes")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) return res.status(404).json({ error: "Inscrição não encontrada" });
+
+    res.json(data);
+  } catch (err) {
+    console.error("Erro ao buscar inscrição:", err);
+    res.status(500).json({ error: "Erro interno ao buscar inscrição" });
+  }
+};
