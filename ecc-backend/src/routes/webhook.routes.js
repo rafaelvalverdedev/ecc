@@ -3,7 +3,7 @@ import { mpWebhook } from "../controllers/webhook.controller.js";
 
 const router = express.Router();
 
-// Rota usada pelo mercado pago para enviar notificações
-router.post("/mercadopago", express.json({ type: "*/*" }), mpWebhook);
+// NÃO usar express.json() aqui!
+router.post("/mercadopago", mpWebhook);
 
 export default router;

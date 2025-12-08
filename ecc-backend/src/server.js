@@ -20,6 +20,8 @@ import pagamentoRoutes from "./routes/pagamento.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
 import devRoutes from "./routes/dev.routes.js";
 
+import bodyParser from "body-parser";
+
 import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
@@ -33,7 +35,8 @@ app.use("/auth", authRoutes);
 app.use("/webhook", webhookRoutes); // sempre público (Mercado Pago)
 app.use("/dev", devRoutes); // deixar somente em ambiente DEV
 app.use("/pagamento", pagamentoRoutes);
-
+app.post("/webhook/mercadopago", bodyParser.raw({ type: "*/*" })
+)
 // ==============================
 // ROTAS PROTEGIDAS (LOGIN NECESSÁRIO)
 // ==============================
