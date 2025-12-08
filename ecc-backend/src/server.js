@@ -53,7 +53,10 @@ app.use("/equipes", authMiddleware, equipeRoutes);
 app.use("/equipes-evento", authMiddleware, equipesEventoRoutes);
 app.use("/teamrole", authMiddleware, teamroleRoutes);
 app.use("/momentos", authMiddleware, momentosRoutes);
-app.use("/inscricoes", authMiddleware, inscricoesRoutes);
+
+// app.use("/inscricoes", authMiddleware, inscricoesRoutes);
+app.use("/inscricoes", inscricoesRoutes);
+
 app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
 app.use("/encontrista-inscricao", authMiddleware, encontristaInscricaoRoutes);
 app.use("/pagamento", authMiddleware, pagamentoRoutes);

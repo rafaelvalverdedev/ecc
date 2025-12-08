@@ -25,14 +25,12 @@ router.get("/evento/:eventoId", listarPorEvento);
 router.get("/:id", obterInscricaoPorId);
 
 
-
 // 🔓 ROTAS PÚBLICAS (SEM TOKEN)
 router.get("/:id/status", verificarStatusInscricao);
 
-
 // criação e edição (requer login)
 router.post("/", authMiddleware, criarInscricao);
-router.put("/:id", authMiddleware, atualizarInscricao);
+router.put("/:id", atualizarInscricao);
 router.patch("/:id/cancelar", authMiddleware, cancelarInscricao);
 
 // somente admin pode remover

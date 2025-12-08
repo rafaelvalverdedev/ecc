@@ -296,7 +296,7 @@ export const obterInscricaoPorId = async (req, res) => {
  * Não exige token!
  */
 export const verificarStatusInscricao = async (req, res) => {
-  try {
+ try {
     const { id } = req.params;
 
     // 🔍 Busca inscrição no Supabase
