@@ -9,14 +9,14 @@ export async function gerarPagamentoPix(req, res) {
 
     console.log("📌 Dados recebidos:", req.body);
 
-    // Validação do payer (obrigatório em produção)
+    // Apenas email é obrigatório
     if (!payer || !payer.email) {
       return res.status(400).json({
-        error: "payer.email é obrigatório para gerar PIX em produção."
+        error: "payer.email é obrigatório para gerar PIX."
       });
     }
 
-    // Buscar valor da inscrição
+    // Buscar inscrição
     const { data: inscricao, error } = await supabase
       .from("inscricoes")
       .select("id, valor")
@@ -26,22 +26,17 @@ export async function gerarPagamentoPix(req, res) {
     if (error || !inscricao)
       return res.status(404).json({ error: "Inscrição não encontrada" });
 
-    console.log("📌 Inscrição encontrada:", inscricao);
+    console.log("📌 Inscrição:", inscricao);
 
-    // Criar pagamento PIX no Mercado Pago
+    // Criar pagamento PIX
     const response = await mercadopago.payment.create({
       transaction_amount: inscricao.valor,
       description: `Pagamento inscrição ${inscricao.id}`,
       payment_method_id: "pix",
 
       payer: {
-        email: payer.email,
-        first_name: payer.first_name || "SemNome",
-        last_name: payer.last_name || "SemSobrenome",
-        identification: payer.identification || {
-          type: "CPF",
-          number: "00000000000" // Não obrigatório, mas recomendado
-        }
+        email: payer.email
+        // Nenhuma identificação extra
       },
 
       notification_url: "https://ecc-backend-8i9l.onrender.com/webhook/mercadopago"
@@ -50,7 +45,6 @@ export async function gerarPagamentoPix(req, res) {
     const pagamento = response.body;
     console.log("📌 PIX criado:", pagamento);
 
-    // Salvar no banco
     await supabase.from("pagamentos").insert({
       inscricao_id,
       gateway: "MERCADO_PAGO",
