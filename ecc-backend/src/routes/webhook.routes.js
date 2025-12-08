@@ -10,4 +10,6 @@ router.post(
   mercadoPagoWebhook
 );
 
+router.post("/webhook/mercadopago", mercadoPagoWebhook);
+
 export default router;

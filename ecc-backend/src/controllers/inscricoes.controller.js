@@ -288,3 +288,36 @@ export const obterInscricaoPorId = async (req, res) => {
     res.status(500).json({ error: "Erro interno ao buscar inscrição" });
   }
 };
+
+
+/**
+ * ❗ ROTA PÚBLICA — usada pelo FRONT para acompanhar o pagamento
+ * GET /inscricoes/:id/status
+ * Não exige token!
+ */
+export const verificarStatusInscricao = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 🔍 Busca inscrição no Supabase
+    const { data, error } = await supabase
+      .from("inscricoes")
+      .select("status, pagamento_id, id")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({ error: "Inscrição não encontrada" });
+    }
+
+    return res.json({
+      inscricao_id: data.id,
+      status: data.status,
+      pagamento_id: data.pagamento_id,
+    });
+
+  } catch (err) {
+    console.error("Erro ao verificar status:", err);
+    return res.status(500).json({ error: "Erro ao verificar status" });
+  }
+};

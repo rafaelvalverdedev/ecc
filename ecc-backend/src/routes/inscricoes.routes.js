@@ -8,7 +8,8 @@ import {
   atualizarInscricao,
   cancelarInscricao,
   deletarInscricao,
-  obterInscricaoPorId 
+  obterInscricaoPorId,
+  verificarStatusInscricao 
 } from "../controllers/inscricoes.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.js";
@@ -22,6 +23,12 @@ router.get("/:id", buscarInscricao);
 router.get("/pessoa/:pessoaId", listarPorPessoa);
 router.get("/evento/:eventoId", listarPorEvento);
 router.get("/:id", obterInscricaoPorId);
+
+
+
+// 🔓 ROTAS PÚBLICAS (SEM TOKEN)
+router.get("/:id/status", verificarStatusInscricao);
+
 
 // criação e edição (requer login)
 router.post("/", authMiddleware, criarInscricao);
