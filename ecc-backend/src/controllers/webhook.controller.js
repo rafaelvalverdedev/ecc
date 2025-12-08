@@ -2,7 +2,8 @@ import crypto from "crypto";
 import mercadopago from "mercadopago";
 import supabase from "../config/supabase.js";
 
-mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
+mercadopago.configure({ access_token: process.env.MP_ACCESS_TOKEN, });
+
 
 /**
  * Função para validar a assinatura do Mercado Pago
