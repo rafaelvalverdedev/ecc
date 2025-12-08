@@ -6,64 +6,36 @@ const processedEvents = new Set();
 
 export async function mpWebhook(req, res) {
   try {
-    const { type, data } = req.body;
+    console.log("🌐 Webhook recebido:", req.body);
 
-    if (!type || !data?.id) {
-      console.warn("⚠ Webhook inválido:", req.body);
-      return res.sendStatus(400);
+    const { type, data, action } = req.body;
+
+    // Se for simulação do Mercado Pago → só retorna 200
+    if (req.body.api_version && action?.includes("test")) {
+      console.log("🧪 Simulação recebida. Ignorando.");
+      return res.sendStatus(200);
     }
 
-    const paymentId = data.id.toString();
-
-    if (processedEvents.has(paymentId)) {
-      console.log("⚠ Evento já processado:", paymentId);
-      return res.status(200).json({ message: "Evento duplicado ignorado" });
+    if (type !== "payment" || !data?.id) {
+      console.log("❌ Webhook inválido:", req.body);
+      return res.sendStatus(200); // Retornar 200 evita novas tentativas
     }
 
-    console.log("🔔 Webhook recebido:", type, paymentId);
+    // Buscar dados reais do pagamento
+    const payment = await mercadopago.payment.findById(data.id);
 
-    const result = await mercadopago.payment.get(paymentId);
-    const p = result.response;
+    console.log("💰 Pagamento real encontrado:", payment.body.status);
 
-    const status = p.status; // approved, pending, rejected...
-    const externalReference = p.external_reference; // usamos como inscricao_id
-
-    if (!externalReference) {
-      console.error("❌ Pagamento sem external_reference!");
-      return res.sendStatus(400);
+    // Caso seja aprovado
+    if (payment.body.status === "approved") {
+      await atualizarPagamento(data.id);
     }
 
-    processedEvents.add(paymentId);
+    return res.sendStatus(200);
 
-    // Atualiza registro de pagamento
-    await supabase
-      .from("pagamentos_inscricao")
-      .update({
-        mp_status: status,
-        mp_status_detail: p.status_detail,
-        raw_payload: p
-      })
-      .eq("mp_payment_id", paymentId);
-
-    // Se aprovado → marcar inscrição como CONFIRMADA
-    if (status === "approved") {
-      const { error } = await supabase
-        .from("inscricoes")
-        .update({ status: "confirmed" })
-        .eq("id", externalReference);
-
-      if (error) {
-        console.error("❌ Erro ao atualizar inscrição:", error);
-      } else {
-        console.log(`🎉 Inscrição ${externalReference} marcada como CONFIRMED!`);
-      }
-    }
-
-    console.log("✅ Webhook finalizado com sucesso.");
-    return res.status(200).json({ message: "OK" });
-
-  } catch (error) {
-    console.error("❌ Erro no Webhook:", error);
-    return res.sendStatus(500);
+  } catch (err) {
+    console.error("🚨 Erro no webhook:", err);
+    return res.sendStatus(200); // NUNCA retornar 500 para Mercado Pago
   }
 }
+
