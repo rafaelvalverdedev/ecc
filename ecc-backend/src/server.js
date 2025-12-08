@@ -15,9 +15,10 @@ import momentosRoutes from "./routes/momentos.routes.js";
 import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
-import pagamentoRoutes from "./routes/pagamento.routes.js";
 
+import pagamentoRoutes from "./routes/pagamento.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
+
 import devRoutes from "./routes/dev.routes.js";
 
 import bodyParser from "body-parser";
@@ -32,9 +33,10 @@ app.use(express.json());
 // ROTAS PÚBLICAS
 // ==============================
 app.use("/auth", authRoutes);
-app.use("/webhook", webhookRoutes); // sempre público (Mercado Pago)
 app.use("/dev", devRoutes); // deixar somente em ambiente DEV
+
 app.use("/pagamento", pagamentoRoutes);
+app.use("/webhook", webhookRoutes); // sempre público (Mercado Pago)
 app.post("/webhook/mercadopago", bodyParser.raw({ type: "*/*" })
 )
 // ==============================

@@ -1,120 +1,41 @@
-import crypto from "crypto";
-import mercadopago from "mercadopago";
+import mercadopago from "../config/mercadoPago.js";
 import supabase from "../config/supabase.js";
 
-mercadopago.configure({ access_token: process.env.MP_ACCESS_TOKEN, });
-
-
-/**
- * Função para validar a assinatura do Mercado Pago
- */
-function validarAssinatura(req) {
+export async function mercadoPagoWebhook(req, res) {
   try {
-    const mpSignature = req.headers["x-signature"];
-    const mpRequestId = req.headers["x-request-id"];
+    const body = JSON.parse(req.body.toString()); // porque é raw
 
-    if (!mpSignature || !mpRequestId) return false;
+    console.log("📩 WEBHOOK RECEBIDO:", body);
 
-    const [tsPart, hashPart] = mpSignature.split(",");
-    const ts = tsPart.replace("ts=", "");
-    const v1 = hashPart.replace("v1=", "");
+    if (!body.data || !body.data.id)
+      return res.status(200).send("Webhook ignorado");
 
-    // Expiração de 5 minutos
-    const agora = Math.floor(Date.now() / 1000);
-    if (Math.abs(agora - parseInt(ts)) > 300) {
-      console.log("⚠ Assinatura expirada");
-      return false;
-    }
+    const paymentId = body.data.id;
 
-    const dadosAssinatura = `id:${mpRequestId};ts:${ts};`;
-    const hashEsperado = crypto
-      .createHmac("sha256", process.env.MP_WEBHOOK_SECRET)
-      .update(dadosAssinatura)
-      .digest("hex");
+    // Buscar pagamento real no MP
+    const mpResponse = await mercadopago.payment.findById(paymentId);
+    const pagamentoMP = mpResponse.body;
 
-    return hashEsperado === v1;
+    console.log("🔍 Status Mercado Pago:", pagamentoMP.status);
 
-  } catch (err) {
-    console.log("⚠ Erro validando assinatura:", err);
-    return false;
-  }
-}
-
-/**
- * Webhook principal do Mercado Pago
- */
-export async function mpWebhook(req, res) {
-  try {
-    console.log("\n\n📩 NOVO WEBHOOK RECEBIDO");
-    console.log("Body:", JSON.stringify(req.body, null, 2));
-
-    // 1 — Validar assinatura
-    const assinaturaValida = validarAssinatura(req);
-    if (!assinaturaValida) {
-      console.log("❌ Assinatura inválida — ignorando");
-      return res.sendStatus(200);
-    }
-
-    const { type, data, action } = req.body;
-
-    // 2 — Ignorar simulações
-    if (req.body.live_mode === false) {
-      console.log("🧪 Webhook de teste detectado — ignorando");
-      return res.sendStatus(200);
-    }
-
-    // 3 — Usamos apenas eventos reais de pagamento
-    if (type !== "payment" || !data?.id) {
-      console.log("⚠ Webhook ignorado — não é pagamento válido");
-      return res.sendStatus(200);
-    }
-
-    const paymentId = data.id;
-    console.log("🔍 Buscando pagamento real:", paymentId);
-
-    // 4 — Consultar pagamento REAL no Mercado Pago
-    const resultado = await mercadopago.payment.findById(paymentId);
-    const pagamento = resultado.body;
-
-    console.log("📌 Status do pagamento:", pagamento.status);
-
-    // 5 — Impedir duplicações
-    const { data: pagExistente } = await supabase
-      .from("pagamentos")
-      .select("id, status")
-      .eq("mp_payment_id", paymentId)
-      .maybeSingle();
-
-    if (pagExistente && pagExistente.status === pagamento.status) {
-      console.log("⏩ Pagamento já processado antes — ignorando");
-      return res.sendStatus(200);
-    }
-
-    // 6 — Atualizar pagamento no banco
+    // Atualizar pagamento
     await supabase
       .from("pagamentos")
-      .update({
-        status: pagamento.status,
-        raw_payload: pagamento,
-      })
+      .update({ status: pagamentoMP.status })
       .eq("mp_payment_id", paymentId);
 
-    console.log("💾 Pagamento atualizado no banco:", pagamento.status);
-
-    // 7 — Se aprovado → atualizar inscrição
-    if (pagamento.status === "approved") {
+    // Se aprovado → atualizar inscrição
+    if (pagamentoMP.status === "approved") {
       await supabase
         .from("inscricoes")
-        .update({ status: "pago" })
-        .eq("id", pagamento.external_reference);
-
-      console.log("🎉 Inscrição marcada como PAGA!");
+        .update({ status: "confirmada" })
+        .eq("id", pagamentoMP.external_reference);
     }
 
-    return res.sendStatus(200);
+    return res.status(200).send("OK");
 
   } catch (err) {
-    console.log("🚨 ERRO NO WEBHOOK:", err);
-    return res.sendStatus(200); // Nunca retornar 500
+    console.error("❌ ERRO WEBHOOK:", err);
+    return res.status(500).send("Erro webhook");
   }
 }

@@ -1,9 +1,13 @@
-import express from "express";
-import { mpWebhook } from "../controllers/webhook.controller.js";
+import { Router } from "express";
+import { mercadoPagoWebhook } from "../controllers/webhook.controller.js";
+import bodyParser from "body-parser";
 
-const router = express.Router();
+const router = Router();
 
-// NÃO usar express.json() aqui!
-router.post("/mercadopago", mpWebhook);
+router.post(
+  "/mercadopago",
+  bodyParser.raw({ type: "*/*" }),
+  mercadoPagoWebhook
+);
 
 export default router;

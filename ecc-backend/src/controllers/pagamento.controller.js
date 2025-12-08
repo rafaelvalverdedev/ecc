@@ -1,124 +1,48 @@
+import mercadopago from "../config/mercadoPago.js";
 import supabase from "../config/supabase.js";
-import { mpPayment } from "../config/mercadoPago.js";
 
-// ===========================
-// HELPERS
-// ===========================
-async function getInscricao(inscricaoId) {
-  const { data, error } = await supabase
-    .from("inscricoes")
-    .select("*")
-    .eq("id", inscricaoId)
-    .single();
-
-  if (error || !data) {
-    throw new Error("Inscrição não encontrada");
-  }
-
-  return data;
-}
-
-// ===========================
-// CRIAR PAGAMENTO PIX
-// ===========================
-export async function criarPagamentoPix(req, res) {
+// Gera pagamento PIX
+export async function gerarPagamentoPix(req, res) {
   try {
-    const inscricaoId = req.params.id;
-    const { payer } = req.body;
+    const { inscricao_id } = req.params;
 
-    const inscricao = await getInscricao(inscricaoId);
-    const amount = Number(inscricao.valor);
-
-    const body = {
-      transaction_amount: amount,
-      description: `Inscrição evento ${inscricao.evento_id}`,
-      payment_method_id: "pix",
-      external_reference: inscricao.id,
-      payer
-    };
-
-    const payment = await mpPayment.create({ body });
-
-    const { data: pagamentoDB, error: pgError } = await supabase
-      .from("pagamentos_inscricao")
-      .insert({
-        inscricao_id: inscricao.id,
-        gateway: "MERCADO_PAGO",
-        mp_payment_id: payment.id.toString(),
-        mp_status: payment.status,
-        mp_status_detail: payment.status_detail,
-        metodo: "pix",
-        valor: amount,
-        raw_payload: payment
-      })
-      .select()
+    // Buscar valor da inscrição
+    const { data: inscricao } = await supabase
+      .from("inscricoes")
+      .select("id, valor")
+      .eq("id", inscricao_id)
       .single();
 
-    if (pgError) throw pgError;
+    if (!inscricao)
+      return res.status(404).json({ error: "Inscrição não encontrada" });
+
+    // Criar pagamento PIX
+    const response = await mercadopago.payment.create({
+      transaction_amount: inscricao.valor,
+      description: `Pagamento inscrição ${inscricao.id}`,
+      payment_method_id: "pix"
+    });
+
+    const pagamento = response.body;
+
+    // Salvar no banco
+    await supabase.from("pagamentos").insert({
+      inscricao_id,
+      gateway: "MERCADO_PAGO",
+      mp_payment_id: pagamento.id,
+      metodo: "pix",
+      valor: inscricao.valor,
+      moeda: "BRL",
+      status: pagamento.status
+    });
 
     return res.status(201).json({
-      pagamento: pagamentoDB,
-      pix: payment.point_of_interaction?.transaction_data || null
+      qr_code_base64: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+      payment_id: pagamento.id
     });
+
   } catch (err) {
-    console.error("Erro PIX:", err);
-    return res.status(500).json({ error: err.message });
-  }
-}
-
-// ===========================
-// CRIAR PAGAMENTO CARTÃO
-// ===========================
-export async function criarPagamentoCartao(req, res) {
-  try {
-    const inscricaoId = req.params.id;
-    const {
-      token,
-      installments,
-      payment_method_id,
-      payer,
-      tipo_cartao
-    } = req.body;
-
-    const inscricao = await getInscricao(inscricaoId);
-    const amount = Number(inscricao.valor);
-
-    const body = {
-      transaction_amount: amount,
-      description: `Inscrição evento ${inscricao.evento_id}`,
-      token,
-      installments: installments || 1,
-      payment_method_id,
-      external_reference: inscricao.id,
-      payer
-    };
-
-    const payment = await mpPayment.create({ body });
-
-    const { data: pagamentoDB, error: pgError } = await supabase
-      .from("pagamentos_inscricao")
-      .insert({
-        inscricao_id: inscricao.id,
-        gateway: "MERCADO_PAGO",
-        mp_payment_id: payment.id.toString(),
-        mp_status: payment.status,
-        mp_status_detail: payment.status_detail,
-        metodo: tipo_cartao || "credit_card",
-        valor: amount,
-        raw_payload: payment
-      })
-      .select()
-      .single();
-
-    if (pgError) throw pgError;
-
-    return res.status(201).json({
-      pagamento: pagamentoDB,
-      status: payment.status,
-      status_detail: payment.status_detail
-    });
-  } catch (err) {
-    console.error("Erro CARTÃO:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("ERRO AO GERAR PIX:", err);
+    return res.status(500).json({ error: "Erro ao gerar pagamento" });
   }
 }

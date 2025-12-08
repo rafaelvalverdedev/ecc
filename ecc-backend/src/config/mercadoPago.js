@@ -1,9 +1,5 @@
-// src/config/mercadoPago.js
-import { MercadoPagoConfig, Payment } from 'mercadopago';
+import mercadopago from "mercadopago";
 
-export const mpClient = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN,
-  options: { timeout: 5000 },
-});
+mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
 
-export const mpPayment = new Payment(mpClient);
+export default mercadopago;
