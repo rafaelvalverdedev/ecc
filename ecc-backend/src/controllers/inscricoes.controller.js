@@ -249,3 +249,23 @@ export async function deletarInscricao(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+export async function getInscricaoPublica(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("inscricoes")
+      .select("id, status, evento_id, pessoa_id")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    return res.json(data);
+
+  } catch (err) {
+    console.log("Erro getInscricaoPublica:", err);
+    return res.status(404).json({ error: "Inscrição não encontrada" });
+  }
+}

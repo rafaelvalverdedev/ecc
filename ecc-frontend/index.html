@@ -1,11 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>Pagamento PIX - ECC</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f2f2f2;
+      padding-top: 40px;
+    }
+    #qrcode {
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .status {
+      font-size: 20px;
+      margin-top: 30px;
+      color: #444;
+    }
+  </style>
 </head>
 <body>
-    <img width="300" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAABWQAAAVkAQMAAABpQ4TyAAAABlBMVEX///8AAABVwtN+AAAKn0lEQVR42uzdQXIayRIG4FKw6CVH4CgcDR2No3AEliwU9IuRaaoyq5Dw2GPaL75/o9CEaL72LierMouIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI/LeZ5i7H8nb7+SOH+VrKdp7f779/lLKb51I283y6/cfP36f6oX166PvtofM/H/58yI8sH86hpaWlpaWlpaWlpaWlpf0N2lP6/fMLt6Mvmuf5fNOWpFy+YF9/fv5xub/i8vvm9tDlw83PUl+VlpaWlpaWlpaWlpaWdr3aWmmGsvVa/26peT9/bqq++fA8X1Kte749ZHt75ayfW+0UHkJLS0tLS0tLS0tLS0v7N2k/a96o/Wx6bquydk6bhxz/+XmpHzren/B2q3U3tYO6o6WlpaWlpaWlpaWlpf0/0C7l6dutU5qTz99O/dHZfap5l1fv2660tLS0tLS0tLS0tLS0tP+lNp0WzqeDr6E1m6+F1op9OejblPnH1N+tp4XzhdV/fbaZlpaWlpaWlpaWlpaW9k9qh5OLBgd9D7c+7/JFtfZdCudLq/25h/zanCVaWlpaWlpaWlpaWlraP6P9ImH40HZ00DfePe1r3nBx9a1OLjq3R41/U2hpaWlpaWlpaWlpaWn/jLavOK/D66K1k/r1ApT0kOYQbzM899Ae5h22X2lpaWlpaWlpaWlpaWnXqq017qWWqfu0g3OpfcPQoXLrmAb1JQ3PbWrevE0lJLRfaWlpaWlpaWlpaWlpaWl/WRv6urm4DptDP6q23A76lrTzpR5BvqY7p2+pQh9/mJaWlpaWlpaWlpaWlnbl2t39rmmuba91x8ujdS1NlofUmjd8uAz7u6Fwbh5CS0tLS0tLS0tLS0tLu2bto3I1JB70zVtU6kHfqR4t/m6LSj9M95mal5aWlpaWlpaWlpaWlvY12ji6NpWr13R0tml65i/a1YlFtf3atGPf220qef5tLpxnWlpaWlpaWlpaWlpaWtpf18YK/dZlbQ74Dr+o1NPCQT21fd6lQp/7OUvbts+7qJ+/IUtLS0tLS0tLS0tLS0v7Ku1U//ZYz+zeytVm6Wc+8Hsq3fChoO2Td77kV37mtDAtLS0tLS0tLS0tLS3tOrSX2uRcat59d130i6FDeffLctT4mArn4UN+uualpaWlpaWlpaWlpaWlfY12sEUl5zDHjaFzW/Oe0vXRY1fjLg+5ho7poe2chi0q308uoqWlpaWlpaWlpaWlpaV9UhsG7Q6/8C1o39tXHLxynbMU0kzvPbcV+qBSp6WlpaWlpaWlpaWlpV21Nl0XbSYWLbq8vmVXJxbVPm8+8BsWx1z7Avr0oONcaGlpaWlpaWlpaWlpadepndK02akfXTs/aHqGA759AR0Xxjwaf9RPLvrmziktLS0tLS0tLS0tLS3tC7XDmjcqw4PPqVOalf2d0+b8bem1YYjuUgN/deeUlpaWlpaWlpaWlpaW9oXaqY6urSNs34ZHZvtyNXdQm0lGw4WeeYju5zduQge1DtOlpaWlpaWlpaWlpaWlpf0d2uGulzBod7DzJfR5d+1d0+bIcd0cGsv9/s7pJfykpaWlpaWlpaWlpaWlXak2dFfDaeHv+ryb4bqWcOf0mMYf1Xm3S3+XlpaWlpaWlpaWlpaW9u/RllquDk8L5wUo29HkophUOMdOaV84f6Qjx7S0tLS0tLS0tLS0tLTr1U59uTpcgBLWZ5Zaru4efKTWvKWev222p4T2a97F+dX5W1paWlpaWlpaWlpaWlraJ7V56WdzPfR4v2MaB+3WkUibelG1aRaH+UrDkb/bVvcx/HejpaWlpaWlpaWlpaWlXam2tH8zmFxU75xu6s9TahKHwjnfOX1UODfTemlpaWlpaWlpaWlpaWn/Eu1TNe9y0HebTgXvHta88SH11Tfh1HCoeefvNtPQ0tLS0tLS0tLS0tLSvlYbt6jUnKu6lqtzPUK7axeg5A83NW9ot57rf3p8/vZCS0tLS0tLS0tLS0tLS/tbtE2ft9yL7OvwoO97GWwOLWWwOGZKr3xOfz84LVwXx5TnutK0tLS0tLS0tLS0tLS0r9Hu7mXqnFqzeennYOfLotzVD/f93Tzy9zObqt3NeXcpLS0tLS0tLS0tLS0t7Vq1ufYNNW9TtobOaUlfFBbHDIbnhoc0F1jz5tDlIbS0tLS0tLS0tLS0tLRr1E7p1GuYXDSnpmecXFTn4E6jLSo/dPt0eLd0yo9h9U1LS0tLS0tLS0tLS0u7Ru1S6w4Wnyy/hy8KNe8c1OGL9l3N27zyOX1zuEf6zC1OWlpaWlpaWlpaWlpaWtrntZc0aHcprpvNoYf70s+lv/tRr4nu2qJ6Gh05nsOU3kOq0EO5f6SlpaWlpaWlpaWlpaVdvba0Ne+56vMXLK3aMP82j7LNfd6SHnJoJxft0tgjWlpaWlpaWlpaWlpa2pVqmy0qx/vvy53TwfaUkraoNBtEaxO01II5TzAKHdRTPSX8XOeUlpaWlpaWlpaWlpaW9rXaEkbX3vIWat4vd3Eur3oaTSza1t9C+7V55X6LylRfmZaWlpaWlpaWlpaWlpb2F7RTrZNzl3U/2hi6fTAiKV9cLd2R41JfeWkeB+3g4iotLS0tLS0tLS0tLS3t+rSP5gbtu7J1U6+PnkozeDemH/nbHDkuo1fedaN+Cy0tLS0tLS0tLS0tLe0atQP9cl20tAd9t1X76KBv3Rx6STXvYOfL+/3D8WHPzL+lpaWlpaWlpaWlpaWlfZV2aq+JLns743XRYbk6/KL5wQbRuZ+DG1awDH6npaWlpaWlpaWlpaWlpf1VbR6RNPUHfkt3XXTQ1z2lh4Ypvdt+5O/hwZHj5d+NlpaWlpaWlpaWlpaWdo3aRzVvSZtD51utu/R7mzJ1ST+tt/SLY+oR4zi5qI4/+jd9XlpaWlpaWlpaWlpaWto/pm3+pt743LYjbPPd06ZQPrVDh+Z6Wji/csi5r3mX+be0tLS0tLS0tLS0tLS0K9eGJmhTpualn6FzekpDh8JR2sEXHrqLq8ud0+auaV4/SktLS0tLS0tLS0tLS7sy7UB/TLs4l85p3aKyPPDR/NvcOT1X7dy98uDDT4eWlpaWlpaWlpaWlpaW9ifzNlTk5Z/hlPCpXhddln8OR/7W08GbWuaH/1dwoaWlpaWlpaWlpaWlpV2tdupV/c6XuV4T/e7I8b5tFjeFc9Bu053TXR1/9DNdaVpaWlpaWlpaWlpaWtoXaE8PO6fXWgOfR3NvN+HO6aKsndOwdrTUWjc87KOX7GlpaWlpaWlpaWlpaWnXrK2Aqa1530K5mjunVTmNGq3xVUMBfW47p/mfIOxxoaWlpaWlpaWlpaWlpaX97drwhU1xPdedL+X+c1jml75SX4Y1bfumcZ0X/MxsYVpaWlpaWlpaWlpaWtoVauda++bWbDjoG5XhVffdhdWsbL75mTuntLS0tLS0tLS0tLS0tC/XfnNauPRl6q6ff5uanm/1Amsee3SuBXSueZ/pnNLS0tLS0tLS0tLS0tK+UNtPLvqh62vfTTh325+/vbSTiub6yoP5t4f06s9N6aWlpaWlpaWlpaWlpaWlfV4rIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIisur8LwAA//89lUlzMR43qgAAAABJRU5ErkJggg==">
+
+  <h1>Pagamento PIX</h1>
+  <p>Escaneie o QR Code abaixo:</p>
+
+  <div id="qrcode">
+    <img id="qrcode-img" width="260">
+  </div>
+
+  <div class="status" id="status-text">Aguardando pagamento...</div>
+
+  <script>
+    // Ler parâmetros da URL
+    const params = new URLSearchParams(window.location.search);
+    const inscricaoId = params.get("inscricao");
+    const qr = params.get("qr"); // Base64 vindo do backend
+
+    document.getElementById("qrcode-img").src = qr;
+
+    async function verificarPagamento() {
+      const resp = await fetch(`https://ecc-backend-8i9l.onrender.com/inscricoes/public/${inscricaoId}`)
+
+      const dados = await resp.json();
+
+      if (dados.status === "pago") {
+        document.getElementById("status-text").innerText = "🎉 Pagamento confirmado!";
+        setTimeout(() => {
+          window.location.href = "/confirmado.html";
+        }, 2000);
+      }
+    }
+
+    // Verificar a cada 4 segundos
+    setInterval(verificarPagamento, 4000);
+  </script>
+
 </body>
 </html>
