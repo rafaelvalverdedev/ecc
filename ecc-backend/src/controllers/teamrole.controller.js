@@ -23,7 +23,7 @@ export async function listarTeamRoles(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa:pessoa_id (id, nome, email),
+        pessoa:pessoa_id (id, nome, email, telefone),
         equipe:equipe_id (id, nome),
         evento:evento_id (id, nome)
       `)
