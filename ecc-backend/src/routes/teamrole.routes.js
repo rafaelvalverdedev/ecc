@@ -7,6 +7,7 @@ import {
   criarTeamRole,
   atualizarTeamRole,
   deletarTeamRole,
+  listarTeamrolePorId,
 } from "../controllers/teamrole.controller.js";
 import { authMiddleware } from "../middlewares/auth.js";
 
