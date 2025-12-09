@@ -13,6 +13,8 @@ import { authMiddleware } from "../middlewares/auth.js";
 const router = Router();
 
 router.get("/", listarTeamRoles);
+router.get("/:id", listarTeamrolePorId);
+
 router.get("/pessoa/:pessoaId", listarPorPessoa);
 router.get("/equipe/:equipeId", listarPorEquipe);
 router.get("/evento/:eventoId", listarPorEvento);
