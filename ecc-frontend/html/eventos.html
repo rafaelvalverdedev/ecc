@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+  <h1>Gerenciar Eventos</h1>
+
+  <div class="card">
+    <h2>Lista de Eventos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Local</th>
+          <th>Início</th>
+          <th>Fim</th>
+          <th>Capacidade</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="lista-eventos"></tbody>
+    </table>
+  </div>
+
+
+  <div class="card">
+    <h2>Criar / Editar Evento</h2>
+
+    <form id="form-evento" onsubmit="salvarEvento(event)">
+      <input type="hidden" id="evento_id">
+
+      <label>Nome:</label>
+      <input id="nome" required>
+
+      <label>Descrição:</label>
+      <input id="descricao" required>
+
+      <label>Local:</label>
+      <input id="local" required>
+
+      <label>Data Início:</label>
+      <input type="date" id="start_date" required>
+
+      <label>Data Fim:</label>
+      <input type="date" id="end_date" required>
+
+      <label>Qtd Inscrições:</label>
+      <input type="number" id="capacity" min="0" required>
+
+      <button id="btn-criar" type="submit">Salvar</button>
+      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()" style="display:none;">
+        Cancelar
+      </button>
+    </form>
+  </div>
+  <script>
+    // ======================================
+    // 🔐 Autenticação
+    // ======================================
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "./auth-login.html";
+    }
+
+    // ======================================
+    // 🔓 Logout
+    // ======================================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
+
+    // ======================================
+    // 🔄 Navegação
+    // ======================================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
+
+      const API_URL = "https://ecc-backend-8i9l.onrender.com/eventos";
+
+    // ======================================
+    // 📌 LISTAR EVENTOS
+    // ======================================
+    async function listarEventos() {
+      try {
+        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token }});
+
+        const resultado = await res.json();
+        const eventos = resultado.data;
+
+        const tbody = document.getElementById("lista-eventos");
+        tbody.innerHTML = "";
+
+        eventos.forEach(ev => {
+          tbody.innerHTML += `
+          <tr>
+            <td>${ev.nome}</td>
+            <td>${ev.local}</td>
+            <td>${ev.start_date ?? "-"}</td>
+            <td>${ev.end_date ?? "-"}</td>
+            <td>${ev.capacity ?? "-"}</td>
+            <td>
+              <button onclick="carregarEvento('${ev.id}')">Editar</button>
+              <button onclick="deletarEvento('${ev.id}')">Excluir</button>
+            </td>
+          </tr>
+        `;
+        });
+      } catch (error) {
+        console.error("Erro ao listar eventos:", error);
+      }
+    }
+
+    // ======================================
+    // 📌 CRIAR / ATUALIZAR EVENTO
+    // ======================================
+    async function salvarEvento(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("evento_id").value;
+
+      const data = {
+        nome: document.getElementById("nome").value,
+        descricao: document.getElementById("descricao").value,
+        local: document.getElementById("local").value,
+        start_date: document.getElementById("start_date").value,
+        end_date: document.getElementById("end_date").value || null,
+        capacity: document.getElementById("capacity").value
+          ? Number(document.getElementById("capacity").value)
+          : null
+      };
+
+      const method = id ? "PUT" : "POST";
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          let msg = "Erro ao salvar evento";
+          try {
+            const err = await response.json();
+            if (err.error) msg = err.error;
+          } catch (_) { }
+          alert(msg);
+          return;
+        }
+
+        alert("Evento salvo com sucesso!");
+        cancelarEdicao();
+        listarEventos();
+      } catch (error) {
+        console.error("Erro ao salvar evento:", error);
+      }
+    }
+
+    // ======================================
+    // 📌 CARREGAR EVENTO PARA EDIÇÃO
+    // ======================================
+    async function carregarEvento(id) {
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const equipes = await response.json();
+        const ev = equipes.data;
+
+        document.getElementById("evento_id").value = ev.id;
+        document.getElementById("nome").value = ev.nome;
+        document.getElementById("descricao").value = ev.descricao || "";
+        document.getElementById("local").value = ev.local || "";
+        document.getElementById("start_date").value = ev.start_date || "";
+        document.getElementById("end_date").value = ev.end_date || "";
+        document.getElementById("capacity").value = ev.capacity ?? "";
+
+        document.getElementById("btn-cancelar").style.display = "inline-block";
+      } catch (error) {
+        console.error("Erro ao carregar evento:", error);
+      }
+    }
+
+    // ======================================
+    // 📌 CANCELAR EDIÇÃO
+    // ======================================
+    function cancelarEdicao() {
+      document.getElementById("evento_id").value = "";
+      document.getElementById("form-evento").reset();
+      document.getElementById("btn-cancelar").style.display = "none";
+    }
+
+    // ======================================
+    // 📌 DELETAR EVENTO
+    // ======================================
+    async function deletarEvento(id) {
+      if (!confirm("Tem certeza que deseja excluir este evento?")) return;
+
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (!response.ok) {
+          alert("Erro ao excluir evento");
+          return;
+        }
+
+        listarEventos();
+      } catch (error) {
+        console.error("Erro ao excluir evento:", error);
+      }
+    }
+
+    // ▶ Inicializa listagem
+    listarEventos();
+  </script>
+
+</body>
+
+</html>

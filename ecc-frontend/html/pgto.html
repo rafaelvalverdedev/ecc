@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagamento PIX</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        #qrcode {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qrcode img {
+            max-width: 100%;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Pagamento PIX</h1>
+    <p>Escaneie o QR Code abaixo:</p>
+
+    <div id="qrcode">
+        <img id="qrImg" src="">
+    </div>
+
+    <p id="status">Aguardando pagamento...</p>
+
+    <script>
+        const backend = "https://ecc-backend-8i9l.onrender.com";
+
+        const url = new URL(window.location.href);
+        const inscricaoId = url.searchParams.get("inscricao_id");
+
+        if (!inscricaoId) {
+            document.getElementById("status").innerHTML =
+                "❌ Erro: Nenhuma inscrição foi informada.";
+            throw new Error("ID ausente");
+        }
+
+        async function carregarQR() {
+            try {
+                const resp = await fetch(`${backend}/inscricoes/${inscricaoId}/status`);
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    document.getElementById("status").innerText = "Erro ao carregar QR Code.";
+                    console.log("Erro:", data);
+                    return;
+                }
+
+                document.getElementById("qrImg").src = "data:image/png;base64," + data.qr_code_base64;
+
+            } catch (err) {
+                console.error("Erro ao obter QR:", err);
+            }
+        }
+
+        async function verificarPagamento() {
+            try {
+                const resp = await fetch(`${backend}/inscricoes/${inscricaoId}/status`);
+                const data = await resp.json();
+
+                if (resp.status === 404) {
+                    document.getElementById("status").innerText =
+                        "❌ Inscrição não encontrada.";
+                    return;
+                }
+
+                if (data.status === "pago") {
+                    document.getElementById("status").innerHTML =
+                        "✅ Pagamento confirmado!";
+                    clearInterval(loop);
+                }
+
+            } catch (err) {
+                console.log("Erro ao verificar pagamento");
+            }
+        }
+
+        carregarQR();
+
+        const loop = setInterval(verificarPagamento, 3000);
+    </script>
+
+</body>
+</html>

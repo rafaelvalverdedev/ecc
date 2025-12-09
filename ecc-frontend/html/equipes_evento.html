@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+  <h1>Vínculo Equipe x Evento</h1>
+
+  <!-- EVENTOS -->
+  <div class="card">
+    <h2>Eventos cadastrados</h2>
+    <table>
+      <tbody id="lista-eventos"></tbody>
+    </table>
+  </div>
+
+  <!-- LISTA DE VÍNCULOS -->
+  <div class="card">
+    <h2>Vínculos cadastrados</h2>
+    <table>
+      <tbody id="lista-vinculos"></tbody>
+    </table>
+  </div>
+
+  <!-- FORM DE VÍNCULO -->
+  <div class="card">
+    <h2>Criar/Atualizar Vínculos</h2>
+
+    <label><strong>Evento:</strong></label>
+    <select id="evento_id" onchange="renderizarCheckboxes()"></select>
+
+    <br><br>
+
+
+    <!-- SELECIONAR TODOS -->
+    <div>
+      <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+      <strong>Selecionar todos</strong>
+      <div id="checkboxContainer"></div>
+      <label><strong>Equipes:</strong></label>
+    </div>
+
+    <br>
+
+    <button onclick="salvarVinculos()">Salvar Vínculos</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Usuário não autenticado");
+      window.location.href = "login.html";
+    }
+
+    const authHeaders = {
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json"
+    };
+
+    // ============================
+    // 🔄 Navegação
+    // ============================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
+
+
+    const API_EVENTOS = "https://ecc-backend-8i9l.onrender.com/eventos";
+    const API_EQUIPES = "https://ecc-backend-8i9l.onrender.com/equipes";
+    const API_VINCULOS = "https://ecc-backend-8i9l.onrender.com/equipes-evento";
+
+    let eventos = [];
+    let equipes = [];
+    let vinculos = [];
+
+    // ============================
+    // 🔵 CARREGAR EVENTOS / EQUIPES / VÍNCULOS
+    // ============================
+    async function carregarListas() {
+      try {
+        const eventosRes = await fetch(API_EVENTOS, { headers: authHeaders });
+        const equipesRes = await fetch(API_EQUIPES, { headers: authHeaders });
+        const vinculosRes = await fetch(API_VINCULOS, { headers: authHeaders });
+
+        const eventosJson = await eventosRes.json();
+        const equipesJson = await equipesRes.json();
+        const vinculosJson = await vinculosRes.json();
+
+        // Suporte para todos os formatos de resposta do Supabase
+        eventos = eventosJson.data?.data || eventosJson.data || [];
+        equipes = equipesJson.data?.data || equipesJson.data || [];
+        vinculos = vinculosJson.data?.data || vinculosJson.data || [];
+
+        preencherEventos();
+        renderizarCheckboxes();
+        listarVinculos();
+
+      } catch (err) {
+        console.error("Erro ao carregar listas:", err);
+        alert("Erro ao carregar dados.");
+      }
+    }
+
+    // ============================
+    // 🔵 SELECT DE EVENTOS
+    // ============================
+    function preencherEventos() {
+      const select = document.getElementById("evento_id");
+      const tbody = document.getElementById("lista-eventos");
+
+      select.innerHTML = "";
+      tbody.innerHTML = "";
+
+      eventos.forEach(ev => {
+        select.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+        tbody.innerHTML += `<tr><td>${ev.nome}</td></tr>`;
+      });
+    }
+
+    // ============================
+    // 🔵 RENDERIZAR CHECKBOXES + SINCRONIZAR
+    // ============================
+    function renderizarCheckboxes() {
+      const eventoId = document.getElementById("evento_id").value;
+      const container = document.getElementById("checkboxContainer");
+      const selectAll = document.getElementById("selectAll");
+
+      container.innerHTML = "";
+      selectAll.checked = false;
+
+      if (!eventoId) return;
+
+      const vinculadas = vinculos
+        .filter(v => v.evento_id === eventoId)
+        .map(v => v.equipe_id);
+
+      equipes.forEach(eq => {
+        const checked = vinculadas.includes(eq.id) ? "checked" : "";
+        container.innerHTML += `
+          <div class="checkbox-item">
+            <input type="checkbox" value="${eq.id}" ${checked} onchange="syncSelectAll()">
+            <label>${eq.nome}</label>
+          </div>
+        `;
+      });
+
+      syncSelectAll();
+    }
+
+    // 🔵 SELECIONAR TODOS
+    function toggleSelectAll(master) {
+      const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = master.checked);
+    }
+
+    // 🔵 Sincronizar estado do selectAll
+    function syncSelectAll() {
+      const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      document.getElementById("selectAll").checked = allChecked;
+    }
+
+    // ============================
+    // 🔵 SALVAR VÍNCULOS
+    // ============================
+    async function salvarVinculos() {
+      const eventoId = document.getElementById("evento_id").value;
+
+      const selecionadas = Array.from(
+        document.querySelectorAll("#checkboxContainer input:checked")
+      ).map(cb => cb.value);
+
+      const vinculadasAntes = vinculos
+        .filter(v => v.evento_id === eventoId)
+        .map(v => v.equipe_id);
+
+      const paraCriar = selecionadas.filter(id => !vinculadasAntes.includes(id));
+      const paraExcluir = vinculadasAntes.filter(id => !selecionadas.includes(id));
+
+      try {
+        // Criar novos vínculos
+        for (const equipeId of paraCriar) {
+          await fetch(API_VINCULOS, {
+            method: "POST",
+            headers: authHeaders,
+            body: JSON.stringify({ evento_id: eventoId, equipe_id: equipeId })
+          });
+        }
+
+        // Excluir vínculos removéveis
+        for (const equipeId of paraExcluir) {
+          const vinculo = vinculos.find(
+            v => v.evento_id === eventoId && v.equipe_id === equipeId
+          );
+
+          if (vinculo) {
+            await fetch(`${API_VINCULOS}/${vinculo.id}`, {
+              method: "DELETE",
+              headers: authHeaders
+            });
+          }
+        }
+
+        alert("Vínculos atualizados com sucesso!");
+        carregarListas();
+
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao salvar vínculos.");
+      }
+    }
+
+    // ============================
+    // 🔵 LISTAR VÍNCULOS NA TABELA
+    // ============================
+    function listarVinculos() {
+      const tbody = document.getElementById("lista-vinculos");
+      tbody.innerHTML = "";
+
+      const grupos = {};
+
+      vinculos.forEach(v => {
+        const eventoNome = v.evento?.nome || "(Sem nome)";
+        if (!grupos[eventoNome]) grupos[eventoNome] = [];
+        grupos[eventoNome].push(v);
+      });
+
+      Object.keys(grupos).forEach(eventoNome => {
+        const lista = grupos[eventoNome];
+        const id = eventoNome.replace(/\s+/g, "_");
+
+        tbody.innerHTML += `
+          <tr class="grupo-header" data-id="${id}">
+            <td colspan="3">▶ ${eventoNome} — ${lista.length} equipe(s)</td>
+          </tr>
+        `;
+
+        lista.forEach(v => {
+          tbody.innerHTML += `
+            <tr class="grupo-linha grupo-${id}" style="display:none;">
+              <td>${v.equipe?.nome ?? "-"}</td>
+              <td>
+                <button class="btn-danger" onclick="excluirVinculo('${v.id}')">Excluir</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+
+      ativarToggle();
+    }
+
+    function ativarToggle() {
+      document.querySelectorAll(".grupo-header").forEach(header => {
+        header.onclick = () => {
+          const id = header.dataset.id;
+          const linhas = document.querySelectorAll(`.grupo-${id}`);
+
+          const aberto = linhas[0].style.display !== "none";
+
+          document.querySelectorAll(".grupo-linha")
+            .forEach(l => l.style.display = "none");
+
+          if (!aberto) {
+            linhas.forEach(l => l.style.display = "table-row");
+          }
+        };
+      });
+    }
+
+    // ============================
+    // 🔵 EXCLUIR VÍNCULO
+    // ============================
+    async function excluirVinculo(id) {
+      if (!confirm("Deseja excluir este vínculo?")) return;
+
+      try {
+        const res = await fetch(`${API_VINCULOS}/${id}`, {
+          method: "DELETE",
+          headers: authHeaders
+        });
+
+        if (!res.ok) {
+          alert("Erro ao excluir vínculo.");
+          return;
+        }
+
+        carregarListas();
+
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao excluir vínculo.");
+      }
+    }
+
+    carregarListas();
+  </script>
+
+</body>
+
+</html>

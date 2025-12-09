@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+
+  <h1>Gerenciar Equipes</h1>
+
+  <div class="card">
+    <h2>Equipes cadastradas</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="lista-equipes"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Criar / Editar Equipe</h2>
+
+    <form id="formEquipe" onsubmit="salvarEquipe(event)">
+      <input type="hidden" id="equipe_id">
+
+      <label>Nome:</label>
+      <input id="nome" required>
+
+      <label>Descrição:</label>
+      <input id="descricao">
+
+      <button type="submit" id="btnSalvar">Salvar</button>
+      <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
+    </form>
+  </div>
+  <script>
+    // ============================
+    // 🔐 AUTENTICAÇÃO
+    // ============================
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token) {
+      window.location.href = "./auth-login.html";
+    }
+
+    // ============================
+    // 🔓 Logout
+    // ============================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
+
+    // ============================
+    // 🔄 Navegação
+    // ============================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
+
+    const API_URL = "https://ecc-backend-8i9l.onrender.com/equipes";
+
+    // ============================
+    // 📌 LISTAR EQUIPES
+    // ============================
+    async function listarEquipes() {
+      const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
+
+      const resultado = await res.json();
+      const equipes = resultado.data;
+
+      const tbody = document.getElementById("lista-equipes");
+      tbody.innerHTML = "";
+
+      equipes.forEach(eq => {
+        tbody.innerHTML += `
+        <tr>
+          <td>${eq.nome}</td>
+          <td>${eq.descricao ?? "-"}</td>
+          <td>
+            <button onclick="editarEquipe('${eq.id}')">Editar</button>
+            <button onclick="excluirEquipe('${eq.id}')">Excluir</button>
+          </td>
+        </tr>
+      `;
+      });
+    }
+
+    // ============================
+    // 📌 SALVAR (CRIAR OU EDITAR)
+    // ============================
+    async function salvarEquipe(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("equipe_id").value;
+      const payload = {
+        nome: document.getElementById("nome").value,
+        descricao: document.getElementById("descricao").value
+      };
+
+      const method = id ? "PUT" : "POST";
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        alert("Erro ao salvar equipe");
+        return;
+      }
+
+      alert("Equipe salva!");
+      cancelarEdicao();
+      listarEquipes();
+    }
+
+    // ============================
+    // 📌 EDITAR
+    // ============================
+    async function editarEquipe(id) {
+      const res = await fetch(`${API_URL}/${id}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const eq_res = await res.json();
+      const eq = eq_res.data;
+
+      document.getElementById("equipe_id").value = eq.id;
+      document.getElementById("nome").value = eq.nome;
+      document.getElementById("descricao").value = eq.descricao;
+
+      document.getElementById("btnCancelar").style.display = "inline-block";
+    }
+
+    // ============================
+    // 📌 CANCELAR EDIÇÃO
+    // ============================
+    function cancelarEdicao() {
+      document.getElementById("equipe_id").value = "";
+      document.getElementById("formEquipe").reset();
+      document.getElementById("btnCancelar").style.display = "none";
+    }
+
+    // ============================
+    // 📌 EXCLUIR
+    // ============================
+    async function excluirEquipe(id) {
+      if (!confirm("Excluir esta equipe?")) return;
+
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      listarEquipes();
+    }
+
+    // ▶ INICIAR
+    listarEquipes();
+  </script>
+
+</body>
+
+</html>

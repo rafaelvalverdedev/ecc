@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+    <h1>Gerenciar vínculos: Pessoa x Equipe</h1>
+
+    <!-- LISTA -->
+    <div class="card">
+        <h2>Pessoas vinculadas às Equipes</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Pessoa</th>
+                    <th>Equipe</th>
+                    <th>Coordenador?</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-vinculos"></tbody>
+        </table>
+    </div>
+
+    <!-- CRIAR VÍNCULO -->
+    <div class="card" id="cardCriar">
+        <h2>Criar novo vínculo</h2>
+
+        <form id="formCriar" onsubmit="criarVinculo(event)">
+            <label>Pessoa:</label>
+            <select id="criar_pessoa_id" required></select>
+
+            <label>Equipe:</label>
+            <select id="criar_equipe_id" required></select>
+
+            <label>
+                <input type="checkbox" id="criar_is_leader"> É coordenador?
+            </label>
+
+            <br><br>
+            <button type="submit">Criar vínculo</button>
+        </form>
+    </div>
+
+    <!-- EDITAR VÍNCULO -->
+    <div class="card" id="cardEditar" style="display:none;">
+        <h2>Editar vínculo</h2>
+
+        <form id="formEditar" onsubmit="salvarEdicao(event)">
+            <input type="hidden" id="editar_id">
+
+            <label>Pessoa:</label>
+            <select id="editar_pessoa_id" required></select>
+
+            <label>Equipe:</label>
+            <select id="editar_equipe_id" required></select>
+
+            <label>
+                <input type="checkbox" id="editar_is_leader"> É coordenador?
+            </label>
+
+            <br><br>
+            <button type="submit">Salvar alterações</button>
+            <button type="button" onclick="fecharEdicao()">Cancelar</button>
+        </form>
+    </div>
+
+    <script>
+        // ==========================================
+        // AUTENTICAÇÃO
+        // ==========================================
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "./auth-login.html";
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "./auth-login.html";
+        }
+
+        function goTo(page) {
+            window.location.href = `./${page}.html`;
+        }
+
+        // ==========================================
+        // API
+        // ==========================================
+        const API_PESSOAS = "http://localhost:3001/pessoas";
+        const API_EQUIPES = "http://localhost:3001/equipes";
+        const API_TEAMROLE = "http://localhost:3001/teamrole";
+
+        // ==========================================
+        // CARREGAR SELECTS
+        // ==========================================
+        async function carregarSelects() {
+            const pessoasRes = await fetch(API_PESSOAS);
+            const equipesRes = await fetch(API_EQUIPES);
+
+            const pessoas = await pessoasRes.json();
+            const equipes = await equipesRes.json();
+
+            const selectsPessoa = [
+                document.getElementById("criar_pessoa_id"),
+                document.getElementById("editar_pessoa_id")
+            ];
+
+            const selectsEquipe = [
+                document.getElementById("criar_equipe_id"),
+                document.getElementById("editar_equipe_id")
+            ];
+
+            // Limpa selects
+            selectsPessoa.forEach(sel => sel.innerHTML = "");
+            selectsEquipe.forEach(sel => sel.innerHTML = "");
+
+            // Adiciona as duas primeiras opções
+            selectsPessoa.forEach(sel => {
+                sel.innerHTML += `<option value="">Selecione</option>`;
+                sel.innerHTML += `<option value="">-----</option>`;
+            });
+
+            selectsEquipe.forEach(sel => {
+                sel.innerHTML += `<option value="">Selecione</option>`;
+                sel.innerHTML += `<option value="">-----</option>`;
+            });
+
+            // Agora adiciona os nomes
+            pessoas.forEach(p =>
+                selectsPessoa.forEach(sel =>
+                    sel.innerHTML += `<option value="${p.id}">${p.nome}</option>`
+                )
+            );
+
+            equipes.forEach(e =>
+                selectsEquipe.forEach(sel =>
+                    sel.innerHTML += `<option value="${e.id}">${e.nome}</option>`
+                )
+            );
+        }
+
+
+        // ==========================================
+        // LISTAR VÍNCULOS
+        // ==========================================
+        async function listarVinculos() {
+            const res = await fetch(API_TEAMROLE);
+            const lista = await res.json();
+
+            const tbody = document.getElementById("lista-vinculos");
+            tbody.innerHTML = "";
+
+            lista.forEach(v => {
+                tbody.innerHTML += `
+        <tr>
+          <td>${v.pessoa?.nome}</td>
+          <td>${v.equipe?.nome}</td>
+          <td>${v.is_leader ? "Sim" : "Não"}</td>
+          <td>
+            <button class="btn-editar" data-id="${v.id}">Editar</button>
+            <button class="btn-excluir" data-id="${v.id}">Excluir</button>
+          </td>
+        </tr>
+      `;
+            });
+        }
+
+        // ==========================================
+        // CRIAR
+        // ==========================================
+        async function criarVinculo(event) {
+            event.preventDefault();
+
+            const payload = {
+                pessoa_id: document.getElementById("criar_pessoa_id").value,
+                equipe_id: document.getElementById("criar_equipe_id").value,
+                is_leader: document.getElementById("criar_is_leader").checked
+            };
+
+            const res = await fetch(API_TEAMROLE, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) return alert("Erro ao criar vínculo");
+
+            alert("Vínculo criado!");
+            listarVinculos();
+            document.getElementById("formCriar").reset();
+        }
+
+        // ==========================================
+        // EDITAR
+        // ==========================================
+        async function editarVinculo(id) {
+            const res = await fetch(`${API_TEAMROLE}/${id}`);
+
+            if (!res.ok) {
+                alert("Erro ao carregar vínculo no backend");
+                return;
+            }
+
+            const v = await res.json();
+
+            // Mostrar editor, ocultar criador
+            document.getElementById("cardEditar").style.display = "block";
+            document.getElementById("cardCriar").style.display = "none";
+
+            document.getElementById("editar_id").value = v.id;
+            document.getElementById("editar_pessoa_id").value = v.pessoa.id;
+            document.getElementById("editar_equipe_id").value = v.equipe.id;
+            document.getElementById("editar_is_leader").checked = v.is_leader;
+        }
+
+        // ==========================================
+        // SALVAR EDIÇÃO
+        // ==========================================
+        async function salvarEdicao(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("editar_id").value;
+
+            const payload = {
+                pessoa_id: document.getElementById("editar_pessoa_id").value,
+                equipe_id: document.getElementById("editar_equipe_id").value,
+                is_leader: document.getElementById("editar_is_leader").checked
+            };
+
+            const res = await fetch(`${API_TEAMROLE}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                alert("Erro ao salvar alterações");
+                return;
+            }
+
+            alert("Alterações salvas!");
+            fecharEdicao();
+            listarVinculos();
+        }
+
+        // ==========================================
+        // CANCELAR EDIÇÃO
+        // ==========================================
+        function fecharEdicao() {
+            document.getElementById("cardEditar").style.display = "none";
+            document.getElementById("formEditar").reset();
+
+            // Mostrar criador novamente
+            document.getElementById("cardCriar").style.display = "block";
+        }
+
+        // ==========================================
+        // EXCLUIR
+        // ==========================================
+        async function excluirVinculo(id) {
+            if (!confirm("Confirmar exclusão?")) return;
+
+            await fetch(`${API_TEAMROLE}/${id}`, { method: "DELETE" });
+
+            listarVinculos();
+        }
+
+        // ==========================================
+        // EVENTOS DELEGADOS
+        // ==========================================
+        document.addEventListener("click", (e) => {
+            if (e.target.classList.contains("btn-editar")) {
+                editarVinculo(e.target.dataset.id);
+            }
+
+            if (e.target.classList.contains("btn-excluir")) {
+                excluirVinculo(e.target.dataset.id);
+            }
+        });
+
+        // ==========================================
+        // INICIAR
+        // ==========================================
+        carregarSelects();
+        listarVinculos();
+    </script>
+
+</body>
+
+</html>

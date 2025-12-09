@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <br><br>
+
+  <!-- Navegação -->
+  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
+
+
+  <h1>Dashboard ECC</h1>
+
+  <p>Bem-vindo, <strong><span id="user-email"></span></strong></p>
+
+  <!-- Eventos -->
+  <div class="card">
+    <h2>Eventos cadastrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Local</th>
+          <th>Data início</th>
+          <th>Capacidade</th>
+        </tr>
+      </thead>
+      <tbody id="eventos-list"></tbody>
+    </table>
+  </div>
+
+  <!-- Equipes -->
+  <div class="card">
+    <h2>Equipes cadastradas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+        </tr>
+      </thead>
+      <tbody id="equipes-list"></tbody>
+    </table>
+  </div>
+
+  <!-- Coordenadores -->
+  <div class="card">
+    <h2>Encontreiros Coordenador de Equipe</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pessoa</th>
+          <th>Evento</th>
+          <th>Equipe</th>
+        </tr>
+      </thead>
+      <tbody id="lista-coordenadores"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Encontreiros Cadastrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pessoa</th>
+          <th>Evento</th>
+          <th>Equipe</th>
+        </tr>
+      </thead>
+      <tbody id="lista-encontreiros"></tbody>
+    </table>
+  </div>
+
+
+  <!-- Encontristas -->
+  <div class="card">
+    <h2>Encontristas - Inscritos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome do Esposo</th>
+          <th>Nome da Esposa</th>
+        </tr>
+      </thead>
+      <tbody id="encontristas-list"></tbody>
+    </table>
+  </div>
+
+  <!-- Pessoas -->
+  <div class="card">
+    <h2>Pessoas cadastradas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+        </tr>
+      </thead>
+      <tbody id="pessoas-list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // ====================================
+    // 🔐 Autenticação
+    // ====================================
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token) {
+      window.location.href = "./auth-login.html";
+    }
+
+    document.getElementById("user-email").innerText = user?.email ?? "";
+
+
+    // ====================================
+    // 🔓 Logout
+    // ====================================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
+
+    // ====================================
+    // 🔄 Navegação
+    // ====================================
+    function goTo(page) {
+      window.location.href = `./${page}.html`;
+    }
+
+    // ====================================
+    // 📌 CARREGAR DADOS DO BACKEND
+    // ====================================
+
+    async function carregarEventos() {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/eventos", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const evento_res = await res.json();
+      const eventos = evento_res.data;
+
+      const tbody = document.getElementById("eventos-list");
+      tbody.innerHTML = "";
+
+      eventos.forEach(e => {
+        tbody.innerHTML += `
+        <tr>
+          <td>${e.nome}</td>
+          <td>${e.local}</td>
+          <td>${e.start_date}</td>
+          <td>${e.capacity ?? "-"}</td>
+        </tr>
+      `;
+      });
+    }
+
+    async function carregarEquipes() {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/equipes", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const equipes_res = await res.json();
+      const equipes = equipes_res.data;
+
+      const tbody = document.getElementById("equipes-list");
+      tbody.innerHTML = "";
+
+      equipes.forEach(eq => {
+        tbody.innerHTML += `
+        <tr>
+          <td>${eq.nome}</td>
+          <td>${eq.descricao ?? "-"}</td>
+        </tr>
+      `;
+      });
+    }
+
+    async function carregarCoordenadores() {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const vinculos_res = await res.json();
+      const vinculos = vinculos_res.data;
+
+      const tbody = document.getElementById("lista-coordenadores");
+      tbody.innerHTML = "";
+
+      vinculos
+        .filter(i => i.is_leader === true)
+        .forEach(i => {
+          const p = i.pessoa; // pessoa já vem no JSON
+
+          tbody.innerHTML += `
+          <tr>
+            <td>${p?.nome ?? "-"}</td>
+            <td>${i?.evento?.nome ?? "-"}</td>
+            <td>${i?.equipe?.nome ?? "-"}</td>
+           </tr>
+        `;
+        });
+    }
+
+    async function carregarEncontreiros() {
+      try {
+        const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const inscricoes_res = await res.json();
+        const inscricoes = inscricoes_res.data;
+
+        const tbody = document.getElementById("lista-encontreiros");
+        tbody.innerHTML = "";
+
+        inscricoes
+          .filter(i => i.is_leader === false)
+          .forEach(i => {
+            const p = i.pessoa; // pessoa já vem no JSON
+
+            tbody.innerHTML += `
+          <tr>
+            <td>${p?.nome ?? "-"}</td>
+            <td>${i?.evento?.nome ?? "-"}</td>
+            <td>${i?.equipe?.nome ?? "-"}</td>
+           </tr>
+        `;
+          });
+
+      } catch (error) {
+        console.error("Erro ao carregar encontreiros:", error);
+      }
+    }
+
+
+
+
+    async function carregarEncontristas() {
+      try {
+        const res = await fetch("https://ecc-backend-8i9l.onrender.com/encontrista_inscricao", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const inscricoes_res = await res.json();
+        const inscricoes = inscricoes_res.data;
+
+        const tbody = document.getElementById("encontristas-list");
+        tbody.innerHTML = "";
+
+        inscricoes
+          .forEach(i => {
+            const p = i.pessoa;
+
+            tbody.innerHTML += `
+          <tr>
+            <td>${i.nome_completo_esposo ?? "-"}</td>
+            <td>${i.nome_completo_esposo ?? "-"}</td>
+          </tr>
+        `;
+          });
+
+      } catch (error) {
+        console.error("Erro ao carregar encontristas:", error);
+      }
+    }
+
+
+    async function carregarPessoas() {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/pessoas", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const pessoas_res = await res.json();
+      const pessoas = pessoas_res.data;
+      
+      const tbody = document.getElementById("pessoas-list");
+      tbody.innerHTML = "";
+
+      pessoas.forEach(p => {
+        tbody.innerHTML += `
+        <tr>
+          <td>${p.nome}</td>
+          <td>${p.email ?? "-"}</td>
+          <td>${p.telefone ?? "-"}</td>
+        </tr>
+      `;
+      });
+    }
+
+    // ====================================
+    // ▶ INICIALIZAR
+    // ====================================
+    carregarEventos();
+    carregarEquipes();
+    carregarCoordenadores();
+    carregarEncontreiros();
+    carregarEncontristas();
+    carregarPessoas();
+  </script>
+
+</body>
+
+</html>
