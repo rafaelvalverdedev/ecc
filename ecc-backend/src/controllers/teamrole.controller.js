@@ -207,3 +207,36 @@ export async function deletarTeamRole(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+// ===============================
+// ELISTAR TEALROLE PODE ID
+// ===============================
+export async function listarTeamrolePorId(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        is_leader,
+        pagou,
+        pessoa:pessoa_id(id, nome, email),
+        equipe:equipe_id(id, nome),
+        evento:evento_id(id, nome)
+      `)
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) return res.status(404).json({ error: "Teamrole não encontrado" });
+
+    return res.json({ data });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar vínculo" });
+  }
+}
