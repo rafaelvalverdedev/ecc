@@ -55,16 +55,16 @@
       <input id="descricao" required>
 
       <label>Local:</label>
-      <input id="local">
+      <input id="local" required>
 
       <label>Data Início:</label>
       <input type="date" id="start_date" required>
 
       <label>Data Fim:</label>
-      <input type="date" id="end_date">
+      <input type="date" id="end_date" required>
 
-      <label>Capacidade:</label>
-      <input type="number" id="capacity" min="0">
+      <label>Qtd Inscrições:</label>
+      <input type="number" id="capacity" min="0" required>
 
       <button id="btn-criar" type="submit">Salvar</button>
       <button id="btn-cancelar" type="button" onclick="cancelarEdicao()" style="display:none;">
@@ -97,18 +97,18 @@
       window.location.href = `./${page}.html`;
     }
 
-    const API_URL = "http://localhost:3001/eventos";
+      const API_URL = "https://ecc-backend-8i9l.onrender.com/eventos";
 
     // ======================================
     // 📌 LISTAR EVENTOS
     // ======================================
     async function listarEventos() {
       try {
-        const response = await fetch(API_URL, {
-          headers: { Authorization: "Bearer " + token }
-        });
+        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token }});
 
-        const eventos = await response.json();
+        const resultado = await res.json();
+        const eventos = resultado.data;
+
         const tbody = document.getElementById("lista-eventos");
         tbody.innerHTML = "";
 
@@ -190,7 +190,8 @@
         const response = await fetch(`${API_URL}/${id}`, {
           headers: { Authorization: "Bearer " + token }
         });
-        const ev = await response.json();
+        const equipes = await response.json();
+        const ev = equipes.data;
 
         document.getElementById("evento_id").value = ev.id;
         document.getElementById("nome").value = ev.nome;

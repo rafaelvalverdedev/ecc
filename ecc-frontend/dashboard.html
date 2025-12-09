@@ -153,10 +153,11 @@
     // ====================================
 
     async function carregarEventos() {
-      const res = await fetch("http://localhost:3001/eventos", {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/eventos", {
         headers: { Authorization: "Bearer " + token }
       });
-      const eventos = await res.json();
+      const evento_res = await res.json();
+      const eventos = evento_res.data;
 
       const tbody = document.getElementById("eventos-list");
       tbody.innerHTML = "";
@@ -174,10 +175,11 @@
     }
 
     async function carregarEquipes() {
-      const res = await fetch("http://localhost:3001/equipes", {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/equipes", {
         headers: { Authorization: "Bearer " + token }
       });
-      const equipes = await res.json();
+      const equipes_res = await res.json();
+      const equipes = equipes_res.data;
 
       const tbody = document.getElementById("equipes-list");
       tbody.innerHTML = "";
@@ -193,11 +195,13 @@
     }
 
     async function carregarCoordenadores() {
-      const res = await fetch("http://localhost:3001/teamrole", {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
         headers: { Authorization: "Bearer " + token }
       });
 
-      const vinculos = await res.json();
+      const vinculos_res = await res.json();
+      const vinculos = vinculos_res.data;
+
       const tbody = document.getElementById("lista-coordenadores");
       tbody.innerHTML = "";
 
@@ -219,11 +223,12 @@
 
     async function carregarEncontreiros() {
       try {
-        const res = await fetch("http://localhost:3001/teamrole", {
+        const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
           headers: { Authorization: "Bearer " + token }
         });
 
-        const inscricoes = await res.json();
+        const inscricoes_res = await res.json();
+        const inscricoes = inscricoes_res.data;
 
         const tbody = document.getElementById("lista-encontreiros");
         tbody.innerHTML = "";
@@ -253,11 +258,12 @@
 
     async function carregarEncontristas() {
       try {
-        const res = await fetch("http://localhost:3001/encontrista_inscricao", {
+        const res = await fetch("https://ecc-backend-8i9l.onrender.com/encontrista_inscricao", {
           headers: { Authorization: "Bearer " + token }
         });
 
-        const inscricoes = await res.json();
+        const inscricoes_res = await res.json();
+        const inscricoes = inscricoes_res.data;
 
         const tbody = document.getElementById("encontristas-list");
         tbody.innerHTML = "";
@@ -281,11 +287,12 @@
 
 
     async function carregarPessoas() {
-      const res = await fetch("http://localhost:3001/pessoas", {
+      const res = await fetch("https://ecc-backend-8i9l.onrender.com/pessoas", {
         headers: { Authorization: "Bearer " + token }
       });
-      const pessoas = await res.json();
-
+      const pessoas_res = await res.json();
+      const pessoas = pessoas_res.data;
+      
       const tbody = document.getElementById("pessoas-list");
       tbody.innerHTML = "";
 

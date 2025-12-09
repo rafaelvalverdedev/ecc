@@ -22,7 +22,7 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
-  
+
   <h1>Gerenciar Equipes</h1>
 
   <div class="card">
@@ -83,17 +83,17 @@
       window.location.href = `./${page}.html`;
     }
 
-    const API_URL = "http://localhost:3001/equipes";
+    const API_URL = "https://ecc-backend-8i9l.onrender.com/equipes";
 
     // ============================
     // 📌 LISTAR EQUIPES
     // ============================
     async function listarEquipes() {
-      const res = await fetch(API_URL, {
-        headers: { Authorization: "Bearer " + token }
-      });
+      const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
 
-      const equipes = await res.json();
+      const resultado = await res.json();
+      const equipes = resultado.data;
+
       const tbody = document.getElementById("lista-equipes");
       tbody.innerHTML = "";
 
@@ -153,7 +153,8 @@
         headers: { Authorization: "Bearer " + token }
       });
 
-      const eq = await res.json();
+      const eq_res = await res.json();
+      const eq = eq_res.data;
 
       document.getElementById("equipe_id").value = eq.id;
       document.getElementById("nome").value = eq.nome;
