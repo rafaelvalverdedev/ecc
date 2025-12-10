@@ -23,7 +23,7 @@ export async function listarTeamRoles(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa:pessoa_id (id, nome, email),
+        pessoa:pessoa_id (id, nome, email, telefone),
         equipe:equipe_id (id, nome),
         evento:evento_id (id, nome)
       `)
@@ -205,5 +205,34 @@ export async function deletarTeamRole(req, res) {
   } catch (err) {
     console.error("DELETAR TEAMROLE ERROR:", err);
     return res.status(500).json({ error: err.message });
+  }
+}
+
+// ===============================
+// LISTAR POR ID
+// ===============================
+export async function listarTeamrolePorId(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        is_leader,
+        pagou,
+        pessoa(id, nome, email, telefone),
+        equipe(id, nome),
+        evento(id, nome)
+      `)
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ data });
+
+  } catch (err) {
+    return res.status(500).json({ error: "Erro ao buscar vínculo" });
   }
 }
