@@ -221,9 +221,9 @@ export async function listarTeamrolePorId(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa(id, nome, email, telefone),
-        equipe(id, nome),
-        evento(id, nome)
+        pessoa:pessoa_id (id, nome, email, telefone),
+        equipe:equipe_id (id, nome),
+        evento:evento_id (id, nome)
       `)
       .eq("id", id)
       .single();

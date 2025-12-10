@@ -419,18 +419,13 @@
         // ABRIR EDIÇÃO
         // ==========================
         async function abrirEdicao(id) {
-
-            console.log(id);
             edicaoFeedback.textContent = "";
             try {
-                const res = await fetch(`${API_TEAMROLE}/${id}`, { headers: authHeaders(), });
-                const json_res = await res.json();
-                const json = json_res.data;
+                const res = await fetch(`${API_TEAMROLE}/${id}`, {
+                    headers: authHeaders(),
+                });
+                const json = await res.json();
 
-                 
-
-                console.log(res);
-                
                 if (!res.ok) {
                     console.error(json);
                     alert(json.error || "Erro ao buscar encontreiro.");
