@@ -23,10 +23,33 @@
     <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
     <main>
-        <!-- Lista de encontreiro -->
+        <!-- Lista de encontreiro geral -->
+        <section class="card">
+            <div class="card-geral">
+                <h2>Encontreiro Geral</h2>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Telefone</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-encontreiro-geral">
+                    <!-- preenchido via JS -->
+                </tbody>
+            </table>
+
+            <div id="lista-feedback-geral" class="muted"></div>
+        </section>
+
+        <!-- Lista de encontreiro com vínculo -->
         <section class="card">
             <div class="card-header">
-                <h2>Encontreiro cadastrados</h2>
+                <h2>Encontreiro Inscritos</h2>
                 <span class="muted">Pessoa + Evento + Equipe + Regras</span>
             </div>
 
@@ -39,6 +62,7 @@
                         <th>Evento</th>
                         <th>Equipe</th>
                         <th>Regras</th>
+                        <th>Pagou?</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -51,7 +75,7 @@
         </section>
 
         <!-- Cadastro de encontreiro -->
-        <section class="card">
+        <section class="card" id="sec-cadastro">
             <div class="card-header">
                 <h2>Cadastrar Encontreiro</h2>
                 <span class="muted">Cria a pessoa e o vínculo com evento + equipe</span>
@@ -204,9 +228,12 @@
         // ELEMENTOS
         // ==========================
         const tbodyEncontreiro = document.getElementById("tbody-encontreiro");
+        const tbodyEncontreiroGeral = document.getElementById("tbody-encontreiro-geral");
         const cadastroFeedback = document.getElementById("cadastro-feedback");
         const listaFeedback = document.getElementById("lista-feedback");
+        const listaFeedbackGeral = document.getElementById("lista-feedback-geral");
         const secEdicao = document.getElementById("sec-edicao");
+        const secCadastro = document.getElementById("sec-cadastro");
         const edicaoFeedback = document.getElementById("edicao-feedback");
 
         const formCadastro = document.getElementById("form-cadastro");
@@ -280,7 +307,61 @@
         }
 
         // ==========================
-        // LISTAR ENCONTREIROS
+        // LISTAR ENCONTREIROS GERAL
+        // ==========================
+        async function carregarEncontreiroGeral() {
+            listaFeedbackGeral.textContent = "Carregando...";
+            tbodyEncontreiroGeral.innerHTML = "";
+
+            try {
+                const resGeral = await fetch(API_PESSOAS, { headers: authHeaders() });
+                const jsonGeral = await resGeral.json();
+                const listaGeral = jsonGeral.data || [];
+
+                if (!listaGeral.length) {
+                    listaFeedbackGeral.textContent = "Nenhum encontreiro cadastrado.";
+                    return;
+                }
+
+                listaFeedbackGeral.textContent = "";
+
+                listaGeral.forEach((trGeral) => {
+                    const trElGeral = document.createElement("tr");
+
+                    const nome = trGeral.nome || "-";
+                    const email = trGeral.email || "-";
+                    const telefone = trGeral.telefone || "-";
+
+                    trElGeral.innerHTML = `
+                                    <td>${nome}</td>
+                                    <td>${email}</td>
+                                    <td>${telefone}</td>
+                                    <td>
+                                        <button class="secondary btn-editar" data-id="${trGeral.id}">Editar</button>
+                                        <button class="danger btn-excluir" data-id="${trGeral.id}">Excluir</button>
+                                    </td>
+                                    `;
+
+                    tbodyEncontreiroGeral.appendChild(trElGeral);
+                });
+
+                // vincular eventos de clique
+                tbodyEncontreiroGeral.querySelectorAll(".btn-editar").forEach((btn) => {
+                    btn.addEventListener("click", () => abrirEdicao(btn.dataset.id));
+                });
+
+                tbodyEncontreiroGeral.querySelectorAll(".btn-excluir").forEach((btn) => {
+                    btn.addEventListener("click", () => excluirEncontreiroGeral(btn.dataset.id));
+                });
+            } catch (err) {
+                console.error("Erro ao carregar encontreiro:", err);
+                listaFeedbackGeral.textContent = "Erro ao carregar encontreiro.";
+            }
+        }
+
+
+        // ==========================
+        // LISTAR ENCONTREIROS INSCRITOS
         // ==========================
         async function carregarEncontreiro() {
             listaFeedback.textContent = "Carregando...";
@@ -306,23 +387,28 @@
                     const telefone = tr.pessoa?.telefone || "-";
                     const eventoNome = tr.evento?.nome || "-";
                     const equipeNome = tr.equipe?.nome || "-";
-
+                    const pagou = tr.pagou || "-";
                     trEl.innerHTML = `
-            <td>${nome}</td>
-            <td>${email}</td>
-            <td>${telefone}</td>
-            <td>${eventoNome}</td>
-            <td>${equipeNome}</td>
-            <td>
-              <span class="badge ${tr.is_leader ? "blue" : "red"}">
-                ${tr.is_leader ? "Coordenador" : "Encontreiro"}
-              </span>
-            </td>
-            <td>
-              <button class="secondary btn-editar" data-id="${tr.id}">Editar</button>
-              <button class="danger btn-excluir" data-id="${tr.id}">Excluir</button>
-            </td>
-          `;
+                                    <td>${nome}</td>
+                                    <td>${email}</td>
+                                    <td>${telefone}</td>
+                                    <td>${eventoNome}</td>
+                                    <td>${equipeNome}</td>
+                                    <td>
+                                        <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                            ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                            </span>
+                                            </td>
+                                    <td>
+                                        <span class="badge ${tr.pagou ? "blue" : "red"}">
+                                        ${tr.pagou ? "Sim" : "Não"}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="secondary btn-editar" data-id="${tr.id}">Editar</button>
+                                        <button class="danger btn-excluir" data-id="${tr.id}">Excluir</button>
+                                    </td>
+                                    `;
 
                     tbodyEncontreiro.appendChild(trEl);
                 });
@@ -420,24 +506,17 @@
         // ==========================
         async function abrirEdicao(id) {
 
-            console.log(id);
             edicaoFeedback.textContent = "";
             try {
                 const res = await fetch(`${API_TEAMROLE}/${id}`, { headers: authHeaders(), });
                 const json_res = await res.json();
-                const json = json_res.data;
+                const tr = json_res.data;
 
-                 
-
-                console.log(res);
-                
                 if (!res.ok) {
                     console.error(json);
                     alert(json.error || "Erro ao buscar encontreiro.");
                     return;
                 }
-
-                const tr = json.data;
 
                 editTeamroleId.value = tr.id;
                 editPessoaId.value = tr.pessoa.id;
@@ -450,7 +529,9 @@
                 editPagou.checked = !!tr.pagou;
 
                 secEdicao.classList.remove("hidden");
+                secCadastro.classList.add("hidden");
                 secEdicao.scrollIntoView({ behavior: "smooth" });
+
             } catch (err) {
                 console.error(err);
                 alert("Erro ao abrir edição.");
@@ -530,6 +611,7 @@
 
         btnCancelarEdicao.addEventListener("click", () => {
             secEdicao.classList.add("hidden");
+            secCadastro.classList.remove("hidden");
             edicaoFeedback.textContent = "";
         });
 
@@ -560,12 +642,42 @@
             }
         }
 
+
+                // ==========================
+        // EXCLUIR ENCONTREIRO
+        // ==========================
+        async function excluirEncontreiroGeral(id) {
+            if (!confirm("Deseja realmente excluir este encontreiro?")) return;
+
+            try {
+                const res = await fetch(`${API_PESSOAS}/${id}`, {
+                    method: "DELETE",
+                    headers: authHeaders(),
+                });
+
+                const json = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    console.error(json);
+                    alert(json.error || "Erro ao excluir vínculo.");
+                    return;
+                }
+
+                await carregarEncontreiroGeral();
+            } catch (err) {
+                console.error(err);
+                alert("Erro inesperado ao excluir.");
+            }
+        }
+
+
         // ==========================
         // INICIALIZAÇÃO
         // ==========================
         (async function init() {
             await carregarEventosEEquipes();
             await carregarEncontreiro();
+            await carregarEncontreiroGeral();
         })();
     </script>
 </body>
