@@ -416,14 +416,10 @@
                             </span>
                         </td>
                         <td>
-                            <span class="badge ${tr.pagou ? "bg-primary" : "bg-danger"}">
-                                ${tr.pagou
-                                    ? "Sim"
-                                    : `Não <button class="btn btn-sm btn-light ms-2" onclick="gerarPagamento('${tr.id}', '${tr.pessoa.nome}')">Gerar Pagamento</button>`
-                                }
+                            <span class="badge ${tr.pagou ? "blue" : "red"}">
+                                ${tr.pagou ? "Sim" : "Não"}
                             </span>
                         </td>
-
                         <td>
                             <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
                             <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
@@ -769,28 +765,6 @@
             }
         }
 
-        // ======================================================
-        // GERAR PAGAMENTO
-        // ======================================================
-        async function gerarPagamento(teamroleId, nome) {
-            if (!confirm(`Gerar pagamento para ${nome}?`)) return;
-
-            try {
-                const res = await axios.post(`${API_}/pagamento/gerar`, {
-                    teamrole_id: teamroleId
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                const { init_point } = res.data;
-
-                window.location.href = `pagamento.html?url=${encodeURIComponent(init_point)}`;
-
-            } catch (err) {
-                alert("Erro ao gerar pagamento");
-                console.error(err);
-            }
-        }
         // ==========================
         // INICIALIZAÇÃO
         // ==========================
