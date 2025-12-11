@@ -3,6 +3,7 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import bodyParser from "body-parser";
 
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -17,33 +18,38 @@ import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
 
 import pagamentoRoutes from "./routes/pagamento.routes.js";
-import webhookRoutes from "./routes/webhook.routes.js";
+import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
 
 import devRoutes from "./routes/dev.routes.js";
-
-import bodyParser from "body-parser";
 
 import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
 app.use(cors());
+
+// JSON normal para todas as rotas
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-// ==============================
+// ======================================================
 // ROTAS PÚBLICAS
-// ==============================
+// ======================================================
 app.use("/auth", authRoutes);
-app.use("/dev", devRoutes); // deixar somente em ambiente DEV
+app.use("/dev", devRoutes);
 
+// Webhook precisa do body cru
+app.post(
+  "/webhook/mercadopago",
+  bodyParser.raw({ type: "*/*" }),
+  webhookMercadoPago
+);
+
+// Pagamento público (apenas geração do PIX é protegida)
 app.use("/pagamento", pagamentoRoutes);
-app.use("/webhook", webhookRoutes); // sempre público (Mercado Pago)
-app.post("/webhook/mercadopago", bodyParser.raw({ type: "*/*" })
-)
-// ==============================
-// ROTAS PROTEGIDAS (LOGIN NECESSÁRIO)
-// ==============================
+
+// ======================================================
+// ROTAS PROTEGIDAS (LOGIN OBRIGATÓRIO)
+// ======================================================
 app.use("/pessoas", authMiddleware, pessoasRoutes);
 app.use("/eventos", authMiddleware, eventosRoutes);
 app.use("/equipes", authMiddleware, equipeRoutes);
@@ -51,27 +57,27 @@ app.use("/equipes-evento", authMiddleware, equipesEventoRoutes);
 app.use("/teamrole", authMiddleware, teamroleRoutes);
 app.use("/momentos", authMiddleware, momentosRoutes);
 
-// app.use("/inscricoes", authMiddleware, inscricoesRoutes);
+// inscrições comuns são públicas (mantido como você usava)
 app.use("/inscricoes", inscricoesRoutes);
 
 app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
+
+// Encontrista-inscrição é protegida por auth
 app.use("/encontrista-inscricao", authMiddleware, encontristaInscricaoRoutes);
 
-// ==============================
-// ADMIN
-// ==============================
+// Admin
 app.use("/admin", authMiddleware, adminRoutes);
 
-// ==============================
+// ======================================================
 // ROOT ROUTE
-// ==============================
+// ======================================================
 app.get("/", (req, res) => {
   res.send("🚀 Backend ECC funcionando!");
 });
 
-// ==============================
+// ======================================================
 // SERVIDOR
-// ==============================
+// ======================================================
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
