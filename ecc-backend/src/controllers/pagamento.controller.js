@@ -1,60 +1,67 @@
+// ========================================
+// PAGAMENTO ENCONTREIRO (PIX)
+// ========================================
 import mercadopago from "../config/mercadoPago.js";
 import supabase from "../config/supabase.js";
 
-// Gera pagamento PIX (PRODUÇÃO)
-export async function gerarPagamentoPix(req, res) {
+export async function gerarPagamentoEncontreiro(req, res) {
   try {
-    const { inscricao_id } = req.params;
-    const { payer } = req.body;
+    const { teamrole_id } = req.params;
 
-    console.log("📌 Dados recebidos:", req.body);
-
-    // Apenas email é obrigatório
-    if (!payer || !payer.email) {
-      return res.status(400).json({
-        error: "payer.email é obrigatório para gerar PIX."
-      });
-    }
-
-    // Buscar inscrição
-    const { data: inscricao, error } = await supabase
-      .from("inscricoes")
-      .select("id, valor")
-      .eq("id", inscricao_id)
+    // 1) Buscar vínculo (teamrole)
+    const { data: tr, error: trError } = await supabase
+      .from("teamrole")
+      .select(`
+        id,
+        pessoa_id,
+        evento_id,
+        pessoa:pessoa_id (nome, email),
+        evento:evento_id (nome, valor_encontreiro)
+      `)
+      .eq("id", teamrole_id)
       .single();
 
-    if (error || !inscricao)
-      return res.status(404).json({ error: "Inscrição não encontrada" });
+    if (trError || !tr) {
+      return res.status(404).json({ error: "Vínculo (teamrole) não encontrado." });
+    }
 
-    console.log("📌 Inscrição:", inscricao);
+    const email = tr.pessoa?.email;
+    const nome = tr.pessoa?.nome;
+    const valor = Number(tr.evento?.valor_encontreiro || 0);
 
-    // Criar pagamento PIX
-    const response = await mercadopago.payment.create({
-      transaction_amount: inscricao.valor,
-      description: `Pagamento inscrição ${inscricao.id}`,
+    if (!email) {
+      return res.status(400).json({ error: "Pessoa não possui e-mail cadastrado." });
+    }
+
+    if (!valor || valor <= 0) {
+      return res.status(400).json({ error: "Valor de encontro inválido para o evento." });
+    }
+
+    // 2) Criar pagamento PIX no Mercado Pago
+    const mpResponse = await mercadopago.payment.create({
+      transaction_amount: valor,
+      description: `Pagamento Encontreiro - ${nome}`,
       payment_method_id: "pix",
-
       payer: {
-        email: payer.email
-        // Nenhuma identificação extra
+        email
       },
-
-      notification_url: "https://ecc-backend-8i9l.onrender.com/webhook/mercadopago"
+      notification_url: `${process.env.BASE_URL}/webhook/mercadopago`
     });
 
-    const pagamento = response.body;
-    console.log("📌 PIX criado:", pagamento);
+    const pagamento = mpResponse.body;
 
-    await supabase.from("pagamentos").insert({
-      inscricao_id,
-      gateway: "MERCADO_PAGO",
-      mp_payment_id: pagamento.id,
+    // 3) Registrar pagamento pendente
+    await supabase.from("pagamentos_encontreiro_evento").insert({
+      pessoa_id: tr.pessoa_id,
+      evento_id: tr.evento_id,
+      teamrole_id: tr.id,
+      valor: valor,
       metodo: "pix",
-      valor: inscricao.valor,
-      moeda: "BRL",
-      status: pagamento.status
+      mp_payment_id: pagamento.id,
+      pagou: false
     });
 
+    // 4) Retornar QR CODE para o frontend
     return res.status(201).json({
       qr_code_base64:
         pagamento.point_of_interaction.transaction_data.qr_code_base64,
@@ -62,7 +69,7 @@ export async function gerarPagamentoPix(req, res) {
     });
 
   } catch (err) {
-    console.error("❌ ERRO AO GERAR PIX:", err);
-    return res.status(500).json({ error: "Erro ao gerar pagamento" });
+    console.error("ERRO AO GERAR PIX ENCONTREIRO:", err);
+    return res.status(500).json({ error: "Erro ao gerar pagamento PIX." });
   }
 }

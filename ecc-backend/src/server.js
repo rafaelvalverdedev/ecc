@@ -28,9 +28,6 @@ import { authMiddleware } from "./middlewares/auth.js";
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
@@ -59,7 +56,6 @@ app.use("/inscricoes", inscricoesRoutes);
 
 app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
 app.use("/encontrista-inscricao", authMiddleware, encontristaInscricaoRoutes);
-app.use("/pagamento", authMiddleware, pagamentoRoutes);
 
 // ==============================
 // ADMIN

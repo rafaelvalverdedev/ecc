@@ -4,11 +4,7 @@ import bodyParser from "body-parser";
 
 const router = Router();
 
-router.post(
-  "/mercadopago",
-  bodyParser.raw({ type: "*/*" }),
-  mercadoPagoWebhook
-);
+router.post("/mercadopago", bodyParser.raw({ type: "*/*" }), mercadoPagoWebhook );
 
 router.post("/webhook/mercadopago", mercadoPagoWebhook);
 

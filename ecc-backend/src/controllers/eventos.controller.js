@@ -10,8 +10,15 @@ const eventoSchema = z.object({
   local: z.string().min(3, "Local obrigatório"),
   start_date: z.string().refine(v => !isNaN(Date.parse(v)), "Data inicial inválida"),
   end_date: z.string().optional(),
-  capacity: z.number().optional()
+
+  capacity: z.number().optional(),
+
+  // Novos campos
+  valor_encontreiro: z.number().default(80),
+  valor_encontrista: z.number().default(120)
 });
+
+const updateSchema = eventoSchema.partial();
 
 // ===============================
 // LISTAR EVENTOS
@@ -95,7 +102,8 @@ export async function criarEvento(req, res) {
 export async function atualizarEvento(req, res) {
   try {
     const { id } = req.params;
-    const parsed = eventoSchema.partial().parse(req.body);
+
+    const parsed = updateSchema.parse(req.body);
 
     const { data, error } = await supabase
       .from("eventos")
@@ -104,7 +112,8 @@ export async function atualizarEvento(req, res) {
       .select()
       .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error)
+      return res.status(400).json({ error: error.message });
 
     return res.json({
       message: "Evento atualizado com sucesso",
@@ -128,7 +137,8 @@ export async function deletarEvento(req, res) {
       .delete()
       .eq("id", id);
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error)
+      return res.status(400).json({ error: error.message });
 
     return res.json({ message: "Evento removido com sucesso" });
 
