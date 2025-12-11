@@ -79,8 +79,8 @@ export async function gerarPagamentoEncontreiro(req, res) {
         metodo: "pix",
         mp_payment_id: pagamento.id,
         pagou: false,
-        qr_code_base64:
-          pagamento.point_of_interaction.transaction_data.qr_code_base64
+        qr_code_base64: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+        qr_code: pagamento.point_of_interaction.transaction_data.qr_code
       });
 
     if (insertErr) {
@@ -118,9 +118,10 @@ export async function obterQrCode(req, res) {
     }
 
     return res.json({
-      qr_code_base64: data.qr_code_base64
+      qr_code_base64: data.qr_code_base64,
+      qr_code: data.qr_code
     });
-
+    
   } catch (err) {
     console.error("ERRO AO BUSCAR QR CODE:", err);
     return res.status(500).json({ error: "Erro ao carregar QR Code." });

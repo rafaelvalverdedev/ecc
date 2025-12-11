@@ -39,10 +39,11 @@
             <p class="muted">Escaneie o QR Code abaixo para realizar o pagamento</p>
 
             <img id="qrImage" class="pix-img" src="" alt="QR Code PIX" />
-
+            
             <div id="statusPagamento" class="status">Aguardando pagamento...</div>
-
+            
         </div>
+        <span id="qrcode" style="text-overflow: ellipsis;"></span>
     </main>
 
     <script src="./config.js"></script>
@@ -74,7 +75,7 @@
                     alert(json.error || "Erro ao carregar QR Code");
                     return;
                 }
-
+                document.getElementById("qrcode").innerHTML = json.qr_code;
                 document.getElementById("qrImage").src = `data:image/png;base64,${json.qr_code_base64}`;
 
             } catch (err) {
@@ -87,11 +88,7 @@
         // ----------------------------------------------------
         async function verificarStatus() {
             try {
-                const res = await fetch(`${API}/pagamento/status/${payment_id}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                const res = await fetch(`${API}/pagamento/status/${payment_id}`);
 
                 const json = await res.json();
 
