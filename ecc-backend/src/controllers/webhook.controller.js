@@ -3,7 +3,23 @@
 // =============================================================
 export async function webhookMercadoPago(req, res) {
   try {
-    const body = JSON.parse(req.body.toString());
+    let body;
+
+    try {
+      if (Buffer.isBuffer(req.body)) {
+        body = JSON.parse(req.body.toString());
+      } else if (typeof req.body === "string") {
+        body = JSON.parse(req.body);
+      } else if (typeof req.body === "object") {
+        body = req.body; // já está parseado
+      } else {
+        throw new Error("Formato inesperado no webhook");
+      }
+    } catch (e) {
+      console.error("ERRO AO PARSEAR WEBHOOK:", e);
+      return res.status(400).send("INVALID JSON");
+    }
+
     console.log("WEBHOOK RECEBIDO:", body);
 
     if (!body.data?.id) {

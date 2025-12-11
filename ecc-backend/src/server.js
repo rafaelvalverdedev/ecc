@@ -40,7 +40,7 @@ app.use("/dev", devRoutes);
 // Webhook precisa do body cru
 app.post(
   "/webhook/mercadopago",
-  bodyParser.raw({ type: "*/*" }),
+  bodyParser.raw({ type: "application/json" }),
   webhookMercadoPago
 );
 

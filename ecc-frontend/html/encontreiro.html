@@ -192,10 +192,10 @@
         // =====================================
         const API = APP_CONFIG.API_BASE_URL;
 
-        const API_PESSOAS = API_BASE_URL + "/pessoas";
-        const API_EVENTOS = API_BASE_URL + "/eventos";
-        const API_EQUIPES = API_BASE_URL + "/equipes";
-        const API_TEAMROLE = API_BASE_URL + "/teamrole";
+        const API_PESSOAS = API + "/pessoas";
+        const API_EVENTOS = API + "/eventos";
+        const API_EQUIPES = API + "/equipes";
+        const API_TEAMROLE = API + "/teamrole";
 
         const token = localStorage.getItem("token");
         if (!token) {
@@ -649,7 +649,7 @@
 
             console.log("id "+ teamroleId)
             try {
-                const res = await fetch(`${API_BASE_URL}/pagamento/encontreiro/${teamroleId}`, {
+                const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
