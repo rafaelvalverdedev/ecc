@@ -385,7 +385,7 @@
                                     ? `<span class="badge bg-primary">Sim</span>`
                                     : `
                                       <span class="badge bg-danger">
-                                        Não
+                                        Não ${tr.equipe?.valor_encontreiro}
                                       </span>
                                       <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')"
                                               class="btn btn-sm btn-light ms-2">
@@ -646,6 +646,7 @@
         async function gerarPagamento(teamroleId, nome) {
             if (!confirm(`Gerar pagamento PIX para ${nome}?`)) return;
 
+            console.log("id "+ teamroleId)
             try {
                 const res = await fetch(`${API_BASE_URL}/pagamento/encontreiro/${teamroleId}`, {
                     method: "POST",

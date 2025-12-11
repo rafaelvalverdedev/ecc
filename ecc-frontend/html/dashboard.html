@@ -37,6 +37,8 @@
           <th>Local</th>
           <th>Data início</th>
           <th>Capacidade</th>
+          <th>Valor Encontreiro</th>
+          <th>Valor Encontrista</th>
         </tr>
       </thead>
       <tbody id="eventos-list"></tbody>
@@ -167,6 +169,8 @@
           <td>${e.local}</td>
           <td>${e.start_date}</td>
           <td>${e.capacity ?? "-"}</td>
+          <td>${e.valor_encontreiro ?? "-"}</td>
+          <td>${e.valor_encontrista ?? "-"}</td>
         </tr>
       `;
       });
@@ -288,7 +292,7 @@
       });
       const pessoas_res = await res.json();
       const pessoas = pessoas_res.data;
-      
+
       const tbody = document.getElementById("pessoas-list");
       tbody.innerHTML = "";
 
