@@ -52,7 +52,6 @@ export async function gerarPagamentoEncontreiro(req, res) {
     // =========================================================
     const mp = await mercadopago.payment.create({
       transaction_amount: valor,
-      title: `Inscrição ECC`,
       description: `Pagamento Encontreiro - ${nome}`,
       payment_method_id: "pix",
       payer: { email },
