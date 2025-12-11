@@ -90,6 +90,7 @@
     </form>
   </div>
 
+  <script src="../config.js"></script>
   <script>
     // =======================
     // Autenticação
@@ -108,10 +109,10 @@
     }
 
     // APIs
-    const API_PESSOAS = "http://localhost:3001/pessoas";
-    const API_EVENTOS = "http://localhost:3001/eventos";
-    const API_INSCRICOES = "http://localhost:3001/inscricoes";
-    const API_TEAMROLE = "http://localhost:3001/teamrole";
+    const API_PESSOAS = `${APP_CONFIG.API_BASE_URL}/pessoas`
+    const API_EVENTOS = `${APP_CONFIG.API_BASE_URL}/eventos`
+    const API_INSCRICOES = `${APP_CONFIG.API_BASE_URL}/inscricoes`
+    const API_TEAMROLE = `${APP_CONFIG.API_BASE_URL}/teamrole`
 
     // =======================
     // Carregar lista de pessoas

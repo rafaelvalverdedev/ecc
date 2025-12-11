@@ -118,6 +118,7 @@
     </table>
   </div>
 
+  <script src="../config.js"></script>
   <script>
     // ====================================
     // 🔐 Autenticação
@@ -153,7 +154,7 @@
     // ====================================
 
     async function carregarEventos() {
-      const res = await fetch("https://ecc-backend-8i9l.onrender.com/eventos", {
+      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/eventos`, {
         headers: { Authorization: "Bearer " + token }
       });
       const evento_res = await res.json();
@@ -177,7 +178,7 @@
     }
 
     async function carregarEquipes() {
-      const res = await fetch("https://ecc-backend-8i9l.onrender.com/equipes", {
+      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes`, {
         headers: { Authorization: "Bearer " + token }
       });
       const equipes_res = await res.json();
@@ -197,7 +198,7 @@
     }
 
     async function carregarCoordenadores() {
-      const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
+      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole`, {
         headers: { Authorization: "Bearer " + token }
       });
 
@@ -224,7 +225,7 @@
 
     async function carregarEncontreiros() {
       try {
-        const res = await fetch("https://ecc-backend-8i9l.onrender.com/teamrole", {
+        const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole`, {
           headers: { Authorization: "Bearer " + token }
         });
 
@@ -258,7 +259,7 @@
 
     async function carregarEncontristas() {
       try {
-        const res = await fetch("https://ecc-backend-8i9l.onrender.com/encontrista_inscricao", {
+        const res = await fetch(`${APP_CONFIG.API_BASE_URL}/encontrista_inscricao`, {
           headers: { Authorization: "Bearer " + token }
         });
 
@@ -287,7 +288,7 @@
 
 
     async function carregarPessoas() {
-      const res = await fetch("https://ecc-backend-8i9l.onrender.com/pessoas", {
+      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas`, {
         headers: { Authorization: "Bearer " + token }
       });
       const pessoas_res = await res.json();

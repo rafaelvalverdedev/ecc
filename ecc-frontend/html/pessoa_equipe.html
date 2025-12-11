@@ -84,6 +84,7 @@
         </form>
     </div>
 
+    <script src="../config.js"></script>
     <script>
         // ==========================================
         // AUTENTICAÇÃO
@@ -104,9 +105,9 @@
         // ==========================================
         // API
         // ==========================================
-        const API_PESSOAS = "http://localhost:3001/pessoas";
-        const API_EQUIPES = "http://localhost:3001/equipes";
-        const API_TEAMROLE = "http://localhost:3001/teamrole";
+        const API_PESSOAS = `${APP_CONFIG.API_BASE_URL}/pessoas`;
+        const API_EQUIPES = `${APP_CONFIG.API_BASE_URL}/equipes`;
+        const API_TEAMROLE = `${APP_CONFIG.API_BASE_URL}/teamrole`;
 
         // ==========================================
         // CARREGAR SELECTS

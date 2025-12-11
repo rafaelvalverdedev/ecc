@@ -56,6 +56,8 @@
       <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
     </form>
   </div>
+
+  <script src="../config.js"></script>
   <script>
     // ============================
     // 🔐 AUTENTICAÇÃO
@@ -83,7 +85,7 @@
       window.location.href = `./${page}.html`;
     }
 
-    const API_URL = "https://ecc-backend-8i9l.onrender.com/equipes";
+    const API_URL = `${APP_CONFIG.API_BASE_URL}/equipes`;
 
     // ============================
     // 📌 LISTAR EQUIPES

@@ -70,9 +70,10 @@
 
     <div id="erro"></div>
   </div>
-
+  
+  <script src="../config.js"></script>
   <script>
-    const API = "https://ecc-backend-8i9l.onrender.com"; // ALTERE para localhost quando usar local!
+    const API = APP_CONFIG.API_BASE_URL;
 
     async function login() {
       const email = document.getElementById("email").value.trim();

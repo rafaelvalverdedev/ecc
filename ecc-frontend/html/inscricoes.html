@@ -206,6 +206,7 @@
     </form>
   </div>
 
+  <script src="../config.js"></script>
   <script>
     // --------- auth / navegação igual outras telas ----------
     const token = localStorage.getItem("token");
@@ -245,7 +246,7 @@
     }
 
     // --------- envio para o backend ----------
-    const API_ENCONTRISTA_INSCR = "http://localhost:3001/encontrista_inscricao";
+    const API_ENCONTRISTA_INSCR = `${APP_CONFIG.API_BASE_URL}/encontrista_inscricao`;
 
     async function salvarInscricao(event) {
       event.preventDefault();

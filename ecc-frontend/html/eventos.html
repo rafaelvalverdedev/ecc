@@ -72,6 +72,8 @@
       </button>
     </form>
   </div>
+
+  <script src="../config.js"></script>
   <script>
     // ======================================
     // 🔐 Autenticação
@@ -97,14 +99,14 @@
       window.location.href = `./${page}.html`;
     }
 
-      const API_URL = "https://ecc-backend-8i9l.onrender.com/eventos";
+    const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
 
     // ======================================
     // 📌 LISTAR EVENTOS
     // ======================================
     async function listarEventos() {
       try {
-        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token }});
+        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
 
         const resultado = await res.json();
         const eventos = resultado.data;

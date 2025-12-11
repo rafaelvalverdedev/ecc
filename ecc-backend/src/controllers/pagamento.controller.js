@@ -2,11 +2,13 @@ import mercadopago from "../config/mercadoPago.js";
 import supabase from "../config/supabase.js";
 
 // =============================================================
-// 1. GERAR PAGAMENTO PIX DO ENCONTREIRO
+// 1. GERAR PAGAMENTO PIX DO ENCONTREIRO (VERSÃO FINAL)
 // =============================================================
 export async function gerarPagamentoEncontreiro(req, res) {
   try {
     const { teamrole_id } = req.params;
+
+    console.log("Gerando PIX para teamrole:", teamrole_id);
 
     // 1) Buscar vínculo
     const { data: tr, error: trError } = await supabase
@@ -37,18 +39,36 @@ export async function gerarPagamentoEncontreiro(req, res) {
       return res.status(400).json({ error: "Valor do evento inválido." });
     }
 
-    // 2) Criar pagamento PIX
+
+    // URL que será enviada ao Mercado Pago (para debug)
+    console.log(
+      "URL DE NOTIFICAÇÃO ENVIADA:",
+      `${process.env.BASE_URL}/webhook/mercadopago`
+    );
+
+
+    // =========================================================
+    // 2. Criar pagamento PIX com external_reference
+    // =========================================================
     const mp = await mercadopago.payment.create({
       transaction_amount: valor,
       description: `Pagamento Encontreiro - ${nome}`,
       payment_method_id: "pix",
       payer: { email },
+
+      // ESSENCIAL PARA O WEBHOOK FUNCIONAR
+      external_reference: tr.id,
+
       notification_url: `${process.env.BASE_URL}/webhook/mercadopago`
     });
 
     const pagamento = mp.body;
 
-    // 3) Registrar pagamento
+    console.log("Pagamento MP criado:", pagamento.id);
+
+    // =========================================================
+    // 3. Registrar pagamento no banco
+    // =========================================================
     const { error: insertErr } = await supabase
       .from("pagamentos_encontreiro_evento")
       .insert({
@@ -68,13 +88,14 @@ export async function gerarPagamentoEncontreiro(req, res) {
       return res.status(500).json({ error: "Erro ao registrar pagamento." });
     }
 
-    // 4) Envia payment_id (QR será buscado depois)
+    // 4) Resposta final
     return res.status(201).json({
       payment_id: pagamento.id
     });
 
   } catch (err) {
-    console.error("ERRO AO GERAR PIX ENCONTREIRO:", err);
+    console.error("ERRO AO GERAR PIX ENCONTREIRO:",
+      err.response?.body || err);
     return res.status(500).json({ error: "Erro ao gerar pagamento PIX." });
   }
 }
@@ -127,11 +148,12 @@ export async function verificarStatusPagamento(req, res) {
 }
 
 // =============================================================
-// 4. WEBHOOK OFICIAL DO MERCADO PAGO
+// 4. WEBHOOK OFICIAL DO MERCADO PAGO (VERSÃO FINAL)
 // =============================================================
 export async function webhookMercadoPago(req, res) {
   try {
     const body = JSON.parse(req.body.toString());
+    console.log("WEBHOOK RECEBIDO:", body);
 
     if (!body.data?.id) {
       return res.status(200).send("OK");
@@ -139,30 +161,38 @@ export async function webhookMercadoPago(req, res) {
 
     const paymentId = body.data.id;
 
-    // Status real
+    // Buscar status real no Mercado Pago
     const mpRes = await mercadopago.payment.findById(paymentId);
     const pagamento = mpRes.body;
 
+    console.log("Status do pagamento:", pagamento.status);
+
     const status = pagamento.status;
+    const teamroleId = pagamento.external_reference; // ESSENCIAL!
 
     // Atualiza tabela de pagamentos
     await supabase
       .from("pagamentos_encontreiro_evento")
-      .update({ pagou: status === "approved" })
+      .update({
+        pagou: status === "approved",
+        data_pagamento: status === "approved" ? new Date() : null
+      })
       .eq("mp_payment_id", paymentId);
 
-    // Atualiza teamrole quando APROVADO
+    // Se aprovado → atualizar teamrole.pagou
     if (status === "approved") {
       await supabase
         .from("teamrole")
         .update({ pagou: true })
-        .eq("id", pagamento.external_reference);
+        .eq("id", teamroleId);
+
+      console.log("Pagamento aprovado! Teamrole atualizado:", teamroleId);
     }
 
     return res.status(200).send("OK");
 
   } catch (err) {
-    console.error("ERRO NO WEBHOOK:", err);
+    console.error("ERRO NO WEBHOOK:", err.response?.body || err);
     return res.status(500).send("Erro no webhook");
   }
 }

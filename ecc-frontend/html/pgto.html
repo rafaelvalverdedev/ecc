@@ -44,8 +44,9 @@
 
     <p id="status">Aguardando pagamento...</p>
 
+    <script src="../config.js"></script>
     <script>
-        const backend = "https://ecc-backend-8i9l.onrender.com";
+        const API = APP_CONFIG.API_BASE_URL;
 
         const url = new URL(window.location.href);
         const inscricaoId = url.searchParams.get("inscricao_id");

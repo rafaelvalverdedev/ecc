@@ -63,6 +63,7 @@
     <button onclick="salvarVinculos()">Salvar Vínculos</button>
   </div>
 
+  <script src="../config.js"></script>
   <script>
     const token = localStorage.getItem("token");
 
@@ -84,9 +85,9 @@
     }
 
 
-    const API_EVENTOS = "https://ecc-backend-8i9l.onrender.com/eventos";
-    const API_EQUIPES = "https://ecc-backend-8i9l.onrender.com/equipes";
-    const API_VINCULOS = "https://ecc-backend-8i9l.onrender.com/equipes-evento";
+    const API_EVENTOS = `${APP_CONFIG.API_BASE_URL}/eventos`;
+    const API_EQUIPES = `${APP_CONFIG.API_BASE_URL}/equipes`
+    const API_VINCULOS = `${APP_CONFIG.API_BASE_URL}/equipes-evento`;
 
     let eventos = [];
     let equipes = [];

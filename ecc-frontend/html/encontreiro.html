@@ -185,11 +185,12 @@
         </section>
     </main>
 
+    <script src="../config.js"></script>
     <script>
         // =====================================
         // CONFIG
         // =====================================
-        const API_BASE_URL = "https://ecc-backend-8i9l.onrender.com";
+        const API = APP_CONFIG.API_BASE_URL;
 
         const API_PESSOAS = API_BASE_URL + "/pessoas";
         const API_EVENTOS = API_BASE_URL + "/eventos";
@@ -385,7 +386,7 @@
                                     ? `<span class="badge bg-primary">Sim</span>`
                                     : `
                                       <span class="badge bg-danger">
-                                        Não ${tr.equipe?.valor_encontreiro}
+                                        Não ${tr.evento?.valor_encontreiro}
                                       </span>
                                       <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')"
                                               class="btn btn-sm btn-light ms-2">
