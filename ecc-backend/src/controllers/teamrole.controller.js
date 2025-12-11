@@ -25,7 +25,7 @@ export async function listarTeamRoles(req, res) {
         pagou,
         pessoa:pessoa_id (id, nome, email, telefone),
         equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome, valor_encontreiro, valor_encontrista),
+        evento:evento_id (id, nome, valor_encontreiro, valor_encontrista)
       `)
       .order("created_at", { ascending: false });
 
