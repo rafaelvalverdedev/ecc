@@ -35,12 +35,15 @@ export async function gerarPagamentoEncontreiro(req, res) {
         valor,
         metodo: "pix",
         mp_payment_id: pagamento.id,
-        qr_code_base64: pagamento.point_of_interaction.transaction_data.qr_code_base64
+        qr_code_base64: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+        qr_code: pagamento.point_of_interaction.transaction_data.qr_code
+
       }
     ]);
 
     return res.status(200).json({
       qr_base64: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+      qr_code: pagamento.point_of_interaction.transaction_data.qr_code,
       payment_id: pagamento.id
     });
 
