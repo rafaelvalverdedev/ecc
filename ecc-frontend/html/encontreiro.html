@@ -383,8 +383,8 @@
 
                             <td>
                                 ${tr.pagou
-                                    ? `<span class="badge bg-primary">Sim</span>`
-                                    : `
+                            ? `<span class="badge bg-primary">Sim</span>`
+                            : `
                                       <span class="badge bg-danger">
                                         Não ${tr.evento?.valor_encontreiro}
                                       </span>
@@ -647,7 +647,7 @@
         async function gerarPagamento(teamroleId, nome) {
             if (!confirm(`Gerar pagamento PIX para ${nome}?`)) return;
 
-            console.log("id "+ teamroleId)
+            console.log("id " + teamroleId)
             try {
                 const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
                     method: "POST",
@@ -667,8 +667,7 @@
                 const { payment_id } = json;
 
                 // Redireciona para página que exibe QR Code
-                window.location.href =
-                    `pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`;
+                window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
 
             } catch (err) {
                 alert("Erro ao gerar pagamento.");
