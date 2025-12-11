@@ -1,9 +1,9 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
-import cors from "cors";
 import bodyParser from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -25,7 +25,24 @@ import devRoutes from "./routes/dev.routes.js";
 import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
+
+
+// ===========================
+//  WEBHOOK — PRECISA VIR ANTES DE QUALQUER PARSER
+// ===========================
+app.post(
+  "/webhook/mercadopago",
+  bodyParser.raw({ type: "*/*" }), // aceita qualquer tipo enviado pelo MP
+  webhookMercadoPago
+);
+
+// ===========================
+// PARSERS NORMAIS DO EXPRESS
+// (Sempre depois do webhook)
+// ===========================
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // JSON normal para todas as rotas
 app.use(express.json());
@@ -37,16 +54,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/auth", authRoutes);
 app.use("/dev", devRoutes);
 
-// Webhook precisa do body cru
-app.post(
-  "/webhook/mercadopago",
-  bodyParser.raw({ type: "application/json" }),
-  webhookMercadoPago
-);
-
 // Pagamento público (apenas geração do PIX é protegida)
 app.use("/pagamento", pagamentoRoutes);
-
 // ======================================================
 // ROTAS PROTEGIDAS (LOGIN OBRIGATÓRIO)
 // ======================================================
