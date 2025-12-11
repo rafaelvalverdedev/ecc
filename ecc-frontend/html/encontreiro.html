@@ -88,11 +88,11 @@
                     </div>
                     <div>
                         <label for="email">E-mail</label>
-                        <input id="email" type="email" />
+                        <input id="email" type="email" required/>
                     </div>
                     <div>
                         <label for="telefone">Telefone</label>
-                        <input id="telefone" />
+                        <input id="telefone" required/>
                     </div>
                 </div>
 
@@ -103,7 +103,9 @@
                     </div>
                     <div>
                         <label for="equipe_id">Equipe</label>
-                        <select id="equipe_id" required></select>
+                        <select id="equipe_id" required>
+                            <option value="">Selecione um evento primeiro</option>
+                        </select>
                     </div>
                     <div>
                         <label for="is_leader">
@@ -143,11 +145,11 @@
                     </div>
                     <div>
                         <label for="edit_email">E-mail</label>
-                        <input id="edit_email" type="email" />
+                        <input id="edit_email" type="email" required/>
                     </div>
                     <div>
                         <label for="edit_telefone">Telefone</label>
-                        <input id="edit_telefone" />
+                        <input id="edit_telefone" required />
                     </div>
                 </div>
 
@@ -160,7 +162,9 @@
                         </div>
                         <div>
                             <label for="edit_equipe_id">Equipe</label>
-                            <select id="edit_equipe_id"></select>
+                            <select id="edit_equipe_id">
+                                <option value="">Selecione um evento primeiro</option>
+                            </select>
                         </div>
                         <div>
                             <label>
@@ -194,7 +198,7 @@
 
         const API_PESSOAS = API + "/pessoas";
         const API_EVENTOS = API + "/eventos";
-        const API_EQUIPES = API + "/equipes";
+        const API_EQUIPES_EVENTO = API + "/eventos"; // rota confirmada
         const API_TEAMROLE = API + "/teamrole";
 
         const token = localStorage.getItem("token");
@@ -266,38 +270,66 @@
         let editMode = EDIT_MODE.NONE;
 
         // =====================================
-        // CARREGAR EVENTOS E EQUIPES
+        // CARREGAR EVENTOS E EQUIPES POR EVENTO
         // =====================================
-        async function carregarEventosEEquipes() {
+        async function carregarEventos() {
             try {
-                const [eventosRes, equipesRes] = await Promise.all([
-                    fetch(API_EVENTOS, { headers: authHeaders() }).then(r => r.json()),
-                    fetch(API_EQUIPES, { headers: authHeaders() }).then(r => r.json()),
-                ]);
+                const eventosRes = await fetch(API_EVENTOS, { headers: authHeaders() });
+                const eventosJson = await eventosRes.json();
+                const eventos = eventosJson.data || [];
 
-                const eventos = eventosRes.data || [];
-                const equipes = equipesRes.data || [];
-
-                selectEvento.innerHTML =
-                    selectEditEvento.innerHTML =
-                    selectEquipe.innerHTML =
-                    selectEditEquipe.innerHTML =
-                    '<option value="">Selecione</option>';
+                selectEvento.innerHTML = '<option value="">Selecione</option>';
+                selectEditEvento.innerHTML = '<option value="">Selecione</option>';
 
                 eventos.forEach(ev => {
                     selectEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
                     selectEditEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
                 });
 
-                equipes.forEach(eq => {
-                    selectEquipe.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
-                    selectEditEquipe.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
+            } catch (err) {
+                console.error("Erro ao carregar eventos:", err);
+            }
+        }
+
+        // Busca equipes vinculadas a um evento e preenche um select (passar o select como elemento alvo)
+        async function carregarEquipesPorEvento(eventoId, targetSelect, selectedEquipeId = "") {
+            try {
+                targetSelect.innerHTML = '<option value="">Carregando...</option>';
+
+                if (!eventoId) {
+                    targetSelect.innerHTML = '<option value="">Selecione um evento primeiro</option>';
+                    return;
+                }
+
+                const res = await fetch(`${API}/equipes-evento/evento/${eventoId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                const lista = json.data || [];
+
+                if (!lista.length) {
+                    targetSelect.innerHTML = '<option value="">Nenhuma equipe vinculada a este evento</option>';
+                    return;
+                }
+
+                targetSelect.innerHTML = '<option value="">Selecione</option>';
+
+                lista.forEach(item => {
+                    const eq = item.equipe; // conforme seu backend
+                    targetSelect.innerHTML += `
+                <option value="${eq.id}" ${eq.id === selectedEquipeId ? "selected" : ""}>
+                    ${eq.nome}
+                </option>
+            `;
                 });
 
             } catch (err) {
-                console.error("Erro ao carregar eventos/equipes:", err);
+                console.error("Erro ao carregar equipes por evento:", err);
+                targetSelect.innerHTML = '<option value="">Erro ao carregar equipes</option>';
             }
         }
+
 
         // =====================================
         // LISTAR ENCONTREIRO GERAL
@@ -480,7 +512,7 @@
 
                 formCadastro.reset();
 
-                await carregarEventosEEquipes();
+                await carregarEventos();
                 await carregarEncontreiro();
                 await carregarEncontreiroGeral();
 
@@ -542,8 +574,9 @@
                 editEmail.value = tr.pessoa.email || "";
                 editTelefone.value = tr.pessoa.telefone || "";
 
+                // Preencher evento / equipes de edição: primeiro definimos o evento, depois carregamos as equipes daquele evento
                 selectEditEvento.value = tr.evento.id;
-                selectEditEquipe.value = tr.equipe.id;
+                await carregarEquipesPorEvento(tr.evento.id, selectEditEquipe, tr.equipe.id);
 
                 editIsLeader.checked = tr.is_leader;
                 editPagou.checked = tr.pagou;
@@ -647,14 +680,14 @@
         async function gerarPagamento(teamroleId, nome) {
             if (!confirm(`Gerar pagamento PIX para ${nome}?`)) return;
 
-            console.log("id " + teamroleId)
             try {
                 const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json"
-                    }
+                    },
+                    body: JSON.stringify({}) // ensure body exists
                 });
 
                 const json = await res.json();
@@ -666,7 +699,7 @@
 
                 const { payment_id } = json;
 
-                // Redireciona para página que exibe QR Code
+                // Redireciona para página que exibe QR Code (abre em nova aba)
                 window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
 
             } catch (err) {
@@ -679,9 +712,19 @@
         // INICIALIZAÇÃO
         // =====================================
         (async function init() {
-            await carregarEventosEEquipes();
+            await carregarEventos();
             await carregarEncontreiro();
             await carregarEncontreiroGeral();
+
+            // listeners: quando o usuário selecionar um evento no formulário de cadastro, carregamos as equipes daquele evento
+            selectEvento.addEventListener("change", () => {
+                carregarEquipesPorEvento(selectEvento.value, selectEquipe);
+            });
+
+            // listeners para edição: quando o evento mudar, recarregamos as equipes no select de edição
+            selectEditEvento.addEventListener("change", () => {
+                carregarEquipesPorEvento(selectEditEvento.value, selectEditEquipe);
+            });
         })();
 
     </script>

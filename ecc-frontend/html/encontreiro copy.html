@@ -24,6 +24,7 @@
     <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
     <main>
+
         <!-- Lista de encontreiro geral (somente pessoas, sem regras) -->
         <section class="card">
             <div class="card-geral">
@@ -40,9 +41,7 @@
                         <th>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-encontreiro-geral">
-                    <!-- preenchido via JS -->
-                </tbody>
+                <tbody id="tbody-encontreiro-geral"></tbody>
             </table>
 
             <div id="lista-feedback-geral" class="muted"></div>
@@ -68,15 +67,13 @@
                         <th>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-encontreiro">
-                    <!-- preenchido via JS -->
-                </tbody>
+                <tbody id="tbody-encontreiro"></tbody>
             </table>
 
             <div id="lista-feedback" class="muted"></div>
         </section>
 
-        <!-- Cadastro de encontreiro (Pessoa + TeamRole) -->
+        <!-- Cadastro de encontreiro -->
         <section class="card" id="sec-cadastro">
             <div class="card-header">
                 <h2>Cadastrar Encontreiro</h2>
@@ -124,7 +121,7 @@
             </form>
         </section>
 
-        <!-- Edição (modo pessoa OU modo teamrole) -->
+        <!-- Edição -->
         <section id="sec-edicao" class="card hidden">
             <div class="card-header">
                 <h2 id="titulo-edicao">Editar Encontreiro</h2>
@@ -134,12 +131,11 @@
             </div>
 
             <form id="form-edicao">
-                <!-- hidden ids -->
                 <input type="hidden" id="edit_teamrole_id" />
                 <input type="hidden" id="edit_pessoa_id" />
 
-                <!-- Bloco: dados da pessoa (sempre usado) -->
                 <h3>Dados do encontreiro</h3>
+
                 <div class="row">
                     <div>
                         <label for="edit_nome">Nome</label>
@@ -155,7 +151,6 @@
                     </div>
                 </div>
 
-                <!-- Bloco: regras de vínculo (somente quando editar TeamRole) -->
                 <div id="bloco-regras">
                     <h3>Regras de vínculo</h3>
                     <div class="row">
@@ -168,12 +163,12 @@
                             <select id="edit_equipe_id"></select>
                         </div>
                         <div>
-                            <label for="edit_is_leader">
+                            <label>
                                 <input id="edit_is_leader" type="checkbox" />
                                 Coordenador / Líder
                             </label>
                             <br />
-                            <label for="edit_pagou">
+                            <label>
                                 <input id="edit_pagou" type="checkbox" />
                                 Pagou
                             </label>
@@ -190,15 +185,17 @@
         </section>
     </main>
 
+    <script src="../config.js"></script>
     <script>
-        // ==========================
+        // =====================================
         // CONFIG
-        // ==========================
-        const API_BASE_URL = "https://ecc-backend-8i9l.onrender.com";
-        const API_PESSOAS = API_BASE_URL + "/pessoas";
-        const API_EVENTOS = API_BASE_URL + "/eventos";
-        const API_EQUIPES = API_BASE_URL + "/equipes";
-        const API_TEAMROLE = API_BASE_URL + "/teamrole";
+        // =====================================
+        const API = APP_CONFIG.API_BASE_URL;
+
+        const API_PESSOAS = API + "/pessoas";
+        const API_EVENTOS = API + "/eventos";
+        const API_EQUIPES = API + "/equipes";
+        const API_TEAMROLE = API + "/teamrole";
 
         const token = localStorage.getItem("token");
         if (!token) {
@@ -213,9 +210,9 @@
             };
         }
 
-        // ==========================
+        // =====================================
         // LOGOUT E NAVEGAÇÃO
-        // ==========================
+        // =====================================
         function logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
@@ -226,16 +223,19 @@
             window.location.href = `./${page}.html`;
         }
 
-        // ==========================
+        // =====================================
         // ELEMENTOS
-        // ==========================
+        // =====================================
         const tbodyEncontreiro = document.getElementById("tbody-encontreiro");
         const tbodyEncontreiroGeral = document.getElementById("tbody-encontreiro-geral");
+
         const cadastroFeedback = document.getElementById("cadastro-feedback");
         const listaFeedback = document.getElementById("lista-feedback");
         const listaFeedbackGeral = document.getElementById("lista-feedback-geral");
+
         const secEdicao = document.getElementById("sec-edicao");
         const secCadastro = document.getElementById("sec-cadastro");
+
         const edicaoFeedback = document.getElementById("edicao-feedback");
         const tituloEdicao = document.getElementById("titulo-edicao");
         const blocoRegras = document.getElementById("bloco-regras");
@@ -261,64 +261,47 @@
         const editIsLeader = document.getElementById("edit_is_leader");
         const editPagou = document.getElementById("edit_pagou");
 
-        // Modo de edição: "none" | "pessoa" | "teamrole"
-        const EDIT_MODE = {
-            NONE: "none",
-            PESSOA: "pessoa",
-            TEAMROLE: "teamrole",
-        };
+        // Modo de edição
+        const EDIT_MODE = { NONE: "none", PESSOA: "pessoa", TEAMROLE: "teamrole" };
         let editMode = EDIT_MODE.NONE;
 
-        // ==========================
+        // =====================================
         // CARREGAR EVENTOS E EQUIPES
-        // ==========================
+        // =====================================
         async function carregarEventosEEquipes() {
             try {
                 const [eventosRes, equipesRes] = await Promise.all([
-                    fetch(API_EVENTOS, { headers: authHeaders() }).then((r) => r.json()),
-                    fetch(API_EQUIPES, { headers: authHeaders() }).then((r) => r.json()),
+                    fetch(API_EVENTOS, { headers: authHeaders() }).then(r => r.json()),
+                    fetch(API_EQUIPES, { headers: authHeaders() }).then(r => r.json()),
                 ]);
 
                 const eventos = eventosRes.data || [];
                 const equipes = equipesRes.data || [];
 
-                // limpar
-                selectEvento.innerHTML = '<option value="">Selecione</option>';
-                selectEditEvento.innerHTML = '<option value="">Selecione</option>';
-                selectEquipe.innerHTML = '<option value="">Selecione</option>';
-                selectEditEquipe.innerHTML = '<option value="">Selecione</option>';
+                selectEvento.innerHTML =
+                    selectEditEvento.innerHTML =
+                    selectEquipe.innerHTML =
+                    selectEditEquipe.innerHTML =
+                    '<option value="">Selecione</option>';
 
-                eventos.forEach((ev) => {
-                    const opt1 = document.createElement("option");
-                    opt1.value = ev.id;
-                    opt1.textContent = ev.nome;
-                    selectEvento.appendChild(opt1);
-
-                    const opt2 = document.createElement("option");
-                    opt2.value = ev.id;
-                    opt2.textContent = ev.nome;
-                    selectEditEvento.appendChild(opt2);
+                eventos.forEach(ev => {
+                    selectEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+                    selectEditEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
                 });
 
-                equipes.forEach((eq) => {
-                    const opt1 = document.createElement("option");
-                    opt1.value = eq.id;
-                    opt1.textContent = eq.nome;
-                    selectEquipe.appendChild(opt1);
-
-                    const opt2 = document.createElement("option");
-                    opt2.value = eq.id;
-                    opt2.textContent = eq.nome;
-                    selectEditEquipe.appendChild(opt2);
+                equipes.forEach(eq => {
+                    selectEquipe.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
+                    selectEditEquipe.innerHTML += `<option value="${eq.id}">${eq.nome}</option>`;
                 });
+
             } catch (err) {
                 console.error("Erro ao carregar eventos/equipes:", err);
             }
         }
 
-        // ==========================
-        // LISTAR ENCONTREIRO GERAL (PESSOAS)
-        // ==========================
+        // =====================================
+        // LISTAR ENCONTREIRO GERAL
+        // =====================================
         async function carregarEncontreiroGeral() {
             listaFeedbackGeral.textContent = "Carregando...";
             tbodyEncontreiroGeral.innerHTML = "";
@@ -326,56 +309,46 @@
             try {
                 const resGeral = await fetch(API_PESSOAS, { headers: authHeaders() });
                 const jsonGeral = await resGeral.json();
-                const listaGeral = jsonGeral.data || [];
+                const lista = (jsonGeral.data || []).filter(p => p.role !== "admin");
 
-                // Ignorar pessoas com role = admin
-                const listaFiltrada = listaGeral.filter((p) => p.role !== "admin");
-
-                if (!listaFiltrada.length) {
+                if (!lista.length) {
                     listaFeedbackGeral.textContent = "Nenhum encontreiro cadastrado.";
                     return;
                 }
 
                 listaFeedbackGeral.textContent = "";
 
-                listaFiltrada.forEach((p) => {
-                    const trEl = document.createElement("tr");
-
-                    const nome = p.nome || "-";
-                    const email = p.email || "-";
-                    const telefone = p.telefone || "-";
-
-                    trEl.innerHTML = `
-                        <td>${nome}</td>
-                        <td>${email}</td>
-                        <td>${telefone}</td>
-                        <td>
-                            <button class="secondary btn-editar-pessoa" data-id="${p.id}">Editar</button>
-                            <button class="danger btn-excluir-pessoa" data-id="${p.id}">Excluir</button>
-                        </td>
+                lista.forEach(p => {
+                    tbodyEncontreiroGeral.innerHTML += `
+                        <tr>
+                            <td>${p.nome || "-"}</td>
+                            <td>${p.email || "-"}</td>
+                            <td>${p.telefone || "-"}</td>
+                            <td>
+                                <button class="secondary btn-editar-pessoa" data-id="${p.id}">Editar</button>
+                                <button class="danger btn-excluir-pessoa" data-id="${p.id}">Excluir</button>
+                            </td>
+                        </tr>
                     `;
-
-                    tbodyEncontreiroGeral.appendChild(trEl);
                 });
 
-                // Eventos de clique
-                tbodyEncontreiroGeral.querySelectorAll(".btn-editar-pessoa").forEach((btn) => {
+                tbodyEncontreiroGeral.querySelectorAll(".btn-editar-pessoa").forEach(btn => {
                     btn.addEventListener("click", () => abrirEdicaoPessoa(btn.dataset.id));
                 });
 
-                tbodyEncontreiroGeral.querySelectorAll(".btn-excluir-pessoa").forEach((btn) => {
+                tbodyEncontreiroGeral.querySelectorAll(".btn-excluir-pessoa").forEach(btn => {
                     btn.addEventListener("click", () => excluirEncontreiroGeral(btn.dataset.id));
                 });
 
             } catch (err) {
                 console.error("Erro ao carregar encontreiro geral:", err);
-                listaFeedbackGeral.textContent = "Erro ao carregar encontreiro.";
+                listaFeedbackGeral.textContent = "Erro ao carregar.";
             }
         }
 
-        // ==========================
-        // LISTAR ENCONTREIROS INSCRITOS (TEAMROLE)
-        // ==========================
+        // =====================================
+        // LISTAR ENCONTREIRO COM VÍNCULO
+        // =====================================
         async function carregarEncontreiro() {
             listaFeedback.textContent = "Carregando...";
             tbodyEncontreiro.innerHTML = "";
@@ -383,74 +356,73 @@
             try {
                 const res = await fetch(API_TEAMROLE, { headers: authHeaders() });
                 const json = await res.json();
-                const lista = json.data || [];
 
-                // Ignorar vínculos cuja pessoa seja admin
-                const listaFiltrada = lista.filter((tr) => tr.pessoa?.role !== "admin");
+                const lista = (json.data || []).filter(tr => tr.pessoa?.role !== "admin");
 
-                if (!listaFiltrada.length) {
-                    listaFeedback.textContent = "Nenhum encontreiro cadastrado.";
+                if (!lista.length) {
+                    listaFeedback.textContent = "Nenhum encontreiro inscrito.";
                     return;
                 }
 
                 listaFeedback.textContent = "";
 
-                listaFiltrada.forEach((tr) => {
-                    const trEl = document.createElement("tr");
+                lista.forEach(tr => {
+                    tbodyEncontreiro.innerHTML += `
+                        <tr>
+                            <td>${tr.pessoa?.nome || "-"}</td>
+                            <td>${tr.pessoa?.email || "-"}</td>
+                            <td>${tr.pessoa?.telefone || "-"}</td>
+                            <td>${tr.evento?.nome || "-"}</td>
+                            <td>${tr.equipe?.nome || "-"}</td>
 
-                    const nome = tr.pessoa?.nome || "-";
-                    const email = tr.pessoa?.email || "-";
-                    const telefone = tr.pessoa?.telefone || "-";
-                    const eventoNome = tr.evento?.nome || "-";
-                    const equipeNome = tr.equipe?.nome || "-";
+                            <td>
+                                <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                    ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                </span>
+                            </td>
 
-                    trEl.innerHTML = `
-                        <td>${nome}</td>
-                        <td>${email}</td>
-                        <td>${telefone}</td>
-                        <td>${eventoNome}</td>
-                        <td>${equipeNome}</td>
-                        <td>
-                            <span class="badge ${tr.is_leader ? "blue" : "red"}">
-                                ${tr.is_leader ? "Coordenador" : "Encontreiro"}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge ${tr.pagou ? "blue" : "red"}">
-                                ${tr.pagou ? "Sim" : "Não"}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
-                            <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
-                        </td>
+                            <td>
+                                ${tr.pagou
+                            ? `<span class="badge bg-primary">Sim</span>`
+                            : `
+                                      <span class="badge bg-danger">
+                                        Não ${tr.evento?.valor_encontreiro}
+                                      </span>
+                                      <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')"
+                                              class="btn btn-sm btn-light ms-2">
+                                          Gerar Pagamento
+                                      </button>
+                                    `}
+                            </td>
+
+                            <td>
+                                <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
+                                <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                            </td>
+                        </tr>
                     `;
-
-                    tbodyEncontreiro.appendChild(trEl);
                 });
 
-                // Eventos de clique
-                tbodyEncontreiro.querySelectorAll(".btn-editar-tr").forEach((btn) => {
+                tbodyEncontreiro.querySelectorAll(".btn-editar-tr").forEach(btn => {
                     btn.addEventListener("click", () => abrirEdicaoTeamrole(btn.dataset.id));
                 });
 
-                tbodyEncontreiro.querySelectorAll(".btn-excluir-tr").forEach((btn) => {
+                tbodyEncontreiro.querySelectorAll(".btn-excluir-tr").forEach(btn => {
                     btn.addEventListener("click", () => excluirEncontreiro(btn.dataset.id));
                 });
 
             } catch (err) {
-                console.error("Erro ao carregar encontreiro inscritos:", err);
-                listaFeedback.textContent = "Erro ao carregar encontreiro.";
+                console.error("Erro ao carregar encontreiros inscritos:", err);
+                listaFeedback.textContent = "Erro ao carregar.";
             }
         }
 
-        // ==========================
-        // CADASTRAR ENCONTREIRO (PESSOA + TEAMROLE)
-        // ==========================
-        formCadastro.addEventListener("submit", async (e) => {
+        // =====================================
+        // CADASTRAR ENCONTREIRO
+        // =====================================
+        formCadastro.addEventListener("submit", async e => {
             e.preventDefault();
             cadastroFeedback.textContent = "";
-            cadastroFeedback.className = "muted";
 
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
@@ -460,13 +432,13 @@
             const is_leader = document.getElementById("is_leader").checked;
 
             if (!nome || !evento_id || !equipe_id) {
-                cadastroFeedback.textContent = "Preencha ao menos nome, evento e equipe.";
+                cadastroFeedback.textContent = "Preencha nome, evento e equipe.";
                 cadastroFeedback.className = "error";
                 return;
             }
 
             try {
-                // 1) cria pessoa
+                // 1) Criar pessoa
                 const resPessoa = await fetch(API_PESSOAS, {
                     method: "POST",
                     headers: authHeaders(),
@@ -474,18 +446,16 @@
                 });
 
                 const pessoaJson = await resPessoa.json();
-
                 if (!resPessoa.ok) {
-                    console.error(pessoaJson);
-                    cadastroFeedback.textContent = pessoaJson.error || "Erro ao criar pessoa.";
+                    cadastroFeedback.textContent = pessoaJson.error;
                     cadastroFeedback.className = "error";
                     return;
                 }
 
-                const pessoa = (pessoaJson.data && pessoaJson.data[0]) || pessoaJson.data || pessoaJson.pessoa;
+                const pessoa = pessoaJson.data;
                 const pessoa_id = pessoa.id;
 
-                // 2) cria vínculo teamrole
+                // 2) Criar vínculo teamrole
                 const resTR = await fetch(API_TEAMROLE, {
                     method: "POST",
                     headers: authHeaders(),
@@ -499,10 +469,8 @@
                 });
 
                 const trJson = await resTR.json();
-
                 if (!resTR.ok) {
-                    console.error(trJson);
-                    cadastroFeedback.textContent = trJson.error || "Erro ao criar vínculo.";
+                    cadastroFeedback.textContent = trJson.error;
                     cadastroFeedback.className = "error";
                     return;
                 }
@@ -511,27 +479,25 @@
                 cadastroFeedback.className = "success";
 
                 formCadastro.reset();
+
                 await carregarEventosEEquipes();
                 await carregarEncontreiro();
                 await carregarEncontreiroGeral();
+
             } catch (err) {
-                console.error(err);
-                cadastroFeedback.textContent = "Erro inesperado ao cadastrar.";
+                cadastroFeedback.textContent = "Erro ao cadastrar.";
                 cadastroFeedback.className = "error";
             }
         });
 
-        // ==========================
-        // ABRIR EDIÇÃO: PESSOA (LISTA GERAL)
-        // ==========================
+        // =====================================
+        // ABRIR EDIÇÃO: PESSOA
+        // =====================================
         async function abrirEdicaoPessoa(id) {
-            edicaoFeedback.textContent = "";
-            edicaoFeedback.className = "muted";
             editMode = EDIT_MODE.PESSOA;
+            tituloEdicao.textContent = "Editar Encontreiro (Dados Pessoais)";
+            blocoRegras.classList.add("hidden");
 
-            // Ajustar UI
-            tituloEdicao.textContent = "Editar Encontreiro (dados pessoais)";
-            blocoRegras.classList.add("hidden"); // esconde regras
             secEdicao.classList.remove("hidden");
             secCadastro.classList.add("hidden");
 
@@ -539,38 +505,27 @@
                 const res = await fetch(`${API_PESSOAS}/${id}`, { headers: authHeaders() });
                 const json = await res.json();
 
-                if (!res.ok) {
-                    console.error(json);
-                    alert(json.error || "Erro ao buscar encontreiro.");
-                    return;
-                }
+                const p = json.data;
 
-                const p = json.data || json.pessoa || json;
-
-                editTeamroleId.value = ""; // sem vínculo aqui
                 editPessoaId.value = p.id;
-                editNome.value = p.nome || "";
+                editNome.value = p.nome;
                 editEmail.value = p.email || "";
                 editTelefone.value = p.telefone || "";
 
-                secEdicao.scrollIntoView({ behavior: "smooth" });
             } catch (err) {
-                console.error(err);
-                alert("Erro ao abrir edição do encontreiro.");
+                alert("Erro ao abrir edição.");
             }
         }
 
-        // ==========================
-        // ABRIR EDIÇÃO: TEAMROLE (INSCRITOS)
-        // ==========================
+        // =====================================
+        // ABRIR EDIÇÃO: TEAMROLE
+        // =====================================
         async function abrirEdicaoTeamrole(id) {
-            edicaoFeedback.textContent = "";
-            edicaoFeedback.className = "muted";
             editMode = EDIT_MODE.TEAMROLE;
-
-            // Ajustar UI
             tituloEdicao.textContent = "Editar Encontreiro & Vínculo";
-            blocoRegras.classList.remove("hidden"); // mostra regras
+
+            blocoRegras.classList.remove("hidden");
+
             secEdicao.classList.remove("hidden");
             secCadastro.classList.add("hidden");
 
@@ -578,201 +533,157 @@
                 const res = await fetch(`${API_TEAMROLE}/${id}`, { headers: authHeaders() });
                 const json = await res.json();
 
-                if (!res.ok) {
-                    console.error(json);
-                    alert(json.error || "Erro ao buscar encontreiro.");
-                    return;
-                }
-
-                const tr = json.data || json;
+                const tr = json.data;
 
                 editTeamroleId.value = tr.id;
                 editPessoaId.value = tr.pessoa.id;
-                editNome.value = tr.pessoa.nome || "";
+
+                editNome.value = tr.pessoa.nome;
                 editEmail.value = tr.pessoa.email || "";
                 editTelefone.value = tr.pessoa.telefone || "";
 
-                selectEditEvento.value = tr.evento?.id || "";
-                selectEditEquipe.value = tr.equipe?.id || "";
-                editIsLeader.checked = !!tr.is_leader;
-                editPagou.checked = !!tr.pagou;
+                selectEditEvento.value = tr.evento.id;
+                selectEditEquipe.value = tr.equipe.id;
 
-                secEdicao.scrollIntoView({ behavior: "smooth" });
+                editIsLeader.checked = tr.is_leader;
+                editPagou.checked = tr.pagou;
+
             } catch (err) {
-                console.error(err);
                 alert("Erro ao abrir edição.");
             }
         }
 
-        // ==========================
-        // SALVAR EDIÇÃO (PESSOA ou TEAMROLE)
-        // ==========================
-        formEdicao.addEventListener("submit", async (e) => {
+        // =====================================
+        // SALVAR EDIÇÃO
+        // =====================================
+        formEdicao.addEventListener("submit", async e => {
             e.preventDefault();
-            edicaoFeedback.textContent = "";
-            edicaoFeedback.className = "muted";
 
-            const teamrole_id = editTeamroleId.value;
             const pessoa_id = editPessoaId.value;
+            const teamrole_id = editTeamroleId.value;
 
             const nome = editNome.value.trim();
             const email = editEmail.value.trim();
             const telefone = editTelefone.value.trim();
+
             const evento_id = selectEditEvento.value;
             const equipe_id = selectEditEquipe.value;
             const is_leader = editIsLeader.checked;
             const pagou = editPagou.checked;
 
-            if (!pessoa_id) {
-                edicaoFeedback.textContent = "Registro inválido de pessoa.";
-                edicaoFeedback.className = "error";
-                return;
-            }
-
-            if (!nome) {
-                edicaoFeedback.textContent = "O nome do encontreiro é obrigatório.";
-                edicaoFeedback.className = "error";
-                return;
-            }
-
             try {
-                // 1) Atualiza pessoa (sempre que estiver em edição)
-                const resPessoa = await fetch(`${API_PESSOAS}/${pessoa_id}`, {
+                // Atualiza pessoa
+                await fetch(`${API_PESSOAS}/${pessoa_id}`, {
                     method: "PUT",
                     headers: authHeaders(),
                     body: JSON.stringify({ nome, email, telefone }),
                 });
 
-                const pessoaJson = await resPessoa.json();
-                if (!resPessoa.ok) {
-                    console.error(pessoaJson);
-                    edicaoFeedback.textContent = pessoaJson.error || "Erro ao atualizar pessoa.";
-                    edicaoFeedback.className = "error";
-                    return;
-                }
-
-                // 2) Se for edição de TEAMROLE, também atualiza vínculo
+                // Atualiza vínculo (teamrole)
                 if (editMode === EDIT_MODE.TEAMROLE) {
-                    if (!teamrole_id) {
-                        edicaoFeedback.textContent = "Registro de vínculo inválido.";
-                        edicaoFeedback.className = "error";
-                        return;
-                    }
-
-                    if (!evento_id || !equipe_id) {
-                        edicaoFeedback.textContent = "Selecione evento e equipe.";
-                        edicaoFeedback.className = "error";
-                        return;
-                    }
-
-                    const resTR = await fetch(`${API_TEAMROLE}/${teamrole_id}`, {
+                    await fetch(`${API_TEAMROLE}/${teamrole_id}`, {
                         method: "PUT",
                         headers: authHeaders(),
                         body: JSON.stringify({
                             evento_id,
                             equipe_id,
                             is_leader,
-                            pagou,
+                            pagou
                         }),
                     });
-
-                    const trJson = await resTR.json();
-                    if (!resTR.ok) {
-                        console.error(trJson);
-                        edicaoFeedback.textContent = trJson.error || "Erro ao atualizar vínculo.";
-                        edicaoFeedback.className = "error";
-                        return;
-                    }
                 }
 
-                edicaoFeedback.textContent = "Encontreiro atualizado com sucesso.";
+                edicaoFeedback.textContent = "Salvo com sucesso.";
                 edicaoFeedback.className = "success";
 
-                await carregarEventosEEquipes();
                 await carregarEncontreiro();
                 await carregarEncontreiroGeral();
+
             } catch (err) {
-                console.error(err);
-                edicaoFeedback.textContent = "Erro inesperado ao salvar.";
+                edicaoFeedback.textContent = "Erro ao salvar.";
                 edicaoFeedback.className = "error";
             }
         });
 
-        // Cancelar edição
         btnCancelarEdicao.addEventListener("click", () => {
             secEdicao.classList.add("hidden");
             secCadastro.classList.remove("hidden");
-            edicaoFeedback.textContent = "";
-            edicaoFeedback.className = "muted";
             editMode = EDIT_MODE.NONE;
         });
 
-        // ==========================
-        // EXCLUIR ENCONTREIRO INSCRITO (TEAMROLE)
-        // ==========================
+        // =====================================
+        // EXCLUIR TEAMROLE
+        // =====================================
         async function excluirEncontreiro(id) {
-            if (!confirm("Deseja realmente excluir este vínculo de encontreiro?")) return;
+            if (!confirm("Excluir vínculo do encontreiro?")) return;
 
-            try {
-                const res = await fetch(`${API_TEAMROLE}/${id}`, {
-                    method: "DELETE",
-                    headers: authHeaders(),
-                });
+            await fetch(`${API_TEAMROLE}/${id}`, {
+                method: "DELETE",
+                headers: authHeaders(),
+            });
 
-                const json = await res.json().catch(() => ({}));
-
-                if (!res.ok) {
-                    console.error(json);
-                    alert(json.error || "Erro ao excluir vínculo.");
-                    return;
-                }
-
-                await carregarEventosEEquipes();
-                await carregarEncontreiro();
-                await carregarEncontreiroGeral();
-            } catch (err) {
-                console.error(err);
-                alert("Erro inesperado ao excluir.");
-            }
+            await carregarEncontreiro();
+            await carregarEncontreiroGeral();
         }
 
-        // ==========================
-        // EXCLUIR ENCONTREIRO GERAL (PESSOA)
-        // ==========================
+        // =====================================
+        // EXCLUIR PESSOA
+        // =====================================
         async function excluirEncontreiroGeral(id) {
-            if (!confirm("Deseja realmente excluir esta pessoa (encontreiro geral)?")) return;
+            if (!confirm("Excluir esta pessoa?")) return;
 
+            await fetch(`${API_PESSOAS}/${id}`, {
+                method: "DELETE",
+                headers: authHeaders(),
+            });
+
+            await carregarEncontreiro();
+            await carregarEncontreiroGeral();
+        }
+
+        // ======================================================
+        // GERAR PAGAMENTO DO ENCONTREIRO (ATUALIZADO)
+        // ======================================================
+        async function gerarPagamento(teamroleId, nome) {
+            if (!confirm(`Gerar pagamento PIX para ${nome}?`)) return;
+
+            console.log("id " + teamroleId)
             try {
-                const res = await fetch(`${API_PESSOAS}/${id}`, {
-                    method: "DELETE",
-                    headers: authHeaders(),
+                const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
                 });
 
-                const json = await res.json().catch(() => ({}));
+                const json = await res.json();
 
                 if (!res.ok) {
-                    console.error(json);
-                    alert(json.error || "Erro ao excluir pessoa.");
+                    alert(json.error || "Erro ao gerar pagamento");
                     return;
                 }
 
-                await carregarEventosEEquipes();
-                await carregarEncontreiro();
-                await carregarEncontreiroGeral();
+                const { payment_id } = json;
+
+                // Redireciona para página que exibe QR Code
+                window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
+
             } catch (err) {
+                alert("Erro ao gerar pagamento.");
                 console.error(err);
-                alert("Erro inesperado ao excluir.");
             }
         }
 
-        // ==========================
+        // =====================================
         // INICIALIZAÇÃO
-        // ==========================
+        // =====================================
         (async function init() {
             await carregarEventosEEquipes();
             await carregarEncontreiro();
             await carregarEncontreiroGeral();
         })();
+
     </script>
 </body>
 
