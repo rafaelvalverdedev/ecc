@@ -42,32 +42,12 @@
 
             <div id="statusPagamento" class="status">Aguardando pagamento...</div>
 
-            <button class="secondary btn-voltar" onclick="voltar()">
-                Voltar ao painel
-            </button>
-
         </div>
     </main>
 
     <script src="../config.js"></script>
     <script>
         const API = APP_CONFIG.API_BASE_URL;
-
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Sessão expirada. Faça login novamente.");
-            window.location.href = "login.html";
-        }
-
-        function logout() {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.location.href = "./auth-login.html";
-        }
-
-        function voltar() {
-            window.location.href = "encontreiro.html";
-        }
 
         // ----------------------------------------------------
         // PEGAR PARAMS DA URL
@@ -86,11 +66,7 @@
         // ----------------------------------------------------
         async function carregarQrCode() {
             try {
-                const res = await fetch(`${API}/pagamento/qrcode/${payment_id}`, {
-                    headers: {
-                        Authorization: "Bearer " + token
-                    }
-                });
+                const res = await fetch(`${API}/pagamento/qrcode/${payment_id}`);
 
                 const json = await res.json();
 

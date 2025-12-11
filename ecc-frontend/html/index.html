@@ -61,64 +61,17 @@
 <body>
 
   <div class="container">
-    <h2>Login</h2>
+    <h2>ECC</h2>
 
-    <input type="email" id="email" placeholder="E-mail">
-    <input type="password" id="password" placeholder="password">
-
-    <button onclick="login()">Entrar</button>
 
     <div id="erro"></div>
   </div>
   
   <script src="../config.js"></script>
   <script>
-    const API = APP_CONFIG.API_BASE_URL;
-
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const erro = document.getElementById("erro");
-
-      erro.style.display = "none";
-
-      if (!email || !password) {
-        erro.innerText = "Preencha todos os campos.";
-        erro.style.display = "block";
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          erro.innerText = data.error || "Credenciais inválidas.";
-          erro.style.display = "block";
-          return;
-        }
-
-        // 🔥 SALVAR TOKEN
-        localStorage.setItem("token", data.token);
-
-        // 🔥 SALVAR DADOS DO USUÁRIO
-        localStorage.setItem("user", JSON.stringify({ email }));
-
-        // 🔥 REDIRECIONAR PARA O DASHBOARD
-        window.location.href = "dashboard.html";
-
-      } catch (error) {
-        erro.innerText = "Erro ao conectar ao servidor.";
-        erro.style.display = "block";
-        console.error(error);
-      }
-    }
+    console.log(APP_CONFIG.API_BASE_URL);
   </script>
+
 </body>
 
 </html>
