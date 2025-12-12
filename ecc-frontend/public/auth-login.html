@@ -2,60 +2,10 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Login • ECC</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background: white;
-      width: 350px;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    input {
-      width: 90%;
-      padding: 10px;
-      margin-top: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
-
-    button {
-      width: 95%;
-      padding: 12px;
-      margin-top: 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056c7;
-    }
-
-    #erro {
-      margin-top: 10px;
-      color: red;
-      font-size: 14px;
-      display: none;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+  <link rel="stylesheet" href="./css/estilos.css">
+  <link rel="stylesheet" href="./css/loader.css">
 </head>
 
 <body>
@@ -70,12 +20,15 @@
 
     <div id="erro"></div>
   </div>
-  
-  <script src="./config.js"></script>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/loader.js"></script>
   <script>
     const API = APP_CONFIG.API_BASE_URL;
 
     async function login() {
+      showLoader(); // Ativar loader global
+
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       const erro = document.getElementById("erro");
@@ -98,6 +51,7 @@
         const data = await res.json();
 
         if (!res.ok) {
+          hideLoader();
           erro.innerText = data.error || "Credenciais inválidas.";
           erro.style.display = "block";
           return;
@@ -116,6 +70,7 @@
         erro.innerText = "Erro ao conectar ao servidor.";
         erro.style.display = "block";
         console.error(error);
+        hideLoader();
       }
     }
   </script>

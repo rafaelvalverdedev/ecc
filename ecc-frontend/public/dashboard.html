@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-  <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="./css/estilos.css">
+  <link rel="stylesheet" href="./css/loader.css">
 </head>
 
 <body>
@@ -118,7 +119,8 @@
     </table>
   </div>
 
-  <script src="./config.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/loader.js"></script>
   <script>
     // ====================================
     // 🔐 Autenticação
@@ -154,6 +156,7 @@
     // ====================================
 
     async function carregarEventos() {
+
       const res = await fetch(`${APP_CONFIG.API_BASE_URL}/eventos`, {
         headers: { Authorization: "Bearer " + token }
       });
@@ -254,9 +257,6 @@
       }
     }
 
-
-
-
     async function carregarEncontristas() {
       try {
         const res = await fetch(`${APP_CONFIG.API_BASE_URL}/encontrista_inscricao`, {
@@ -311,12 +311,12 @@
     // ====================================
     // ▶ INICIALIZAR
     // ====================================
-    carregarEventos();
-    carregarEquipes();
-    carregarCoordenadores();
-    carregarEncontreiros();
-    carregarEncontristas();
-    carregarPessoas();
+    withLoader(() => carregarEventos());
+    withLoader(() => carregarEquipes());
+    withLoader(() => carregarCoordenadores());
+    withLoader(() => carregarEncontreiros());
+    withLoader(() => carregarEncontristas());
+    withLoader(() => carregarPessoas());
   </script>
 
 </body>

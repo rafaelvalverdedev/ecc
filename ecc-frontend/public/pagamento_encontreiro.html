@@ -1,33 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
-    <title>Pagamento do Encontreiro • ECC</title>
-    <link rel="stylesheet" href="estilos.css">
-
-    <style>
-        .pix-container {
-            max-width: 420px;
-            margin: 40px auto;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .pix-img {
-            width: 100%;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-        }
-
-        .status {
-            margin-top: 15px;
-            font-size: 16px;
-        }
-
-        .btn-voltar {
-            margin-top: 25px;
-        }
-    </style>
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="./css/estilos.css">
+    <link rel="stylesheet" href="./css/loader.css">
 </head>
 
 <body>
@@ -39,14 +17,15 @@
             <p class="muted">Escaneie o QR Code abaixo para realizar o pagamento</p>
 
             <img id="qrImage" class="pix-img" src="" alt="QR Code PIX" />
-            
+
             <div id="statusPagamento" class="status">Aguardando pagamento...</div>
-            
+
         </div>
         <span id="qrcode" style="text-overflow: ellipsis;"></span>
     </main>
 
-    <script src="./config.js"></script>
+    <script src="./js/loader.js"></script>
+    <script src="./js/config.js"></script>
     <script>
         const API = APP_CONFIG.API_BASE_URL;
 
@@ -128,4 +107,5 @@
     </script>
 
 </body>
+
 </html>

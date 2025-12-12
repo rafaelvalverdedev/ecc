@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-  <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="./css/estilos.css">
+  <link rel="stylesheet" href="./css/loader.css">
 </head>
 
 <body>
@@ -23,26 +24,9 @@
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
   <h1>Gerenciar Eventos</h1>
+  <button class="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
 
-  <div class="card">
-    <h2>Lista de Eventos</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Local</th>
-          <th>Início</th>
-          <th>Fim</th>
-          <th>Capacidade</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="lista-eventos"></tbody>
-    </table>
-  </div>
-
-
-  <div class="card">
+  <div class="card" id="card" style="display:none;">
     <h2>Criar / Editar Evento</h2>
 
     <form id="form-evento" onsubmit="salvarEvento(event)">
@@ -66,14 +50,41 @@
       <label>Qtd Inscrições:</label>
       <input type="number" id="capacity" min="0" required>
 
+      <label>Valor Inscrições:</label>
+      <input type="number" id="valor_encontreiro" min="0" required>
+
+      <label>Valor Inscrições:</label>
+      <input type="number" id="valor_encontrista" min="0" required>
+
       <button id="btn-criar" type="submit">Salvar</button>
-      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()" style="display:none;">
+      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">
         Cancelar
       </button>
     </form>
   </div>
 
-  <script src="./config.js"></script>
+
+  <div class="card">
+    <h2>Lista de Eventos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Local</th>
+          <th>Início</th>
+          <th>Fim</th>
+          <th>Capacidade</th>
+          <th>ValorInscrição Encontreiro</th>
+          <th>Valor Inscrição Encontrista</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="lista-eventos"></tbody>
+    </table>
+  </div>
+
+  <script src="./js/loader.js"></script>
+  <script src="./js/config.js"></script>
   <script>
     // ======================================
     // 🔐 Autenticação
@@ -122,6 +133,8 @@
             <td>${ev.start_date ?? "-"}</td>
             <td>${ev.end_date ?? "-"}</td>
             <td>${ev.capacity ?? "-"}</td>
+            <td>R$ ${ev.valor_encontreiro ?? "-"},00</td>
+            <td>R$ ${ev.valor_encontrista ?? "-"},00</td>            
             <td>
               <button onclick="carregarEvento('${ev.id}')">Editar</button>
               <button onclick="deletarEvento('${ev.id}')">Excluir</button>
@@ -150,7 +163,9 @@
         end_date: document.getElementById("end_date").value || null,
         capacity: document.getElementById("capacity").value
           ? Number(document.getElementById("capacity").value)
-          : null
+          : null,
+        valor_encontreiro: parseInt(document.getElementById("valor_encontreiro").value),
+        valor_encontrista: parseInt(document.getElementById("valor_encontrista").value),
       };
 
       const method = id ? "PUT" : "POST";
@@ -202,6 +217,10 @@
         document.getElementById("start_date").value = ev.start_date || "";
         document.getElementById("end_date").value = ev.end_date || "";
         document.getElementById("capacity").value = ev.capacity ?? "";
+        document.getElementById("valor_encontreiro").value = ev.valor_encontreiro ?? "";
+        document.getElementById("valor_encontrista").value = ev.valor_encontrista ?? "";
+
+        document.getElementById("card").style.display = "block";  // Torna o card invisível
 
         document.getElementById("btn-cancelar").style.display = "inline-block";
       } catch (error) {
@@ -216,7 +235,26 @@
       document.getElementById("evento_id").value = "";
       document.getElementById("form-evento").reset();
       document.getElementById("btn-cancelar").style.display = "none";
+      const cardEvento = document.getElementById("card");
+      cardEvento.style.display = "none";  // Torna o card invisível
+
+      // Exibe novamente o botão de cadastrar evento
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
+      btnCadastrar.style.display = "inline-block";  // Exibe o botão "Cadastrar Evento" novamente
+      document.getElementById("form-evento").reset();  // Reseta o formulário
+      document.getElementById("btn-cancelar").style.display = "none";  // Oculta o botão "Cancelar"
     }
+
+    // Função para exibir o card de criação/edição
+    function mostrarCardEvento() {
+      document.getElementById("card").style.display = "block";  // Torna o card visível
+      // Oculta o botão de cadastrar
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
+      btnCadastrar.style.display = "none";
+      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
+
+    }
+
 
     // ======================================
     // 📌 DELETAR EVENTO
@@ -242,7 +280,7 @@
     }
 
     // ▶ Inicializa listagem
-    listarEventos();
+    withLoader(() => listarEventos());
   </script>
 
 </body>

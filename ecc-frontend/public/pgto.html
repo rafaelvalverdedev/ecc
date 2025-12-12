@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Pagamento PIX</title>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="./css/estilos.css">
+    <link rel="stylesheet" href="./css/loader.css">
 
     <style>
         body {
@@ -44,7 +47,8 @@
 
     <p id="status">Aguardando pagamento...</p>
 
-    <script src="../config.js"></script>
+    <script src="./js/loader.js"></script>
+    <script src="./js/config.js"></script>
     <script>
         const API = APP_CONFIG.API_BASE_URL;
 
@@ -97,10 +101,11 @@
             }
         }
 
-        carregarQR();
+        withLoader(() => carregarQR());
 
         const loop = setInterval(verificarPagamento, 3000);
     </script>
 
 </body>
+
 </html>
