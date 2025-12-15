@@ -57,12 +57,23 @@
       <input type="number" id="valor_encontrista" min="0" required>
 
       <button id="btn-criar" type="submit">Salvar</button>
-      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">
-        Cancelar
-      </button>
+      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">Cancelar</button>
     </form>
   </div>
 
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <p id="modalMessage"></p>
+      <div class="modal-actions">
+        <button onclick="closeModal()">Cancelar</button>
+        <button onclick="confirmAction()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
   <div class="card">
     <h2>Lista de Eventos</h2>
@@ -110,6 +121,42 @@
       window.location.href = `./${page}.html`;
     }
 
+
+    // ============================
+    // 🔔 TOAST
+    // ============================
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2500);
+    }
+
+    // ============================
+    // ❓ MODAL
+    // ============================
+    let onConfirmCallback = null;
+
+    function showConfirm(message, callback) {
+      document.getElementById("modalMessage").innerText = message;
+      document.getElementById("modalConfirm").style.display = "flex";
+      onConfirmCallback = callback;
+    }
+
+    function closeModal() {
+      document.getElementById("modalConfirm").style.display = "none";
+      onConfirmCallback = null;
+    }
+
+    function confirmAction() {
+      if (onConfirmCallback) onConfirmCallback();
+      closeModal();
+    }
+
+
     const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
 
     // ======================================
@@ -130,11 +177,11 @@
           <tr>
             <td>${ev.nome}</td>
             <td>${ev.local}</td>
-            <td>${ev.start_date ?? "-"}</td>
-            <td>${ev.end_date ?? "-"}</td>
+            <td>${formatarDataBR(ev.start_date) ?? "-"}</td>
+            <td>${formatarDataBR(ev.end_date) ?? "-"}</td>
             <td>${ev.capacity ?? "-"}</td>
-            <td>R$ ${ev.valor_encontreiro ?? "-"},00</td>
-            <td>R$ ${ev.valor_encontrista ?? "-"},00</td>            
+            <td>R$ ${formatarMoedaBR(ev.valor_encontreiro) ?? "-"},00</td>
+            <td>R$ ${formatarMoedaBR(ev.valor_encontrista) ?? "-"},00</td>            
             <td>
               <button onclick="carregarEvento('${ev.id}')">Editar</button>
               <button onclick="deletarEvento('${ev.id}')">Excluir</button>
@@ -164,8 +211,8 @@
         capacity: document.getElementById("capacity").value
           ? Number(document.getElementById("capacity").value)
           : null,
-        valor_encontreiro: parseInt(document.getElementById("valor_encontreiro").value),
-        valor_encontrista: parseInt(document.getElementById("valor_encontrista").value),
+        valor_encontreiro: Number(document.getElementById("valor_encontreiro").value),
+        valor_encontrista: Number(document.getElementById("valor_encontrista").value),
       };
 
       const method = id ? "PUT" : "POST";
@@ -191,7 +238,7 @@
           return;
         }
 
-        alert("Evento salvo com sucesso!");
+        showToast("Evento salvo com sucesso!");
         cancelarEdicao();
         listarEventos();
       } catch (error) {
@@ -259,25 +306,44 @@
     // ======================================
     // 📌 DELETAR EVENTO
     // ======================================
-    async function deletarEvento(id) {
-      if (!confirm("Tem certeza que deseja excluir este evento?")) return;
+    function deletarEvento(id) {
+      showConfirm("Tem certeza que deseja excluir este evento?", async () => {
+        try {
+          const response = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token }
+          });
 
-      try {
-        const response = await fetch(`${API_URL}/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: "Bearer " + token }
-        });
+          if (!response.ok) {
+            showToast("Erro ao excluir evento");
+            return;
+          }
 
-        if (!response.ok) {
-          alert("Erro ao excluir evento");
-          return;
+          showToast("Evento excluído com sucesso");
+          listarEventos();
+        } catch (error) {
+          console.error("Erro ao excluir evento:", error);
+          showToast("Erro ao excluir evento");
         }
-
-        listarEventos();
-      } catch (error) {
-        console.error("Erro ao excluir evento:", error);
-      }
+      });
     }
+
+
+
+    const formatarDataBR = (dataISO) => {
+      if (!dataISO) return "-";
+
+      const [ano, mes, dia] = dataISO.split("-");
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    const formatarMoedaBR = (valor) => {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+      }).format(valor);
+    };
 
     // ▶ Inicializa listagem
     withLoader(() => listarEventos());

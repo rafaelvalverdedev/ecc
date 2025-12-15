@@ -131,9 +131,7 @@
     if (!token) {
       window.location.href = "./auth-login.html";
     }
-
     document.getElementById("user-email").innerText = user?.email ?? "";
-
 
     // ====================================
     // 🔓 Logout
@@ -173,8 +171,8 @@
           <td>${e.local}</td>
           <td>${e.start_date}</td>
           <td>${e.capacity ?? "-"}</td>
-          <td>${e.valor_encontreiro ?? "-"}</td>
-          <td>${e.valor_encontrista ?? "-"}</td>
+          <td>${formatarMoedaBR(e.valor_encontreiro) ?? "-"}</td>
+          <td>${formatarMoedaBR(e.valor_encontrista) ?? "-"}</td>
         </tr>
       `;
       });
@@ -307,6 +305,14 @@
       `;
       });
     }
+
+    const formatarMoedaBR = (valor) => {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+      }).format(valor);
+    };
 
     // ====================================
     // ▶ INICIALIZAR
