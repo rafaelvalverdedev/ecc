@@ -109,7 +109,7 @@ export async function obterQrCode(req, res) {
 
     const { data, error } = await supabase
       .from("pagamentos_encontreiro_evento")
-      .select("qr_code_base64")
+      .select("qr_code_base64, qr_code")
       .eq("mp_payment_id", payment_id)
       .single();
 

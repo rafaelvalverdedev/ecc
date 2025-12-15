@@ -48,12 +48,21 @@
             try {
                 const res = await fetch(`${API}/pagamento/qrcode/${payment_id}`);
 
+                              
+                console.log(res);
+                
                 const json = await res.json();
+                
 
+                
                 if (!res.ok) {
                     alert(json.error || "Erro ao carregar QR Code");
                     return;
                 }
+                console.log(payment_id);
+                console.log(qr_code);
+                console.log(qr_code_base64);
+                
                 document.getElementById("qrcode").innerHTML = json.qr_code;
                 document.getElementById("qrImage").src = `data:image/png;base64,${json.qr_code_base64}`;
 

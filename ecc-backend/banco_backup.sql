@@ -1,134 +1,8 @@
--- ============================================
--- ECC - ESTRUTURA COMPLETA DO BANCO (ATUALIZADA)
--- ============================================
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- EXTENSÕES
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- ============================================
--- TABELA: pessoas
--- Base de usuários do sistema (inclui admin, encontreiros etc.)
--- ============================================
-CREATE TABLE public.pessoas (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome text NOT NULL,
-  email text UNIQUE,
-  telefone text,
-  password_hash text,
-  role text DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: eventos
--- ============================================
-CREATE TABLE public.eventos (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome text NOT NULL UNIQUE,
-  descricao text,
-  local text NOT NULL,
-  start_date date NOT NULL,
-  end_date date,
-  capacity integer,
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: equipes
--- ============================================
-CREATE TABLE public.equipes (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome text NOT NULL UNIQUE,
-  descricao text,
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: equipes_evento
--- Liga uma equipe a um evento
--- ============================================
-CREATE TABLE public.equipes_evento (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  equipe_id uuid NOT NULL REFERENCES public.equipes(id) ON DELETE CASCADE,
-  evento_id uuid NOT NULL REFERENCES public.eventos(id) ON DELETE CASCADE,
-  created_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: teamrole
--- Liga pessoa + equipe + evento
--- Isso define quem é membro e líder de equipe
--- ============================================
-CREATE TABLE public.teamrole (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  pessoa_id uuid NOT NULL REFERENCES public.pessoas(id) ON DELETE CASCADE,
-  equipe_id uuid NOT NULL REFERENCES public.equipes(id) ON DELETE CASCADE,
-  evento_id uuid REFERENCES public.eventos(id) ON DELETE CASCADE,
-  is_leader boolean DEFAULT false,
-  pagou boolean DEFAULT false,
-  created_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: inscricoes
--- Inscrição de uma pessoa em um evento
--- tipo: encontrista ou encontreiro
--- ============================================
-CREATE TABLE public.inscricoes (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  evento_id uuid NOT NULL REFERENCES public.eventos(id) ON DELETE CASCADE,
-  pessoa_id uuid NOT NULL REFERENCES public.pessoas(id) ON DELETE CASCADE,
-  status text DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
-  tipo text DEFAULT 'encontrista' CHECK (tipo IN ('encontrista', 'encontreiro')),
-  valor numeric,
-  paid_by_pessoa_id uuid REFERENCES public.pessoas(id),
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: pagamento da inscrição
--- Mercado Pago
--- ============================================
-CREATE TABLE public.pagamentos_inscricao (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  inscricao_id uuid NOT NULL REFERENCES public.inscricoes(id) ON DELETE CASCADE,
-  gateway text NOT NULL DEFAULT 'MERCADO_PAGO',
-  mp_payment_id text,
-  mp_preference_id text,
-  mp_status text,
-  mp_status_detail text,
-  metodo text NOT NULL,
-  valor numeric NOT NULL,
-  moeda char(3) NOT NULL DEFAULT 'BRL',
-  raw_payload jsonb,
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
-
--- ============================================
--- TABELA: pagamentos de encontreiros (quando pagam para participar)
--- ============================================
-CREATE TABLE public.pagamentos_encontreiro_evento (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  pessoa_id uuid NOT NULL REFERENCES public.pessoas(id) ON DELETE CASCADE,
-  evento_id uuid NOT NULL REFERENCES public.eventos(id) ON DELETE CASCADE,
-  pagou boolean DEFAULT false,
-  data_pagamento timestamp,
-  valor numeric,
-  metodo text
-);
-
--- ============================================
--- TABELA: ficha completa do encontrista
--- Grande formulário casal
--- ============================================
 CREATE TABLE public.encontrista_inscricao (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   nome_completo_esposo text,
   data_nascimento_esposo date,
   profissao_esposo text,
@@ -141,7 +15,6 @@ CREATE TABLE public.encontrista_inscricao (
   medicamentos_alergias_esposo text,
   religiao_esposo text,
   escolaridade_esposo text,
-
   nome_completo_esposa text,
   data_nascimento_esposa date,
   profissao_esposa text,
@@ -154,7 +27,6 @@ CREATE TABLE public.encontrista_inscricao (
   medicamentos_alergias_esposa text,
   religiao_esposa text,
   escolaridade_esposa text,
-
   endereco text,
   numero text,
   complemento text,
@@ -162,11 +34,9 @@ CREATE TABLE public.encontrista_inscricao (
   cidade text,
   uf text,
   cep text,
-
   data_casamento date,
   telefone_principal text,
   email text,
-
   possui_filhos boolean,
   quantidade_filhos integer,
   grau_parentesco_outro text,
@@ -177,26 +47,129 @@ CREATE TABLE public.encontrista_inscricao (
   bairro_responsavel text,
   cidade_responsavel text,
   telefone_responsavel text,
-
   casal_que_convidou text,
   telefone_casal_que_convidou text,
-
-  created_at timestamp DEFAULT now()
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT encontrista_inscricao_pkey PRIMARY KEY (id)
 );
-
--- ============================================
--- TABELA: momentos do evento
--- ============================================
+CREATE TABLE public.equipes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  nome text NOT NULL UNIQUE,
+  descricao text,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT equipes_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.equipes_evento (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  equipe_id uuid NOT NULL,
+  evento_id uuid NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT equipes_evento_pkey PRIMARY KEY (id),
+  CONSTRAINT equipes_evento_equipe_id_fkey FOREIGN KEY (equipe_id) REFERENCES public.equipes(id),
+  CONSTRAINT equipes_evento_evento_id_fkey FOREIGN KEY (evento_id) REFERENCES public.eventos(id)
+);
+CREATE TABLE public.eventos (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  nome text NOT NULL UNIQUE,
+  descricao text,
+  local text NOT NULL,
+  start_date date NOT NULL,
+  end_date date,
+  capacity integer,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  valor_encontreiro numeric NOT NULL DEFAULT 80,
+  valor_encontrista numeric NOT NULL DEFAULT 120,
+  CONSTRAINT eventos_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.inscricoes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  evento_id uuid NOT NULL,
+  pessoa_id uuid NOT NULL,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'confirmed'::text, 'cancelled'::text])),
+  paid_by_pessoa_id uuid,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  tipo text DEFAULT 'encontrista'::text CHECK (tipo = ANY (ARRAY['encontrista'::text, 'encontreiro'::text])),
+  valor numeric,
+  CONSTRAINT inscricoes_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_inscricoes_evento FOREIGN KEY (evento_id) REFERENCES public.eventos(id),
+  CONSTRAINT fk_inscricoes_pessoa FOREIGN KEY (pessoa_id) REFERENCES public.pessoas(id),
+  CONSTRAINT fk_inscricoes_paid_by FOREIGN KEY (paid_by_pessoa_id) REFERENCES public.pessoas(id)
+);
 CREATE TABLE public.momentos_do_evento (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  evento_id uuid NOT NULL REFERENCES public.eventos(id) ON DELETE CASCADE,
-  equipe_id uuid REFERENCES public.equipes(id),
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  evento_id uuid NOT NULL,
+  equipe_id uuid,
   titulo text NOT NULL,
   descricao text,
-  start_time timestamp,
-  end_time timestamp,
+  start_time timestamp without time zone,
+  end_time timestamp without time zone,
   ordem integer,
-  previous_step_id uuid REFERENCES public.momentos_do_evento(id),
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
+  previous_step_id uuid,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT momentos_do_evento_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_momentos_evento FOREIGN KEY (evento_id) REFERENCES public.eventos(id),
+  CONSTRAINT fk_momentos_equipe FOREIGN KEY (equipe_id) REFERENCES public.equipes(id),
+  CONSTRAINT fk_momentos_previous FOREIGN KEY (previous_step_id) REFERENCES public.momentos_do_evento(id)
+);
+CREATE TABLE public.pagamentos_encontreiro_evento (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  pessoa_id uuid NOT NULL,
+  evento_id uuid NOT NULL,
+  pagou boolean DEFAULT false,
+  data_pagamento timestamp without time zone,
+  valor numeric,
+  metodo text,
+  teamrole_id uuid,
+  mp_payment_id text,
+  qr_code_base64 text,
+  qr_code text,
+  CONSTRAINT pagamentos_encontreiro_evento_pkey PRIMARY KEY (id),
+  CONSTRAINT pagamentos_encontreiro_evento_pessoa_id_fkey FOREIGN KEY (pessoa_id) REFERENCES public.pessoas(id),
+  CONSTRAINT pagamentos_encontreiro_evento_evento_id_fkey FOREIGN KEY (evento_id) REFERENCES public.eventos(id),
+  CONSTRAINT pagamentos_encontreiro_evento_teamrole_id_fkey FOREIGN KEY (teamrole_id) REFERENCES public.teamrole(id)
+);
+CREATE TABLE public.pagamentos_inscricao (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  inscricao_id uuid NOT NULL,
+  gateway text NOT NULL DEFAULT 'MERCADO_PAGO'::text,
+  mp_payment_id text,
+  mp_preference_id text,
+  mp_status text,
+  mp_status_detail text,
+  metodo text NOT NULL,
+  valor numeric NOT NULL,
+  moeda character NOT NULL DEFAULT 'BRL'::bpchar,
+  raw_payload jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT pagamentos_inscricao_pkey PRIMARY KEY (id),
+  CONSTRAINT pagamentos_inscricao_inscricao_id_fkey FOREIGN KEY (inscricao_id) REFERENCES public.inscricoes(id)
+);
+CREATE TABLE public.pessoas (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  nome text NOT NULL,
+  email text,
+  telefone text,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  password_hash text,
+  role text DEFAULT 'user'::text,
+  CONSTRAINT pessoas_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.teamrole (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  pessoa_id uuid NOT NULL,
+  equipe_id uuid NOT NULL,
+  is_leader boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT now(),
+  evento_id uuid,
+  pagou boolean DEFAULT false,
+  CONSTRAINT teamrole_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_teamrole_equipe FOREIGN KEY (equipe_id) REFERENCES public.equipes(id),
+  CONSTRAINT fk_teamrole_pessoa FOREIGN KEY (pessoa_id) REFERENCES public.pessoas(id),
+  CONSTRAINT teamrole_evento_id_fkey FOREIGN KEY (evento_id) REFERENCES public.eventos(id)
 );
