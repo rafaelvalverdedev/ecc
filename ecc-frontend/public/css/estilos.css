@@ -317,3 +317,12 @@ button:hover {
   align-items: center;
   gap: 6px;
 }
+
+.titulo-vinculo {
+    margin: 0;
+}
+
+#nome-regra-vinculo {
+    display: inline;       /* 👈 garante que fique na mesma linha */
+    font-weight: bold;
+}

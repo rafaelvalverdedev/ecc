@@ -91,7 +91,13 @@
             </div>
 
             <div id="bloco-regras" style="display: none;">
-                <h3>Regras de vínculo de <span id="nome-regra-vinculo" style="display: none;"></span></h3>
+                <span>
+                    Regras de vínculo de
+                    <span id="nome-regra-vinculo"></span>
+                </span>
+
+                <br>
+                <br>
 
                 <div>
                     <label for="edit_evento_id">Evento</label>
@@ -118,7 +124,7 @@
 
             <div class="actions">
                 <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
-                <button type="submit" class="primary">Salvar alterações</button>
+                <button type="submit">Salvar alterações</button>
             </div>
         </form>
     </div>
@@ -319,6 +325,8 @@
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
+                console.log(res);
+                
                 const json = await res.json();
                 const lista = json.data || [];
 
@@ -326,11 +334,15 @@
                     targetSelect.innerHTML = '<option value="">Nenhuma equipe vinculada a este evento</option>';
                     return;
                 }
-
+                
                 targetSelect.innerHTML = '<option value="">Selecione</option>';
-
+                
                 lista.forEach(item => {
+                    
+                    
                     const eq = item.equipe; // conforme seu backend
+
+                    console.log("Item equipe-evento:", eq.capacity);
                     targetSelect.innerHTML += `
                 <option value="${eq.id}" ${eq.id === selectedEquipeId ? "selected" : ""}>
                     ${eq.nome}
@@ -452,6 +464,7 @@
             const equipe_id = selectEquipe.value;
             const is_leader = document.getElementById("is_leader").checked;
 
+
             try {
 
                 // 1) Criar pessoa
@@ -483,15 +496,13 @@
                     }),
                 });
 
-
                 formCadastro.reset();
 
-                await carregarEventos();
-                await carregarEncontreiro();
-                await carregarEncontreiroGeral();
-
+                withLoader(() => carregarEventos());
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
+                withLoader(() => cancelarEdicao());
                 showToast("Encontreiro salvo!");
-                await cancelarEdicao();
 
             } catch (error) {
                 console.error("Erro ao salvar equipe:", error);
@@ -502,6 +513,7 @@
         // ABRIR EDIÇÃO: PESSOA
         // =====================================
         async function abrirEdicaoPessoa(id) {
+            editMode = EDIT_MODE.PESSOA;
 
             document.getElementById("nav-btn").style.display = "none";
             document.getElementById("form-encontreiro").style.display = "none";
@@ -530,6 +542,7 @@
         // ABRIR EDIÇÃO: TEAMROLE
         // =====================================
         async function abrirEdicaoTeamrole(id) {
+            editMode = EDIT_MODE.TEAMROLE;
 
             document.getElementById("nav-btn").style.display = "none";
             document.getElementById("form-encontreiro").style.display = "none";
@@ -539,15 +552,18 @@
             blocoPessoa.style.display = "none";
 
             document.getElementById("nome-regra-vinculo").style.display = "block";
-            
+
             try {
                 const res = await fetch(`${API_TEAMROLE}/${id}`, { headers: { Authorization: "Bearer " + token } });
                 const json = await res.json();
-                
+
                 const tr = json.data;
-                
+
                 document.getElementById("nome-regra-vinculo").innerText = tr.pessoa.nome;
-                
+                document.getElementById("nome-regra-vinculo").style.display = "inline";
+
+
+
                 editTeamroleId.value = tr.id;
                 editPessoaId.value = tr.pessoa.id;
 
@@ -582,8 +598,18 @@
 
             const evento_id = selectEditEvento.value;
             const equipe_id = selectEditEquipe.value;
+
             const is_leader = editIsLeader.checked;
             const pagou = editPagou.checked;
+
+
+            const payload = {
+                is_leader,
+                pagou
+            };
+
+            if (selectEditEvento.value) payload.evento_id = selectEditEvento.value;
+            if (selectEditEquipe.value) payload.equipe_id = selectEditEquipe.value;
 
             try {
                 // Atualiza pessoa
@@ -607,8 +633,9 @@
                     });
                 }
 
-                await carregarEncontreiro();
-                await carregarEncontreiroGeral();
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
+                withLoader(() => cancelarEdicao());
                 editMode = EDIT_MODE.NONE;
 
             } catch (err) {
@@ -637,11 +664,8 @@
         // Função para exibir o card de criação/edição
         function mostrarCardEncontreiro() {
             document.getElementById("card-cadastrar").style.display = "block";
-
-            document.querySelector("button[onclick='mostrarCardEncontreiro()']").style.display = "none";
-
-            document.getElementById("card-cadastrar").style.display = "block";
-
+            document.getElementById("form-encontreiro").style.display = "block";
+            document.getElementById("card-editar").style.display = "none";
         }
 
         // =====================================
@@ -666,8 +690,8 @@
                     showToast("Erro ao excluir equipe");
                 }
 
-                await carregarEncontreiro();
-                await carregarEncontreiroGeral();
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
                 showToast("Vínculo excluído!");
             });
         }
@@ -688,8 +712,8 @@
                         return;
                     }
 
-                    await carregarEncontreiro();
-                    await carregarEncontreiroGeral();
+                    withLoader(() => carregarEncontreiro());
+                    withLoader(() => carregarEncontreiroGeral());
                     showToast("Encontreiro excluído!");
                 } catch (error) {
                     console.error("Erro ao excluir equipe:", error);
@@ -702,40 +726,43 @@
         // GERAR PAGAMENTO DO ENCONTREIRO (ATUALIZADO)
         // ======================================================
         async function gerarPagamento(teamroleId, nome) {
-            if (!confirm(`Gerar pagamento PIX para ${nome}?`)) return;
+            showConfirm("Gerar pagamento PIX para " + nome + "?", async () => {
 
-            try {
-                const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({}) // ensure body exists
+                withLoader(async () => {
+                    try {
+                        const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({}) // ensure body exists
+                        });
+
+                        const json = await res.json();
+
+                        if (!res.ok) {
+                            alert(json.error || "Erro ao gerar pagamento");
+                            return;
+                        }
+
+                        const { payment_id } = json;
+
+                        // Redireciona para página que exibe QR Code (abre em nova aba)
+                        window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
+
+                    } catch (err) {
+                        alert("Erro ao gerar pagamento.");
+                        console.error(err);
+                    }
                 });
-
-                const json = await res.json();
-
-                if (!res.ok) {
-                    alert(json.error || "Erro ao gerar pagamento");
-                    return;
-                }
-
-                const { payment_id } = json;
-
-                // Redireciona para página que exibe QR Code (abre em nova aba)
-                window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
-
-            } catch (err) {
-                alert("Erro ao gerar pagamento.");
-                console.error(err);
-            }
+            });
         }
 
         // =====================================
         // INICIALIZAÇÃO
         // =====================================
-        (async function init() {
+        withLoader(() => (async function init() {
             await carregarEventos();
             await carregarEncontreiro();
             await carregarEncontreiroGeral();
@@ -749,7 +776,7 @@
             selectEditEvento.addEventListener("change", () => {
                 carregarEquipesPorEvento(selectEditEvento.value, selectEditEquipe);
             });
-        })();
+        })());
 
     </script>
 </body>
