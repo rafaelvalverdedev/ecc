@@ -24,8 +24,32 @@
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
   <h1>Vínculo Equipe x Evento</h1>
+  <button class="nav-btn" id="nav-btn" onclick="mostrarCardVinculo()">Cadastrar Vínculos</button>
 
-  <!-- EVENTOS -->
+  <!-- FORM DE VÍNCULO -->
+  <div class="card" id="card" style="display:none;">
+    <h2>Criar/Atualizar Vínculos</h2>
+
+    <form id="form-vinculo" onsubmit="withLoader(() => salvarVinculos(event))">
+      <label>Evento:</label>
+      <select id="evento_id" onchange="renderizarCheckboxes()"></select>
+
+      <!-- SELECIONAR TODOS -->
+      <div>
+        <label>Equipes:</label>
+        <label class="checkbox-item checkbox-select-all">
+          <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+          <span>Selecionar todos</span>
+        </label>
+        <div id="checkboxContainer" class="checkbox-grid"></div>
+      </div>
+
+      <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+      <button type="submit" id="btnSalvar">Salvar Vínculos</button>
+    </form>
+  </div>
+
+  <!-- EVENTOS CADASTRADOS -->
   <div class="card">
     <h2>Eventos cadastrados</h2>
     <table>
@@ -41,43 +65,40 @@
     </table>
   </div>
 
-  <!-- FORM DE VÍNCULO -->
-  <div class="card">
-    <h2>Criar/Atualizar Vínculos</h2>
 
-    <label><strong>Evento:</strong></label>
-    <select id="evento_id" onchange="renderizarCheckboxes()"></select>
-
-    <br><br>
-
-
-    <!-- SELECIONAR TODOS -->
-    <div>
-      <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
-      <strong>Selecionar todos</strong>
-      <div id="checkboxContainer"></div>
-      <label><strong>Equipes:</strong></label>
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <p id="modalMessage"></p>
+      <div class="modal-actions">
+        <button onclick="closeModal()">Cancelar</button>
+        <button onclick="confirmAction()">Confirmar</button>
+      </div>
     </div>
-
-    <br>
-
-    <button onclick="salvarVinculos()">Salvar Vínculos</button>
   </div>
-  
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
   <script src="./js/loader.js"></script>
   <script src="./js/config.js"></script>
   <script>
+    // ============================
+    // 🔐 Autenticação
+    // ============================
     const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!token) {
-      alert("Usuário não autenticado");
-      window.location.href = "login.html";
+    if (!token) { window.location.href = "./auth-login.html"; }
+
+    // ============================
+    // 🔓 Logout
+    // ============================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
     }
-
-    const authHeaders = {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json"
-    };
 
     // ============================
     // 🔄 Navegação
@@ -86,6 +107,39 @@
       window.location.href = `./${page}.html`;
     }
 
+    // ============================
+    // 🔔 TOAST
+    // ============================
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2500);
+    }
+
+    // ============================
+    // ❓ MODAL
+    // ============================
+    let onConfirmCallback = null;
+
+    function showConfirm(message, callback) {
+      document.getElementById("modalMessage").innerText = message;
+      document.getElementById("modalConfirm").style.display = "flex";
+      onConfirmCallback = callback;
+    }
+
+    function closeModal() {
+      document.getElementById("modalConfirm").style.display = "none";
+      onConfirmCallback = null;
+    }
+
+    function confirmAction() {
+      if (onConfirmCallback) onConfirmCallback();
+      closeModal();
+    }
 
     const API_EVENTOS = `${APP_CONFIG.API_BASE_URL}/eventos`;
     const API_EQUIPES = `${APP_CONFIG.API_BASE_URL}/equipes`;
@@ -100,9 +154,9 @@
     // ============================
     async function carregarListas() {
       try {
-        const eventosRes = await fetch(API_EVENTOS, { headers: authHeaders });
-        const equipesRes = await fetch(API_EQUIPES, { headers: authHeaders });
-        const vinculosRes = await fetch(API_VINCULOS, { headers: authHeaders });
+        const eventosRes = await fetch(API_EVENTOS, { headers: { Authorization: "Bearer " + token } });
+        const equipesRes = await fetch(API_EQUIPES, { headers: { Authorization: "Bearer " + token } });
+        const vinculosRes = await fetch(API_VINCULOS, { headers: { Authorization: "Bearer " + token } });
 
         const eventosJson = await eventosRes.json();
         const equipesJson = await equipesRes.json();
@@ -119,7 +173,7 @@
 
       } catch (err) {
         console.error("Erro ao carregar listas:", err);
-        alert("Erro ao carregar dados.");
+        showToast("Erro ao carregar dados.");
       }
     }
 
@@ -143,6 +197,7 @@
     // 🔵 RENDERIZAR CHECKBOXES + SINCRONIZAR
     // ============================
     function renderizarCheckboxes() {
+
       const eventoId = document.getElementById("evento_id").value;
       const container = document.getElementById("checkboxContainer");
       const selectAll = document.getElementById("selectAll");
@@ -159,10 +214,15 @@
       equipes.forEach(eq => {
         const checked = vinculadas.includes(eq.id) ? "checked" : "";
         container.innerHTML += `
-          <div class="checkbox-item">
-            <input type="checkbox" value="${eq.id}" ${checked} onchange="syncSelectAll()">
-            <label>${eq.nome}</label>
-          </div>
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              value="${eq.id}"
+              ${checked}
+              onchange="syncSelectAll()"
+            >
+            <span>${eq.nome}</span>
+          </label>
         `;
       });
 
@@ -185,7 +245,9 @@
     // ============================
     // 🔵 SALVAR VÍNCULOS
     // ============================
-    async function salvarVinculos() {
+    async function salvarVinculos(event) {
+      event.preventDefault();
+
       const eventoId = document.getElementById("evento_id").value;
 
       const selecionadas = Array.from(
@@ -199,38 +261,48 @@
       const paraCriar = selecionadas.filter(id => !vinculadasAntes.includes(id));
       const paraExcluir = vinculadasAntes.filter(id => !selecionadas.includes(id));
 
-      try {
-        // Criar novos vínculos
-        for (const equipeId of paraCriar) {
-          await fetch(API_VINCULOS, {
-            method: "POST",
-            headers: authHeaders,
-            body: JSON.stringify({ evento_id: eventoId, equipe_id: equipeId })
-          });
+      // Criar vínculos
+      for (const equipeId of paraCriar) {
+        const res = await fetch(API_VINCULOS, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            evento_id: eventoId,
+            equipe_id: equipeId
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("Erro ao criar vínculo");
         }
+      }
 
-        // Excluir vínculos removéveis
-        for (const equipeId of paraExcluir) {
-          const vinculo = vinculos.find(
-            v => v.evento_id === eventoId && v.equipe_id === equipeId
-          );
+      // Excluir vínculos
+      for (const equipeId of paraExcluir) {
+        const vinculo = vinculos.find(
+          v => v.evento_id === eventoId && v.equipe_id === equipeId
+        );
 
-          if (vinculo) {
-            await fetch(`${API_VINCULOS}/${vinculo.id}`, {
-              method: "DELETE",
-              headers: authHeaders
-            });
+        if (vinculo) {
+          const res = await fetch(`${API_VINCULOS}/${vinculo.id}`, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token }
+          });
+
+          if (!res.ok) {
+            throw new Error("Erro ao excluir vínculo");
           }
         }
-
-        alert("Vínculos atualizados com sucesso!");
-        carregarListas();
-
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao salvar vínculos.");
       }
+
+      await carregarListas();
+      showToast("Vínculos atualizados com sucesso!");
+      cancelarEdicao();
     }
+
 
     // ============================
     // 🔵 LISTAR VÍNCULOS NA TABELA
@@ -291,30 +363,57 @@
     }
 
     // ============================
+    // 📌 CANCELAR EDIÇÃO
+    // ============================
+    function cancelarEdicao() {
+      // document.getElementById("equipe_id").value = "";
+      document.getElementById("form-vinculo").reset();
+      document.getElementById("btn-cancelar").style.display = "none";
+      const cardEquipes = document.getElementById("card");
+      cardEquipes.style.display = "none";
+
+      // Exibe novamente o botão de cadastrar equipe
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardVinculo()']");
+      btnCadastrar.style.display = "inline-block";  // Exibe o botão "Cadastrar equipe" novamente
+      document.getElementById("form-vinculo").reset();  // Reseta o formulário
+      document.getElementById("btn-cancelar").style.display = "none";  // Oculta o botão "Cancelar"
+    }
+
+    // Função para exibir o card de criação/edição
+    function mostrarCardVinculo() {
+      document.getElementById("card").style.display = "block";  // Torna o card visível
+      // Oculta o botão de cadastrar
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardVinculo()']");
+      btnCadastrar.style.display = "none";
+      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
+    }
+
+    // ============================
     // 🔵 EXCLUIR VÍNCULO
     // ============================
     async function excluirVinculo(id) {
-      if (!confirm("Deseja excluir este vínculo?")) return;
+      showConfirm("Tem certeza que deseja excluir este vínculo?", async () => {
+        try {
+          const res = await fetch(`${API_VINCULOS}/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token },
+          });
 
-      try {
-        const res = await fetch(`${API_VINCULOS}/${id}`, {
-          method: "DELETE",
-          headers: authHeaders
-        });
+          if (!res.ok) {
+            showToast("Erro ao excluir vínculo.");
+            return;
+          }
 
-        if (!res.ok) {
-          alert("Erro ao excluir vínculo.");
-          return;
+          carregarListas();
+
+        } catch (err) {
+          console.error(err);
+          showToast("Erro ao excluir vínculo.");
         }
-
-        carregarListas();
-
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao excluir vínculo.");
-      }
+      });
     }
 
+    // ▶ INICIAR
     withLoader(() => carregarListas());
   </script>
 

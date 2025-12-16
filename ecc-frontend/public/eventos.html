@@ -24,7 +24,7 @@
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
   <h1>Gerenciar Eventos</h1>
-  <button class="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
+  <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
 
   <div class="card" id="card" style="display:none;">
     <h2>Criar / Editar Evento</h2>
@@ -61,20 +61,6 @@
     </form>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO -->
-  <div class="modal-overlay" id="modalConfirm">
-    <div class="modal">
-      <p id="modalMessage"></p>
-      <div class="modal-actions">
-        <button onclick="closeModal()">Cancelar</button>
-        <button onclick="confirmAction()">Confirmar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
-
   <div class="card">
     <h2>Lista de Eventos</h2>
     <table>
@@ -94,6 +80,20 @@
     </table>
   </div>
 
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <p id="modalMessage"></p>
+      <div class="modal-actions">
+        <button onclick="closeModal()">Cancelar</button>
+        <button onclick="confirmAction()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
   <script src="./js/loader.js"></script>
   <script src="./js/config.js"></script>
   <script>
@@ -101,9 +101,9 @@
     // 🔐 Autenticação
     // ======================================
     const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "./auth-login.html";
-    }
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token) { window.location.href = "./auth-login.html"; }
 
     // ======================================
     // 🔓 Logout
@@ -120,7 +120,6 @@
     function goTo(page) {
       window.location.href = `./${page}.html`;
     }
-
 
     // ============================
     // 🔔 TOAST
@@ -156,7 +155,6 @@
       closeModal();
     }
 
-
     const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
 
     // ======================================
@@ -180,8 +178,8 @@
             <td>${formatarDataBR(ev.start_date) ?? "-"}</td>
             <td>${formatarDataBR(ev.end_date) ?? "-"}</td>
             <td>${ev.capacity ?? "-"}</td>
-            <td>R$ ${formatarMoedaBR(ev.valor_encontreiro) ?? "-"},00</td>
-            <td>R$ ${formatarMoedaBR(ev.valor_encontrista) ?? "-"},00</td>            
+            <td>${formatarMoedaBR(ev.valor_encontreiro) ?? "-"}</td>
+            <td>${formatarMoedaBR(ev.valor_encontrista) ?? "-"}</td>            
             <td>
               <button onclick="carregarEvento('${ev.id}')">Editar</button>
               <button onclick="deletarEvento('${ev.id}')">Excluir</button>
@@ -218,6 +216,16 @@
       const method = id ? "PUT" : "POST";
       const url = id ? `${API_URL}/${id}` : API_URL;
 
+
+      const start = new Date(data.start_date);
+      const end = new Date(data.end_date);
+
+      if (data.end_date && end < start) {
+        showToast("A data final não pode ser anterior à data inicial.");
+        return;
+      }
+
+
       try {
         const response = await fetch(url, {
           method,
@@ -234,7 +242,7 @@
             const err = await response.json();
             if (err.error) msg = err.error;
           } catch (_) { }
-          alert(msg);
+          showToast(msg);
           return;
         }
 
@@ -267,9 +275,10 @@
         document.getElementById("valor_encontreiro").value = ev.valor_encontreiro ?? "";
         document.getElementById("valor_encontrista").value = ev.valor_encontrista ?? "";
 
-        document.getElementById("card").style.display = "block";  // Torna o card invisível
-
+        document.getElementById("card").style.display = "block";
         document.getElementById("btn-cancelar").style.display = "inline-block";
+        document.getElementById("nav-btn").style.display = "none";
+
       } catch (error) {
         console.error("Erro ao carregar evento:", error);
       }
@@ -283,7 +292,7 @@
       document.getElementById("form-evento").reset();
       document.getElementById("btn-cancelar").style.display = "none";
       const cardEvento = document.getElementById("card");
-      cardEvento.style.display = "none";  // Torna o card invisível
+      cardEvento.style.display = "none";
 
       // Exibe novamente o botão de cadastrar evento
       const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
@@ -299,12 +308,10 @@
       const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
       btnCadastrar.style.display = "none";
       document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
-
     }
 
-
     // ======================================
-    // 📌 DELETAR EVENTO
+    // 📌 EXCLUIR EVENTO
     // ======================================
     function deletarEvento(id) {
       showConfirm("Tem certeza que deseja excluir este evento?", async () => {
@@ -327,8 +334,6 @@
         }
       });
     }
-
-
 
     const formatarDataBR = (dataISO) => {
       if (!dataISO) return "-";

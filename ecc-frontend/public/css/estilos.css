@@ -37,7 +37,6 @@ button {
 
 label {
   display: block;
-  margin-top: 10px;
 }
 
 input,
@@ -299,4 +298,22 @@ button:hover {
   border-radius: 4px;
   display: none;
   z-index: 1001;
+}
+
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* duas colunas */
+  gap: 8px 16px;                         /* espaçamento entre itens */
+  max-height: 300px;                    /* altura máxima */
+  overflow-y: auto;                     /* scroll vertical */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

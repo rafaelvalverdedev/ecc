@@ -23,8 +23,25 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button>
 
-
   <h1>Gerenciar Equipes</h1>
+  <button class="nav-btn" id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
+
+  <div class="card" id="card" style="display:none;">
+    <h2>Criar / Editar Equipe</h2>
+
+    <form id="form-equipe" onsubmit="salvarEquipe(event)">
+      <input type="hidden" id="equipe_id">
+
+      <label>Nome:</label>
+      <input id="nome" required>
+
+      <label>Descrição:</label>
+      <input id="descricao" required>
+
+      <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+      <button type="submit" id="btnSalvar">Salvar</button>
+    </form>
+  </div>
 
   <div class="card">
     <h2>Equipes cadastradas</h2>
@@ -41,35 +58,30 @@
     </table>
   </div>
 
-  <div class="card">
-    <h2>Criar / Editar Equipe</h2>
-
-    <form id="formEquipe" onsubmit="salvarEquipe(event)">
-      <input type="hidden" id="equipe_id">
-
-      <label>Nome:</label>
-      <input id="nome" required>
-
-      <label>Descrição:</label>
-      <input id="descricao">
-
-      <button type="submit" id="btnSalvar">Salvar</button>
-      <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar</button>
-    </form>
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <p id="modalMessage"></p>
+      <div class="modal-actions">
+        <button onclick="closeModal()">Cancelar</button>
+        <button onclick="confirmAction()">Confirmar</button>
+      </div>
+    </div>
   </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
   <script src="./js/loader.js"></script>
   <script src="./js/config.js"></script>
   <script>
     // ============================
-    // 🔐 AUTENTICAÇÃO
+    // 🔐 Autenticação
     // ============================
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!token) {
-      window.location.href = "./auth-login.html";
-    }
+    if (!token) { window.location.href = "./auth-login.html"; }
 
     // ============================
     // 🔓 Logout
@@ -87,32 +99,70 @@
       window.location.href = `./${page}.html`;
     }
 
+    // ============================
+    // 🔔 TOAST
+    // ============================
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2500);
+    }
+
+    // ============================
+    // ❓ MODAL
+    // ============================
+    let onConfirmCallback = null;
+
+    function showConfirm(message, callback) {
+      document.getElementById("modalMessage").innerText = message;
+      document.getElementById("modalConfirm").style.display = "flex";
+      onConfirmCallback = callback;
+    }
+
+    function closeModal() {
+      document.getElementById("modalConfirm").style.display = "none";
+      onConfirmCallback = null;
+    }
+
+    function confirmAction() {
+      if (onConfirmCallback) onConfirmCallback();
+      closeModal();
+    }
+
     const API_URL = `${APP_CONFIG.API_BASE_URL}/equipes`;
 
     // ============================
     // 📌 LISTAR EQUIPES
     // ============================
     async function listarEquipes() {
-      const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
+      try {
+        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
 
-      const resultado = await res.json();
-      const equipes = resultado.data;
+        const resultado = await res.json();
+        const equipes = resultado.data;
 
-      const tbody = document.getElementById("lista-equipes");
-      tbody.innerHTML = "";
+        const tbody = document.getElementById("lista-equipes");
+        tbody.innerHTML = "";
 
-      equipes.forEach(eq => {
-        tbody.innerHTML += `
+        equipes.forEach(eq => {
+          tbody.innerHTML += `
         <tr>
           <td>${eq.nome}</td>
           <td>${eq.descricao ?? "-"}</td>
           <td>
-            <button onclick="editarEquipe('${eq.id}')">Editar</button>
+            <button onclick="carregarEquipe('${eq.id}')">Editar</button>
             <button onclick="excluirEquipe('${eq.id}')">Excluir</button>
           </td>
         </tr>
       `;
-      });
+        });
+      } catch (error) {
+        console.error("Erro ao listar equipes:", error);
+      }
     }
 
     // ============================
@@ -130,23 +180,27 @@
       const method = id ? "PUT" : "POST";
       const url = id ? `${API_URL}/${id}` : API_URL;
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token
-        },
-        body: JSON.stringify(payload)
-      });
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify(payload)
+        });
 
-      if (!res.ok) {
-        alert("Erro ao salvar equipe");
-        return;
+        if (!res.ok) {
+          showToast("Erro ao salvar equipe");
+          return;
+        }
+
+        showToast("Equipe salva!");
+        cancelarEdicao();
+        listarEquipes();
+      } catch (error) {
+        console.error("Erro ao salvar equipe:", error);
       }
-
-      alert("Equipe salva!");
-      cancelarEdicao();
-      listarEquipes();
     }
 
     // ============================
@@ -164,7 +218,31 @@
       document.getElementById("nome").value = eq.nome;
       document.getElementById("descricao").value = eq.descricao;
 
-      document.getElementById("btnCancelar").style.display = "inline-block";
+      document.getElementById("btn-cancelar").style.display = "inline-block";
+    }
+
+    // ======================================
+    // 📌 CARREGAR EQUIPE PARA EDIÇÃO
+    // ======================================
+    async function carregarEquipe(id) {
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const equipes = await response.json();
+        const ev = equipes.data;
+
+        document.getElementById("equipe_id").value = ev.id;
+        document.getElementById("nome").value = ev.nome;
+        document.getElementById("descricao").value = ev.descricao || "";
+
+        document.getElementById("card").style.display = "block";
+        document.getElementById("btn-cancelar").style.display = "inline-block";
+        document.getElementById("nav-btn").style.display = "none";
+
+      } catch (error) {
+        console.error("Erro ao carregar equipe:", error);
+      }
     }
 
     // ============================
@@ -172,22 +250,50 @@
     // ============================
     function cancelarEdicao() {
       document.getElementById("equipe_id").value = "";
-      document.getElementById("formEquipe").reset();
-      document.getElementById("btnCancelar").style.display = "none";
+      document.getElementById("form-equipe").reset();
+      document.getElementById("btn-cancelar").style.display = "none";
+      const cardEquipes = document.getElementById("card");
+      cardEquipes.style.display = "none";
+
+      // Exibe novamente o botão de cadastrar equipe
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEquipe()']");
+      btnCadastrar.style.display = "inline-block";  // Exibe o botão "Cadastrar equipe" novamente
+      document.getElementById("form-equipe").reset();  // Reseta o formulário
+      document.getElementById("btn-cancelar").style.display = "none";  // Oculta o botão "Cancelar"
+    }
+
+    // Função para exibir o card de criação/edição
+    function mostrarCardEquipe() {
+      document.getElementById("card").style.display = "block";  // Torna o card visível
+      // Oculta o botão de cadastrar
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEquipe()']");
+      btnCadastrar.style.display = "none";
+      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
     }
 
     // ============================
-    // 📌 EXCLUIR
+    // 📌 EXCLUIR EQUIPE
     // ============================
     async function excluirEquipe(id) {
-      if (!confirm("Excluir esta equipe?")) return;
+      showConfirm("Tem certeza que deseja excluir este equipe?", async () => {
+        try {
+          const response = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token }
+          });
 
-      await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token }
+          if (!response.ok) {
+            showToast("Erro ao excluir equipe");
+            return;
+          }
+
+          showToast("Equipe excluída!");
+          listarEquipes();
+        } catch (error) {
+          console.error("Erro ao excluir equipe:", error);
+          showToast("Erro ao excluir equipe");
+        }
       });
-
-      listarEquipes();
     }
 
     // ▶ INICIAR
