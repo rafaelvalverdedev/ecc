@@ -19,8 +19,7 @@ export async function listarVinculos(req, res) {
       .select(`
         id,
         equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome, start_date),
-        capacity
+        evento:evento_id (id, nome, start_date)
       `)
       .order("created_at", { ascending: false });
 
@@ -46,7 +45,8 @@ export async function listarPorEvento(req, res) {
       .select(`
         id,
         equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome)
+        evento:evento_id (id, nome),
+        capacity
       `)
       .eq("evento_id", eventoId)
       .order("created_at", { ascending: true });
