@@ -44,8 +44,8 @@ export async function listarPorEvento(req, res) {
       .from("equipes_evento")
       .select(`
         id,
-        equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome, capacity)
+        equipe:equipe_id (id, nome, capacity),
+        evento:evento_id (id, nome)
       `)
       .eq("evento_id", eventoId)
       .order("created_at", { ascending: true });
