@@ -325,7 +325,6 @@
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                
                 const json = await res.json();
                 const lista = json.data || [];
 
@@ -333,14 +332,11 @@
                     targetSelect.innerHTML = '<option value="">Nenhuma equipe vinculada a este evento</option>';
                     return;
                 }
-                
-                targetSelect.innerHTML = '<option value="">Selecione</option>';
-                
-                lista.forEach(item => {
-                    
-                    
-                    const eq = item.equipe; // conforme seu backend
 
+                targetSelect.innerHTML = '<option value="">Selecione</option>';
+
+                lista.forEach(item => {
+                    const eq = item.equipe; // conforme seu backend
                     targetSelect.innerHTML += `
                 <option value="${eq.id}" ${eq.id === selectedEquipeId ? "selected" : ""}>
                     ${eq.nome}
@@ -396,43 +392,68 @@
 
                 const lista = (json.data || []).filter(tr => tr.pessoa?.role !== "admin");
 
-                listaFeedback.textContent = "";
+                const agrupadoPorEvento = {};
 
                 lista.forEach(tr => {
+                    const eventoNome = tr.evento?.nome || "Sem evento";
+
+                    if (!agrupadoPorEvento[eventoNome]) {
+                        agrupadoPorEvento[eventoNome] = [];
+                    }
+
+                    agrupadoPorEvento[eventoNome].push(tr);
+                });
+
+
+                tbodyEncontreiro.innerHTML = "";
+
+                Object.keys(agrupadoPorEvento).forEach(eventoNome => {
+
+                    // Linha de título do evento
                     tbodyEncontreiro.innerHTML += `
-                        <tr>
-                            <td>${tr.pessoa?.nome || "-"}</td>
-                            <td>${tr.pessoa?.email || "-"}</td>
-                            <td>${tr.pessoa?.telefone || "-"}</td>
-                            <td>${tr.evento?.nome || "-"}</td>
-                            <td>${tr.equipe?.nome || "-"}</td>
-
-                            <td>
-                                <span class="badge ${tr.is_leader ? "blue" : "red"}">
-                                    ${tr.is_leader ? "Coordenador" : "Encontreiro"}
-                                </span>
-                            </td>
-
-                            <td>
-                                ${tr.pagou
-                            ? `<span class="badge bg-primary">Sim</span>`
-                            : `
-                                      <span class="badge bg-danger">
-                                        Não ${tr.evento?.valor_encontreiro}
-                                      </span>
-                                      <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')"
-                                              class="btn btn-sm btn-light ms-2">
-                                          Gerar Pagamento
-                                      </button>
-                                    `}
-                            </td>
-
-                            <td>
-                                <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
-                                <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                        <tr class="evento-header">
+                            <td colspan="8">
+                                <strong>${eventoNome}</strong>
                             </td>
                         </tr>
                     `;
+
+                    // Linhas dos encontreiros daquele evento
+                    agrupadoPorEvento[eventoNome].forEach(tr => {
+                        tbodyEncontreiro.innerHTML += `
+                                <tr>
+                                    <td>${tr.pessoa?.nome || "-"}</td>
+                                    <td>${tr.pessoa?.email || "-"}</td>
+                                    <td>${tr.pessoa?.telefone || "-"}</td>
+                                    <td>${tr.evento?.nome || "-"}</td>
+                                    <td>${tr.equipe?.nome || "-"}</td>
+
+                                    <td>
+                                        <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                            ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        ${tr.pagou
+                                                    ? `<span class="badge bg-primary">Sim</span>`
+                                                    : `
+                                                <span class="badge bg-danger">
+                                                    Não ${tr.evento?.valor_encontreiro}
+                                                </span>
+                                                <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')">
+                                                    Gerar Pagamento
+                                                </button>
+                                            `}
+                                    </td>
+
+                                    <td>
+                                        <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
+                                        <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                                    </td>
+                                </tr>
+                            `;
+                    });
                 });
 
                 tbodyEncontreiro.querySelectorAll(".btn-editar-tr").forEach(btn => {
@@ -461,7 +482,6 @@
             const evento_id = selectEvento.value;
             const equipe_id = selectEquipe.value;
             const is_leader = document.getElementById("is_leader").checked;
-
 
             try {
 
