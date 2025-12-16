@@ -176,6 +176,22 @@ export async function deletarPessoa(req, res) {
   try {
     const { id } = req.params;
 
+    // 🔒 REGRA DE NEGÓCIO: verificar vínculo
+    const { data: vinculo, error: vinculoError } = await supabase
+      .from("teamrole")
+      .select("id")
+      .eq("pessoa_id", id)
+      .limit(1);
+
+    if (vinculoError) throw vinculoError;
+
+    if (vinculo.length > 0) {
+      return res.status(409).json({
+        error: "Não é possível excluir este encontreiro pois ele está vinculado a uma equipe ou evento."
+      });
+    }
+
+    // 🗑️ Exclusão segura
     const { error } = await supabase
       .from("pessoas")
       .delete()
