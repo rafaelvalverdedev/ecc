@@ -325,7 +325,6 @@
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                console.log(res);
                 
                 const json = await res.json();
                 const lista = json.data || [];

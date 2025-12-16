@@ -45,8 +45,7 @@ export async function listarPorEvento(req, res) {
       .select(`
         id,
         equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome),
-        capacity
+        evento:evento_id (id, nome, capacity)
       `)
       .eq("evento_id", eventoId)
       .order("created_at", { ascending: true });
@@ -60,6 +59,7 @@ export async function listarPorEvento(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
 
 // ========================================================
 // LISTAR POR EQUIPE
