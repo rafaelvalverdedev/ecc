@@ -121,7 +121,11 @@ th {
 /* ============================
 SELECT DE EVENTOS (ESTILO PRO)
 ============================ */
-
+#religiao_esposo,
+#escolaridade_esposo,
+#religiao_esposa,
+#escolaridade_esposa,
+#possui_filhos,
 #evento_id,
 #pessoa_id,
 #equipe_id,
