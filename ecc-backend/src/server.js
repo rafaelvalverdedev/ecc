@@ -72,7 +72,7 @@ app.use("/inscricoes", inscricoesRoutes);
 app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
 
 // Encontrista-inscrição é protegida por auth
-app.use("/encontrista-inscricao", authMiddleware, encontristaInscricaoRoutes);
+app.use("/encontrista_inscricao", authMiddleware, encontristaInscricaoRoutes);
 
 // Admin
 app.use("/admin", authMiddleware, adminRoutes);
