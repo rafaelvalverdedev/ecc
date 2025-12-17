@@ -326,3 +326,25 @@ button:hover {
     display: inline;       /* 👈 garante que fique na mesma linha */
     font-weight: bold;
 }
+.toggle-title {
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-title:hover {
+  opacity: 0.8;
+}
+
+.cabecalho-evento th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    border-bottom: 2px solid #ccc;
+    padding: 6px;
+}
+
+.evento-header td {
+    padding: 8px;
+}
+
+.linha-evento td {
+    padding: 6px;
+}
