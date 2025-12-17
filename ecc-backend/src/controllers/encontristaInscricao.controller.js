@@ -2,11 +2,12 @@ import supabase from "../config/supabase.js";
 import { z } from "zod";
 
 // ========================================================
-// VALIDAÇÃO DO FORMULÁRIO (ZOD)
+// VALIDAÇÃO DO FORMULÁRIO (ZOD) — ALINHADA AO BANCO
 // ========================================================
-
-const pessoaSchema = z.object({
+const encontristaSchema = z.object({
+  // esposo
   nome_completo_esposo: z.string().min(3),
+  email_esposo: z.string().email(),
   data_nascimento_esposo: z.string().optional().nullable(),
   profissao_esposo: z.string().optional().nullable(),
   como_chamar_esposo: z.string().optional().nullable(),
@@ -19,7 +20,9 @@ const pessoaSchema = z.object({
   religiao_esposo: z.string().optional().nullable(),
   escolaridade_esposo: z.string().optional().nullable(),
 
-  nome_completo_esposa: z.string().optional().nullable(),
+  // esposa
+  nome_completo_esposa: z.string().min(3),
+  email_esposa: z.string().email(),
   data_nascimento_esposa: z.string().optional().nullable(),
   profissao_esposa: z.string().optional().nullable(),
   como_chamar_esposa: z.string().optional().nullable(),
@@ -32,17 +35,17 @@ const pessoaSchema = z.object({
   religiao_esposa: z.string().optional().nullable(),
   escolaridade_esposa: z.string().optional().nullable(),
 
+  // casal
   endereco: z.string().min(3),
   numero: z.string().optional().nullable(),
   complemento: z.string().optional().nullable(),
   bairro: z.string().optional().nullable(),
-  cidade: z.string().optional().nullable(),
-  uf: z.string().optional().nullable(),
+  cidade: z.string().min(2),
+  uf: z.string().length(2),
   cep: z.string().optional().nullable(),
 
   data_casamento: z.string().optional().nullable(),
   telefone_principal: z.string().optional().nullable(),
-  email: z.string().email("Email inválido").optional().nullable(),
 
   possui_filhos: z.boolean().optional(),
   quantidade_filhos: z.number().optional().nullable(),
@@ -60,7 +63,7 @@ const pessoaSchema = z.object({
 });
 
 // ========================================================
-// LISTAR TODAS AS INSCRIÇÕES
+// LISTAR
 // ========================================================
 export async function listar(req, res) {
   try {
@@ -70,11 +73,9 @@ export async function listar(req, res) {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-
     return res.json({ data });
 
   } catch (err) {
-    console.error("LISTAR ENCONTRISTA ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -92,22 +93,20 @@ export async function buscar(req, res) {
       .eq("id", id)
       .single();
 
-    if (error) return res.status(404).json({ error: "Registro não encontrado." });
-
+    if (error) return res.status(404).json({ error: "Registro não encontrado" });
     return res.json({ data });
 
   } catch (err) {
-    console.error("BUSCAR ENCONTRISTA ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 }
 
 // ========================================================
-// CRIAR INSCRIÇÃO
+// CRIAR
 // ========================================================
 export async function criar(req, res) {
   try {
-    const parsed = pessoaSchema.parse(req.body);
+    const parsed = encontristaSchema.parse(req.body);
 
     const { data, error } = await supabase
       .from("encontrista_inscricao")
@@ -119,23 +118,21 @@ export async function criar(req, res) {
 
     return res.status(201).json({
       message: "Inscrição criada com sucesso",
-      data,
+      data
     });
 
   } catch (err) {
-    console.error("CRIAR ENCONTRISTA ERROR:", err);
     return res.status(400).json({ error: err.message });
   }
 }
 
 // ========================================================
-// ATUALIZAR INSCRIÇÃO
+// ATUALIZAR
 // ========================================================
 export async function atualizar(req, res) {
   try {
     const { id } = req.params;
-
-    const parsed = pessoaSchema.partial().parse(req.body);
+    const parsed = encontristaSchema.partial().parse(req.body);
 
     const { data, error } = await supabase
       .from("encontrista_inscricao")
@@ -148,17 +145,16 @@ export async function atualizar(req, res) {
 
     return res.json({
       message: "Inscrição atualizada",
-      data,
+      data
     });
 
   } catch (err) {
-    console.error("ATUALIZAR ENCONTRISTA ERROR:", err);
     return res.status(400).json({ error: err.message });
   }
 }
 
 // ========================================================
-// DELETAR INSCRIÇÃO (somente admin)
+// DELETAR (ADMIN)
 // ========================================================
 export async function deletar(req, res) {
   try {
@@ -174,7 +170,6 @@ export async function deletar(req, res) {
     return res.json({ message: "Inscrição removida com sucesso" });
 
   } catch (err) {
-    console.error("DELETAR ENCONTRISTA ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 }
