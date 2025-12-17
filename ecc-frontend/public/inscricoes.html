@@ -10,10 +10,14 @@
 
 <body>
 
-  <h1>Ficha de Inscrição de Encontristas</h1>
+  <h1>Cadastro Geral</h1>
 
   <div class="card">
     <form id="formInscricao">
+
+      <br>
+      <button type="button" onclick="preencherMock()">Preencher (DEV)</button>
+      <br>
 
       <!-- ===================== ETAPA 1 - ESPOSO ====================== -->
       <div class="step active" id="step1">
@@ -27,6 +31,9 @@
 
         <label>Profissão</label>
         <input required id="profissao_esposo">
+
+        <label>E-mail</label>
+        <input required id="email_esposo">
 
         <label>Como deseja ser chamado</label>
         <input required id="como_chamar_esposo">
@@ -70,6 +77,9 @@
 
         <label>Profissão</label>
         <input required id="profissao_esposa">
+
+        <label>E-mail</label>
+        <input required id="email_esposa">
 
         <label>Como deseja ser chamada</label>
         <input required id="como_chamar_esposa">
@@ -115,15 +125,12 @@
         <label>UF</label>
         <input required maxlength="2" id="uf">
 
-        <label>Email</label>
-        <input type="email" required id="email">
-
         <label>Telefone</label>
         <input type="tel" required id="telefone_principal">
 
         <label>Possui filhos?</label>
         <select required id="possui_filhos" onchange="toggleFilhos()">
-          <option value="">---</option>
+          <option value="" disabled selected>Selecione</option>
           <option value="false">Não</option>
           <option value="true">Sim</option>
         </select>
@@ -142,10 +149,31 @@
         <button type="button" onclick="prevStep()">Voltar</button>
         <button type="submit">Enviar</button>
       </div>
+
     </form>
   </div>
 
+  <script src="./js/loader.js"></script>
+  <script src="./js/config.js"></script>
   <script>
+    // ======================================
+    // 🔐 Autenticação
+    // ======================================
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token) { window.location.href = "./auth-login.html"; }
+
+    // ======================================
+    // 🔓 Logout
+    // ======================================
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./auth-login.html";
+    }
+    // --------- envio para o backend ----------
+    const API_ENCONTRISTA_INSCR = `${APP_CONFIG.API_BASE_URL}/encontrista_inscricao`;
     let currentStep = 1;
 
     function showStep(n) {
@@ -181,17 +209,131 @@
       const possui = document.getElementById('possui_filhos').value === 'true';
       const bloco = document.getElementById('dados_filhos');
       bloco.style.display = possui ? 'block' : 'none';
-
       bloco.querySelectorAll('input').forEach(i => i.required = possui);
     }
 
-    // submit
+    function montarDTOInscricao() {
+      return {
+        esposo: {
+          nomeCompleto: document.getElementById("nome_completo_esposo").value.trim(),
+          dataNascimento: document.getElementById("data_nascimento_esposo").value,
+          profissao: document.getElementById("profissao_esposo").value.trim(),
+          celular: document.getElementById("celular_esposo").value.trim(),
+          religiao: document.getElementById("religiao_esposo").value,
+          escolaridade: document.getElementById("escolaridade_esposo").value
+        },
+        esposa: {
+          nomeCompleto: document.getElementById("nome_completo_esposa").value.trim(),
+          dataNascimento: document.getElementById("data_nascimento_esposa").value,
+          profissao: document.getElementById("profissao_esposa").value.trim(),
+          celular: document.getElementById("celular_esposa").value.trim(),
+          religiao: document.getElementById("religiao_esposa").value,
+          escolaridade: document.getElementById("escolaridade_esposa").value
+        },
+        casal: {
+          endereco: document.getElementById("endereco").value.trim(),
+          cidade: document.getElementById("cidade").value.trim(),
+          uf: document.getElementById("uf").value.trim().toUpperCase(),
+          telefone: document.getElementById("telefone_principal").value.trim(),
+          possuiFilhos: document.getElementById("possui_filhos").value === "true"
+        }
+      };
+    }
 
     document.getElementById('formInscricao').addEventListener('submit', function (e) {
       e.preventDefault();
+
       if (!validarStep('step3')) return;
-      alert('Formulário validado com sucesso. Pronto para enviar ao backend.');
+
+      const dto = montarDTOInscricao();
+
+      if (dto.casal.possuiFilhos) {
+        dto.casal.quantidadeFilhos = parseInt(document.getElementById("quantidade_filhos").value, 10);
+        dto.casal.nomeResponsavel = document.getElementById("nome_responsavel_filhos").value.trim();
+        dto.casal.telefoneResponsavel = document.getElementById("telefone_responsavel").value.trim();
+
+        if (!dto.casal.quantidadeFilhos || !dto.casal.nomeResponsavel || !dto.casal.telefoneResponsavel) {
+          alert("Preencha corretamente os dados dos filhos");
+          return;
+        }
+      }
+
+      enviarInscricao(dto);
     });
+
+    async function enviarInscricao(dto) {
+      // const res = await fetch("/api/inscricoes", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(dto)
+      // });
+
+      // if (!res.ok) {
+
+      //   console.log(dto);
+      //   alert("Erro ao salvar inscrição");
+      //   return;
+      // }
+
+      // alert("Inscrição enviada com sucesso!");
+
+
+      const res = await fetch(API_ENCONTRISTA_INSCR, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify(dto)
+      });
+
+      if (!res.ok) {
+        const erro = await res.json().catch(() => ({}));
+        alert(erro.error || "Erro ao salvar inscrição");
+        return;
+      }
+
+      alert("Inscrição enviada com sucesso!");
+      document.getElementById("formInscricao").reset();
+      currentStep = 1;
+      showStep(currentStep);
+
+    }
+
+
+    function preencherMock() {
+      // Esposo
+      document.getElementById("nome_completo_esposo").value = "João da Silva";
+      document.getElementById("data_nascimento_esposo").value = "1985-05-10";
+      document.getElementById("profissao_esposo").value = "Engenheiro";
+      document.getElementById("email_esposo").value = "joao@silva.com";
+      document.getElementById("como_chamar_esposo").value = "João";
+      document.getElementById("igreja_esposo").value = "Paróquia Central";
+      document.getElementById("celular_esposo").value = "11999999999";
+      document.getElementById("religiao_esposo").value = "catolico";
+      document.getElementById("escolaridade_esposo").value = "superior";
+
+      // Esposa
+      document.getElementById("nome_completo_esposa").value = "Maria da Silva";
+      document.getElementById("data_nascimento_esposa").value = "1987-08-15";
+      document.getElementById("profissao_esposa").value = "Professora";
+      document.getElementById("email_esposa").value = "maria@silva.com";
+      document.getElementById("como_chamar_esposa").value = "Maria";
+      document.getElementById("igreja_esposa").value = "Paróquia Central";
+      document.getElementById("celular_esposa").value = "11988888888";
+      document.getElementById("religiao_esposa").value = "catolico";
+      document.getElementById("escolaridade_esposa").value = "superior";
+
+      // Casal
+      document.getElementById("endereco").value = "Rua Teste, 123";
+      document.getElementById("cidade").value = "São Paulo";
+      document.getElementById("uf").value = "SP";
+      document.getElementById("telefone_principal").value = "1133334444";
+      document.getElementById("possui_filhos").value = "false";
+
+      alert("Formulário preenchido automaticamente (DEV)");
+    }
+
   </script>
 </body>
 
