@@ -67,76 +67,121 @@ import supabase from "../config/supabase.js";
 // ========================================================
 // CRIAR
 // ========================================================
-
 export async function criarCadastro(req, res) {
-    try {
-        const { esposo, esposa, casal } = req.body;
-
-        const payload = {
-            // esposo
-            nome_completo_esposo: esposo.nomeCompleto,
-            data_nascimento_esposo: esposo.dataNascimento,
-            profissao_esposo: esposo.profissao,
-            como_chamar_esposo: esposo.como_chamar_esposo,
-            igreja_esposo: esposo.igreja,
-            local_trabalho_esposo: esposo.local_trabalho,
-            email_esposo: esposo.email_esposo,
-            celular_esposo: esposo.celular,
-            redesocial_esposo: esposo.redesocial,
-            restricoes_alimentares_esposo: esposo.restricoes_alimentares,
-            medicamentos_alergias_esposo: esposo.medicamentos_alergias,
-            religiao_esposo: esposo.religiao,
-            escolaridade_esposo: esposo.escolaridade,
-
-            // esposa
-            nome_completo_esposa: esposa.nomeCompleto,
-            data_nascimento_esposa: esposa.dataNascimento,
-            profissao_esposa: esposa.profissao,
-            como_chamar_esposa: esposa.como_chamar_esposa,
-            igreja_esposa: esposa.igreja,
-            local_trabalho_esposa: esposa.local_trabalho,
-            email_esposa: esposa.email_esposa,
-            celular_esposa: esposa.celular,
-            redesocial_esposa: esposa.redesocial,
-            restricoes_alimentares_esposa: esposa.restricoes_alimentares,
-            medicamentos_alergias_esposa: esposa.medicamentos_alergias,
-            religiao_esposa: esposa.religiao,
-            escolaridade_esposa: esposa.escolaridade,
-
-            // casal
-            endereco: casal.endereco,
-            cidade: casal.cidade,
-            uf: casal.uf,
-            data_casamento: casal.dataCasamento,
-            possui_conducao: casal.possuiConducao,
-            possui_filhos: casal.possuiFilhos,
-
-            quantidade_filhos: casal.possuiFilhos ? casal.quantidade_filhos : null,
-            nome_responsavel_filhos: casal.possuiFilhos ? casal.nome_responsavel_filhos : null,
-            grau_parentesco_responsavel_filhos: casal.possuiFilhos ? casal.grau_parentesco_responsavel_filhos : null,
-            telefone_responsavel: casal.possuiFilhos ? casal.telefone_responsavel : null,
-            endereco_responsavel: casal.possuiFilhos ? casal.endereco_responsavel : null
-        };
-
-        const { data, error } = await supabase
-            .from("cadastro")
-            .insert(payload)
-            .select()
-            .single();
-
-        if (error) {
-            return res.status(400).json({ error: error.message });
-        }
-
-        return res.status(201).json({
-            message: "Inscrição criada com sucesso",
-            data
-        });
-
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
+  try {
+    // 1. validar arquivo
+    if (!req.file) {
+      return res.status(400).json({ error: "Foto do casal é obrigatória" });
     }
+
+    // 2. recuperar JSON do FormData
+    if (!req.body.data) {
+      return res.status(400).json({ error: "Dados do formulário ausentes" });
+    }
+
+    const payloadJson = JSON.parse(req.body.data);
+    const { esposo, esposa, casal } = payloadJson;
+
+    // 3. validar tipo do arquivo
+    if (!req.file.mimetype.startsWith("image/")) {
+      return res.status(400).json({ error: "Arquivo inválido" });
+    }
+
+    // 4. gerar nome do arquivo
+    const ext = req.file.originalname.split(".").pop();
+    const fileName = `casais/${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${ext}`;
+
+    // 5. upload no Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("fotos-casal")
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+      });
+
+    if (uploadError) {
+      return res.status(500).json({ error: uploadError.message });
+    }
+
+    // 6. gerar URL pública
+    const { data: publicUrl } = supabase.storage
+      .from("fotos-casal")
+      .getPublicUrl(fileName);
+
+    // 7. montar payload do banco
+    const payload = {
+      // esposo
+      nome_completo_esposo: esposo.nomeCompleto,
+      data_nascimento_esposo: esposo.dataNascimento,
+      profissao_esposo: esposo.profissao,
+      como_chamar_esposo: esposo.como_chamar_esposo,
+      igreja_esposo: esposo.igreja,
+      local_trabalho_esposo: esposo.local_trabalho,
+      email_esposo: esposo.email_esposo,
+      celular_esposo: esposo.celular,
+      redesocial_esposo: esposo.redesocial,
+      restricoes_alimentares_esposo: esposo.restricoes_alimentares,
+      medicamentos_alergias_esposo: esposo.medicamentos_alergias,
+      religiao_esposo: esposo.religiao,
+      escolaridade_esposo: esposo.escolaridade,
+
+      // esposa
+      nome_completo_esposa: esposa.nomeCompleto,
+      data_nascimento_esposa: esposa.dataNascimento,
+      profissao_esposa: esposa.profissao,
+      como_chamar_esposa: esposa.como_chamar_esposa,
+      igreja_esposa: esposa.igreja,
+      local_trabalho_esposa: esposa.local_trabalho,
+      email_esposa: esposa.email_esposa,
+      celular_esposa: esposa.celular,
+      redesocial_esposa: esposa.redesocial,
+      restricoes_alimentares_esposa: esposa.restricoes_alimentares,
+      medicamentos_alergias_esposa: esposa.medicamentos_alergias,
+      religiao_esposa: esposa.religiao,
+      escolaridade_esposa: esposa.escolaridade,
+
+      // casal
+      endereco: casal.endereco,
+      cidade: casal.cidade,
+      uf: casal.uf,
+      data_casamento: casal.dataCasamento,
+      possui_conducao: casal.possuiConducao,
+      possui_filhos: casal.possuiFilhos,
+
+      quantidade_filhos: casal.possuiFilhos ? casal.quantidade_filhos : null,
+      nome_responsavel_filhos: casal.possuiFilhos ? casal.nome_responsavel_filhos : null,
+      grau_parentesco_responsavel_filhos: casal.possuiFilhos ? casal.grau_parentesco_responsavel_filhos : null,
+      telefone_responsavel: casal.possuiFilhos ? casal.telefone_responsavel : null,
+      endereco_responsavel: casal.possuiFilhos ? casal.endereco_responsavel : null,
+
+      // foto
+      foto_casal_url: publicUrl.publicUrl
+    };
+
+    // 8. salvar no banco
+    const { data, error } = await supabase
+      .from("cadastro")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    // 9. resposta final
+    return res.status(201).json({
+      message: "Cadastro realizado com sucesso",
+      data
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 }
+
 
 
 // ========================================================

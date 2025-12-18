@@ -183,7 +183,12 @@
 
           <label>Telefone do responsável</label>
           <input type="tel" id="telefone_responsavel">
+
         </div>
+
+        <label>Foto do Casal</label>
+        <input type="file" id="foto_casal" accept="image/*" required />
+
 
         <button type="button" onclick="prevStep()">Voltar</button>
         <button type="submit">Enviar</button>
@@ -196,7 +201,7 @@
   <script src="./js/config.js"></script>
   <script>
     // --------- envio para o backend ----------
-    const API_ENCONTRISTA_INSCR = `${APP_CONFIG.API_BASE_URL}`;
+    const API_BASE = `${APP_CONFIG.API_BASE_URL}`;
     let currentStep = 1;
 
     function showStep(n) {
@@ -236,6 +241,23 @@
     }
 
     function montarDTOInscricao() {
+
+
+
+      const fotoInput = document.getElementById("foto_casal");
+      const foto = fotoInput.files[0];
+
+      if (!foto) {
+        alert("Selecione a foto do casal");
+        return;
+      }
+
+      if (!foto.type.startsWith("image/")) {
+        alert("Arquivo inválido");
+        return;
+      }
+
+
       const possuiFilhos = document.getElementById("possui_filhos").value === "true";
 
       const casal = {
@@ -292,42 +314,37 @@
       };
     }
 
-    document.getElementById('formInscricao').addEventListener('submit', function (e) {
+    document.getElementById("formInscricao").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      if (!validarStep('step3')) return;
+      if (!validarStep("step3")) return;
 
       const dto = montarDTOInscricao();
 
-      enviarInscricao(dto);
-    });
+      const foto = document.getElementById("foto_casal").files[0];
+      if (!foto || !foto.type.startsWith("image/")) {
+        alert("Selecione uma foto válida do casal");
+        return;
+      }
 
-    async function enviarInscricao(dto) {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(dto));
+      formData.append("foto_casal", foto);
 
-
-      console.log("Enviando inscrição:", dto);
-      const res = await fetch(API_ENCONTRISTA_INSCR + "/cadastro", {
+      const res = await fetch(API_BASE + "/cadastro", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dto)
+        body: formData
       });
 
       if (!res.ok) {
-        const erro = await res.json().catch(() => ({}));
-        alert(erro.error || "Erro ao salvar inscrição");
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Erro ao enviar inscrição");
         return;
       }
 
       alert("Inscrição enviada com sucesso!");
-
-        
       window.location.href = "cadastro_sucesso.html";
-
-      document.getElementById("formInscricao").reset();
-
-    }
+    });
 
 
     function preencherMock() {
