@@ -23,9 +23,9 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
 
-  <h1 style="display: inline;">Gerenciar Eventos</h1> <span><a href="dashboard.html">Voltar</a></span>
+  <h1>Gerenciar Eventos</h1> <span><a href="dashboard.html">Voltar</a></span>
   <br>
-  <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
+
 
   <div class="card" id="card" style="display:none;">
     <h2>Criar / Editar Evento</h2>
@@ -63,7 +63,9 @@
   </div>
 
   <div class="card">
-    <h2>Lista de Eventos</h2>
+    <h2>Lista de Eventos
+      <!-- <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button> -->
+    </h2>
     <table>
       <thead>
         <tr>
@@ -72,7 +74,7 @@
           <th>Início</th>
           <th>Fim</th>
           <th>Capacidade</th>
-          <th>ValorInscrição Encontreiro</th>
+          <th>Valor Inscrição Encontreiro</th>
           <th>Valor Inscrição Encontrista</th>
           <th>Ações</th>
         </tr>
@@ -335,6 +337,18 @@
         }
       });
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const acao = params.get("acao");
+
+      if (acao === "cadastro") {
+        mostrarCardEvento();
+      }
+    });
+
+
+
 
     const formatarDataBR = (dataISO) => {
       if (!dataISO) return "-";

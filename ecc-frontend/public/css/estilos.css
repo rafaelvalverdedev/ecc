@@ -121,24 +121,7 @@ th {
 /* ============================
 SELECT DE EVENTOS (ESTILO PRO)
 ============================ */
-#religiao_esposo,
-#escolaridade_esposo,
-#religiao_esposa,
-#escolaridade_esposa,
-#possui_filhos,
-#possui_conducao,
-#evento_id,
-#pessoa_id,
-#equipe_id,
-#edit_equipe_id,
-#edit_evento_id,
-#edit_is_leader,
-#criar_pessoa_id,
-#criar_equipe_id,
-#editar_pessoa_id,
-#editar_equipe_id,
-#tipo,
-#status {
+select {
   width: 100%;
   padding: 12px 14px;
   font-size: 16px;

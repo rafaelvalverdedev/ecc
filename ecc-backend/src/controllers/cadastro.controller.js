@@ -187,10 +187,10 @@ export async function criarCadastro(req, res) {
 // ========================================================
 // LISTAR
 // ========================================================
-export async function listar(req, res) {
+export async function carregarCadastro(req, res) {
     try {
         const { data, error } = await supabase
-            .from("encontrista_inscricao")
+            .from("cadastro")
             .select("*")
             .order("created_at", { ascending: false });
 
