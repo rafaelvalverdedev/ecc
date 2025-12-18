@@ -16,7 +16,7 @@ import momentosRoutes from "./routes/momentos.routes.js";
 import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
-
+import cadastro from "./routes/cadastro.routes.js"; // Nova Rota para Cadastro de Pessoas, Futuros encontreiros e encontristas
 import pagamentoRoutes from "./routes/pagamento.routes.js";
 import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
 
@@ -25,7 +25,6 @@ import devRoutes from "./routes/dev.routes.js";
 import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
-
 
 // ===========================
 //  WEBHOOK — PRECISA VIR ANTES DE QUALQUER PARSER
@@ -53,6 +52,12 @@ app.use(express.urlencoded({ extended: true }));
 // ======================================================
 app.use("/auth", authRoutes);
 app.use("/dev", devRoutes);
+
+// ======================================================
+// ROTAS DE CADASTRO (PÚBLICAS)
+// ======================================================
+app.use("/cadastro", cadastro);  // por enquanto ainda é pública
+
 
 // Pagamento público (apenas geração do PIX é protegida)
 app.use("/pagamento", pagamentoRoutes);
@@ -91,3 +96,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+// ========================================================
