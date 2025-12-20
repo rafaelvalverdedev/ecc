@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-  <link rel="stylesheet" href="./css/estilos.css">
-  <link rel="stylesheet" href="./css/loader.css">
+  <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/loader.css">
 </head>
 
 <body>
@@ -107,8 +107,8 @@
 
 
 
-  <script src="./js/config.js"></script>
-  <script src="./js/loader.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
   <script>
     // ====================================
     // 🔐 Autenticação
@@ -117,7 +117,7 @@
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!token) {
-      window.location.href = "./auth-login.html";
+      window.location.href = "../auth/login.html";
     }
     document.getElementById("user-email").innerText = user?.email ?? "";
 
@@ -127,14 +127,14 @@
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "./auth-login.html";
+      window.location.href = "../auth/login.html";
     }
 
     // ====================================
     // 🔄 Navegação
     // ====================================
     function goTo(page) {
-      window.location.href = `./${page}.html`;
+      window.location.href = `../${page}.html`;
     }
 
     // ====================================
@@ -155,7 +155,11 @@
       eventos.forEach(e => {
         tbody.innerHTML += `
           <tr>
-            <td>${e.nome}</td>
+            <td>
+               <a href="#" onclick="abrirEvento('${e.id}')">
+                ${e.nome}
+              </a>
+            </td>
             <td>${e.local}</td>
             <td>${e.start_date}</td>
             <td>${e.capacity ?? "-"}</td>
@@ -343,6 +347,10 @@
     };
 
 
+    function abrirEvento(eventoId) {
+      localStorage.setItem("eventoSelecionado", eventoId);
+      window.location.href = "../eventos/detalhe/index.html";
+    }
 
     // ====================================
     // ▶ INICIALIZAR

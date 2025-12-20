@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-  <link rel="stylesheet" href="./css/estilos.css">
-  <link rel="stylesheet" href="./css/loader.css">
+  <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/loader.css">
 </head>
 
 <body>
@@ -21,8 +21,8 @@
     <div id="erro"></div>
   </div>
 
-  <script src="./js/config.js"></script>
-  <script src="./js/loader.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
   <script>
     const API = APP_CONFIG.API_BASE_URL;
 
@@ -64,7 +64,7 @@
         localStorage.setItem("user", JSON.stringify({ email }));
 
         // 🔥 REDIRECIONAR PARA O DASHBOARD
-        window.location.href = "dashboard.html";
+        window.location.href = "../dashboard/";
 
       } catch (error) {
         erro.innerText = "Erro ao conectar ao servidor.";

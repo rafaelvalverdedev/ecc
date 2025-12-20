@@ -36,6 +36,14 @@ app.post(
 );
 
 // ===========================
+
+// PARA DEIXAR A ROTA PROTEGIDA COM AUTENTICAÇÃO
+// USAER O   authMiddleware,
+// ===========================
+
+
+
+// ===========================
 // PARSERS NORMAIS DO EXPRESS
 // (Sempre depois do webhook)
 // ===========================
@@ -64,23 +72,23 @@ app.use("/pagamento", pagamentoRoutes);
 // ======================================================
 // ROTAS PROTEGIDAS (LOGIN OBRIGATÓRIO)
 // ======================================================
-app.use("/pessoas", authMiddleware, pessoasRoutes);
-app.use("/eventos", authMiddleware, eventosRoutes);
-app.use("/equipes", authMiddleware, equipeRoutes);
-app.use("/equipes-evento", authMiddleware, equipesEventoRoutes);
-app.use("/teamrole", authMiddleware, teamroleRoutes);
-app.use("/momentos", authMiddleware, momentosRoutes);
+app.use("/pessoas", pessoasRoutes);
+app.use("/eventos",  eventosRoutes);
+app.use("/equipes",  equipeRoutes);
+app.use("/equipes-evento",  equipesEventoRoutes);
+app.use("/teamrole",  teamroleRoutes);
+app.use("/momentos",  momentosRoutes);
 
 // inscrições comuns são públicas (mantido como você usava)
 app.use("/inscricoes", inscricoesRoutes);
 
-app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
+app.use("/coordenadores",  coordenadoresRoutes);
 
 // Encontrista-inscrição é protegida por auth
-app.use("/encontrista_inscricao", authMiddleware, encontristaInscricaoRoutes);
+app.use("/encontrista_inscricao",  encontristaInscricaoRoutes);
 
 // Admin
-app.use("/admin", authMiddleware, adminRoutes);
+app.use("/admin",  adminRoutes);
 
 // ======================================================
 // ROOT ROUTE

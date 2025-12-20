@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Equipes do Evento • ECC</title>
+
+  <link rel="stylesheet" href="../../css/estilos.css">
+  <link rel="stylesheet" href="../../css/loader.css">
+</head>
+<body>
+
+  <button onclick="voltar()">← Voltar para o Evento</button>
+
+  <h1>Equipes do Evento</h1>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Equipe</th>
+          <th>Descrição</th>
+        </tr>
+      </thead>
+      <tbody id="lista-equipes"></tbody>
+    </table>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="../../js/loader.js"></script>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const eventoId = localStorage.getItem("eventoSelecionado");
+
+    if (!token) {
+      window.location.href = "../../auth/login.html";
+    }
+
+    if (!eventoId) {
+      window.location.href = "../index.html";
+    }
+
+    function voltar() {
+      window.location.href = "./index.html";
+    }
+
+    async function carregarEquipes() {
+      const res = await fetch(
+        `${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`,
+        { headers: { Authorization: "Bearer " + token } }
+      );
+
+      const json = await res.json();
+      const lista = json.data || [];
+
+      const tbody = document.getElementById("lista-equipes");
+      tbody.innerHTML = "";
+
+      lista.forEach(item => {
+        const eq = item.equipe;
+        tbody.innerHTML += `
+          <tr>
+            <td>${eq.nome}</td>
+            <td>${eq.descricao ?? "-"}</td>
+          </tr>
+        `;
+      });
+    }
+
+    carregarEquipes();
+  </script>
+
+</body>
+</html>

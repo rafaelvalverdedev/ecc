@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Evento • ECC</title>
+
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="stylesheet" href="../../css/loader.css">
+</head>
+
+<body>
+
+    <button onclick="voltar()">← Voltar</button>
+
+    <h1 id="evento-nome">Carregando evento...</h1>
+
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Equipes do Evento</h2>
+            <a href="./equipes.html">Gerenciar equipes</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Equipe</th>
+                    <th>Descrição</th>
+                </tr>
+            </thead>
+            <tbody id="equipes-evento-lista"></tbody>
+        </table>
+
+        <p id="equipes-vazio" style="display:none;">
+            Nenhuma equipe vinculada a este evento.
+        </p>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Pessoas do Evento</h2>
+            <a href="./pessoas.html">Gerenciar pessoas</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Equipe</th>
+                    <th>Papel</th>
+                </tr>
+            </thead>
+            <tbody id="pessoas-evento-lista"></tbody>
+        </table>
+
+        <p id="pessoas-vazio" style="display:none;">
+            Nenhuma pessoa vinculada a este evento.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Gestão do Evento</h2>
+
+        <ul>
+            <li><a href="./equipes.html">Equipes</a></li>
+            <li><a href="./pessoas.html">Pessoas</a></li>
+            <li><a href="./inscricoes.html">Inscrições</a></li>
+        </ul>
+    </div>
+
+    <script src="../../js/config.js"></script>
+    <script src="../../js/loader.js"></script>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const eventoId = localStorage.getItem("eventoSelecionado");
+
+        if (!token) {
+            window.location.href = "../../auth/login.html";
+        }
+
+        if (!eventoId) {
+            window.location.href = "../index.html";
+        }
+
+        function voltar() {
+            window.location.href = "../index.html";
+        }
+
+        async function carregarEvento() {
+            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/eventos/${eventoId}`, {
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            const json = await res.json();
+            document.getElementById("evento-nome").innerText = json.data.nome;
+        }
+
+        async function carregarEquipesEvento() {
+            const res = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`,
+                { headers: { Authorization: "Bearer " + token } }
+            );
+
+            const json = await res.json();
+            const lista = json.data || [];
+
+            const tbody = document.getElementById("equipes-evento-lista");
+            const vazio = document.getElementById("equipes-vazio");
+
+            tbody.innerHTML = "";
+
+            if (!lista.length) {
+                vazio.style.display = "block";
+                return;
+            }
+
+            vazio.style.display = "none";
+
+            lista.forEach(item => {
+                const eq = item.equipe;
+                tbody.innerHTML += `
+      <tr>
+        <td>${eq.nome}</td>
+        <td>${eq.descricao ?? "-"}</td>
+      </tr>
+    `;
+            });
+        }
+
+        async function carregarPessoasEvento() {
+            tbodyEncontreiro = document.getElementById("pessoas-evento-lista");
+            tbodyEncontreiro.innerHTML = "";
+
+            try {
+                const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole`, { headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
+                const json = await res.json();
+
+                const lista = (json.data || []).filter(tr => tr.pessoa?.role !== "admin");
+
+                const agrupadoPorEvento = {};
+
+                lista.forEach(tr => {
+                    const eventoNome = tr.evento?.nome || "Sem evento";
+
+                    if (!agrupadoPorEvento[eventoNome]) {
+                        agrupadoPorEvento[eventoNome] = [];
+                    }
+
+                    agrupadoPorEvento[eventoNome].push(tr);
+                });
+
+
+                tbodyEncontreiro.innerHTML = "";
+
+                Object.keys(agrupadoPorEvento).forEach(eventoNome => {
+
+                    // Linha de título do evento
+                    tbodyEncontreiro.innerHTML += `
+                        <tr class="evento-header">
+                            <td colspan="8">
+                                <strong>${eventoNome}</strong>
+                            </td>
+                        </tr>
+                    `;
+
+                    // Linhas dos encontreiros daquele evento
+                    agrupadoPorEvento[eventoNome].forEach(tr => {
+                        tbodyEncontreiro.innerHTML += `
+                                <tr>
+                                    <td>${tr.pessoa?.nome || "-"}</td>
+                                    <td>${tr.pessoa?.email || "-"}</td>
+                                    <td>${tr.pessoa?.telefone || "-"}</td>
+                                    <td>${tr.evento?.nome || "-"}</td>
+                                    <td>${tr.equipe?.nome || "-"}</td>
+
+                                    <td>
+                                        <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                            ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        ${tr.pagou
+                                ? `<span class="badge bg-primary">Sim</span>`
+                                : `
+                                                <span class="badge bg-danger">
+                                                    Não ${tr.evento?.valor_encontreiro}
+                                                </span>
+                                                <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')">
+                                                    Gerar Pagamento
+                                                </button>
+                                            `}
+                                    </td>
+
+                                    <td>
+                                        <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
+                                        <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                                    </td>
+                                </tr>
+                            `;
+                    });
+                });
+
+                tbodyEncontreiro.querySelectorAll(".btn-editar-tr").forEach(btn => {
+                    btn.addEventListener("click", () => abrirEdicaoTeamrole(btn.dataset.id));
+                });
+
+                tbodyEncontreiro.querySelectorAll(".btn-excluir-tr").forEach(btn => {
+                    btn.addEventListener("click", () => excluirEncontreiro(btn.dataset.id));
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar encontreiros inscritos:", err);
+                listaFeedback.textContent = "Erro ao carregar.";
+            }
+        }
+
+        carregarPessoasEvento();
+        carregarEquipesEvento
+        carregarEquipesEvento();
+        carregarEvento();
+    </script>
+
+</body>
+
+</html>

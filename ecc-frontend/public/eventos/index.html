@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
-  <link rel="stylesheet" href="./css/estilos.css">
-  <link rel="stylesheet" href="./css/loader.css">
+  <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/loader.css">
 </head>
 
 <body>
@@ -23,7 +23,7 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
 
-  <h1>Gerenciar Eventos</h1> <span><a href="dashboard.html">Voltar</a></span>
+  <h1>Gerenciar Eventos</h1> <span><a href="../dashboard/">Voltar</a></span>
   <br>
 
 
@@ -64,7 +64,7 @@
 
   <div class="card">
     <h2>Lista de Eventos
-      <!-- <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button> -->
+      <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
     </h2>
     <table>
       <thead>
@@ -97,8 +97,8 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <script src="./js/loader.js"></script>
-  <script src="./js/config.js"></script>
+  <script src="../js/loader.js"></script>
+  <script src="../js/config.js"></script>
   <script>
     // ======================================
     // 🔐 Autenticação
@@ -106,7 +106,7 @@
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!token) { window.location.href = "./auth-login.html"; }
+    if (!token) { window.location.href = "../auth/login.html"; }
 
     // ======================================
     // 🔓 Logout
@@ -114,14 +114,14 @@
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "./auth-login.html";
+      window.location.href = "../auth/login.html";
     }
 
     // ======================================
     // 🔄 Navegação
     // ======================================
     function goTo(page) {
-      window.location.href = `./${page}.html`;
+      window.location.href = `../${page}.html`;
     }
 
     // ============================
@@ -176,7 +176,11 @@
         eventos.forEach(ev => {
           tbody.innerHTML += `
           <tr>
-            <td>${ev.nome}</td>
+            <td>
+               <a href="#" onclick="abrirEvento('${ev.id}')">
+                ${ev.nome}
+              </a>
+            </td>
             <td>${ev.local}</td>
             <td>${formatarDataBR(ev.start_date) ?? "-"}</td>
             <td>${formatarDataBR(ev.end_date) ?? "-"}</td>
@@ -249,9 +253,9 @@
           return;
         }
 
+        withLoader(() => listarEventos(), carregarEvento());
         showToast("Evento salvo com sucesso!");
         cancelarEdicao();
-        listarEventos();
       } catch (error) {
         console.error("Erro ao salvar evento:", error);
       }
@@ -348,8 +352,10 @@
     });
 
 
-
-
+    function abrirEvento(eventoId) {
+      localStorage.setItem("eventoSelecionado", eventoId);
+      window.location.href = "./detalhe/index.html";
+    }
     const formatarDataBR = (dataISO) => {
       if (!dataISO) return "-";
 

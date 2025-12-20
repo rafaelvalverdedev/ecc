@@ -44,7 +44,7 @@ export async function listarPorEvento(req, res) {
       .from("equipes_evento")
       .select(`
         id,
-        equipe:equipe_id (id, nome),
+        equipe:equipe_id (id, nome, descricao),
         evento:evento_id (id, nome)
       `)
       .eq("evento_id", eventoId)
