@@ -17,7 +17,7 @@
   <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+  <button class="nav-btn" onclick="goTo('cadastro')">Cadastro</button>
   <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
   <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
@@ -69,25 +69,6 @@
     </table>
   </div>
 
-
-  <!-- Pessoas -->
-  <div class="card">
-    <h2 class="toggle-title" data-id="pessoas">
-      ▶ Pessoas Cadastradas
-    </h2>
-    <table class="grupo-pessoas" style="display: none;">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Telefone</th>
-        </tr>
-      </thead>
-      <tbody id="pessoas-list"></tbody>
-    </table>
-  </div>
-
-
   <!-- Cadastros -->
   <div class="card">
     <h2 class="toggle-title" data-id="cadastro">
@@ -106,6 +87,22 @@
   </div>
 
 
+  <!-- Administradores -->
+  <div class="card">
+    <h2 class="toggle-title" data-id="pessoas">
+      ▶ Administradores Cadastrados
+    </h2>
+    <table class="grupo-pessoas" style="display: none;">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+        </tr>
+      </thead>
+      <tbody id="pessoas-list"></tbody>
+    </table>
+  </div>
 
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
@@ -128,13 +125,6 @@
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "../auth/login.html";
-    }
-
-    // ====================================
-    // 🔄 Navegação
-    // ====================================
-    function goTo(page) {
-      window.location.href = `../${page}.html`;
     }
 
     // ====================================
@@ -161,7 +151,7 @@
               </a>
             </td>
             <td>${e.local}</td>
-            <td>${e.start_date}</td>
+            <td>${formatarDataBR(e.start_date)}</td>
             <td>${e.capacity ?? "-"}</td>
             <td>${formatarMoedaBR(e.valor_encontreiro) ?? "-"}</td>
             <td>${formatarMoedaBR(e.valor_encontrista) ?? "-"}</td>

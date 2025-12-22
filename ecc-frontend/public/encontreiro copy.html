@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="./css/estilos.css">
+    <link rel="stylesheet" href="./css/loader.css">
+</head>
+
+<body>
+
+    <button class="logout-btn" onclick="logout()">Sair</button>
+    <br><br>
+
+    <!-- Navegação -->
+    <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+    <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+    <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+    <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+    <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+    <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+    <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
+
+    <h1>Gerenciar Encontreiros</h1>
+    <button class="nav-btn" id="nav-btn" onclick="mostrarCardEncontreiro()">Cadastrar Encontreiro</button>
+
+    <div class="card" id="card-cadastrar" style="display:none;">
+        <h2>Cadastrar Encontreiro</h2>
+        <form id="form-encontreiro" onsubmit="salvarEncontreiro(event)">
+            <div class="row">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" required />
+                </div>
+                <div>
+                    <label for="email">E-mail</label>
+                    <input id="email" type="email" required />
+                </div>
+                <div>
+                    <label for="telefone">Telefone</label>
+                    <input id="telefone" required />
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label for="evento_id">Evento</label>
+                    <select id="evento_id" required></select>
+                </div>
+                <div>
+                    <label for="equipe_id">Equipe</label>
+                    <select id="equipe_id" required>
+                        <option value="">Selecione um evento primeiro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="is_leader">
+                        <input id="is_leader" type="checkbox" />
+                        Coordenador / Líder de Equipe
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+            <button type="submit" id="btnSalvar">Salvar</button>
+        </form>
+    </div>
+
+    <!-- Edição -->
+    <div class="card" id="card-editar" style="display:none;">
+        <h2>Editar Encontreiro</h2>
+        <form id="form-edicao">
+            <input type="hidden" id="edit_teamrole_id" />
+            <input type="hidden" id="edit_pessoa_id" />
+
+            <div id="bloco-pessoa" style="display: none;">
+                <div>
+                    <label for="edit_nome">Nome</label>
+                    <input id="edit_nome" required />
+                </div>
+                <div>
+                    <label for="edit_email">E-mail</label>
+                    <input id="edit_email" type="email" required />
+                </div>
+                <div>
+                    <label for="edit_telefone">Telefone</label>
+                    <input id="edit_telefone" required />
+                </div>
+            </div>
+
+            <div id="bloco-regras" style="display: none;">
+                <span>
+                    Regras de vínculo de
+                    <span id="nome-regra-vinculo"></span>
+                </span>
+
+                <br>
+                <br>
+
+                <div>
+                    <label for="edit_evento_id">Evento</label>
+                    <select id="edit_evento_id"></select>
+                </div>
+                <div>
+                    <label for="edit_equipe_id">Equipe</label>
+                    <select id="edit_equipe_id">
+                        <option value="">Selecione um evento primeiro</option>
+                    </select>
+                </div>
+                <div>
+                    <label>
+                        Coordenador / Líder
+                    </label>
+                    <input id="edit_is_leader" type="checkbox" />
+                    <br />
+                    <label>
+                        Pagou
+                    </label>
+                    <input id="edit_pagou" type="checkbox" />
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+                <button type="submit">Salvar alterações</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de encontreiro com vínculo (TeamRole) -->
+    <div class="card" id="card">
+        <h2>Encontreiro Inscritos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Telefone</th>
+                    <th>Evento</th>
+                    <th>Equipe</th>
+                    <th>Regras</th>
+                    <th>Pagou?</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-encontreiro"></tbody>
+        </table>
+        <div id="lista-feedback" class="muted"></div>
+    </div>
+
+    <!-- Lista de encontreiro geral (somente pessoas, sem regras) -->
+    <div class="card" id="card">
+        <h2>Encontreiro Geral</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Telefone</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-encontreiro-geral"></tbody>
+        </table>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO -->
+    <div class="modal-overlay" id="modalConfirm">
+        <div class="modal">
+            <p id="modalMessage"></p>
+            <div class="modal-actions">
+                <button onclick="closeModal()">Cancelar</button>
+                <button onclick="confirmAction()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script src="./js/loader.js"></script>
+    <script src="./js/config.js"></script>
+
+    <script>
+        // ============================
+        // 🔐 Autenticação
+        // ============================
+        const token = localStorage.getItem("token");
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        if (!token) { window.location.href = "./auth-login.html"; }
+
+        // ============================
+        // 🔓 Logout
+        // ============================
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "./auth-login.html";
+        }
+
+        // ============================
+        // 🔄 Navegação
+        // ============================
+        function goTo(page) {
+            window.location.href = `./${page}.html`;
+        }
+
+        // ============================
+        // 🔔 TOAST
+        // ============================
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.style.display = "block";
+
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 2500);
+        }
+
+        // ============================
+        // ❓ MODAL
+        // ============================
+        let onConfirmCallback = null;
+
+        function showConfirm(message, callback) {
+            document.getElementById("modalMessage").innerText = message;
+            document.getElementById("modalConfirm").style.display = "flex";
+            onConfirmCallback = callback;
+        }
+
+        function closeModal() {
+            document.getElementById("modalConfirm").style.display = "none";
+            onConfirmCallback = null;
+        }
+
+        function confirmAction() {
+            if (onConfirmCallback) onConfirmCallback();
+            closeModal();
+        }
+
+        const API = APP_CONFIG.API_BASE_URL;
+
+        const API_PESSOAS = API + "/pessoas";
+        const API_EVENTOS = API + "/eventos";
+        const API_EQUIPES_EVENTO = API + "/eventos";
+        const API_TEAMROLE = API + "/teamrole";
+
+        // =====================================
+        // ELEMENTOS
+        // =====================================
+        const card = document.getElementById("card");
+
+        const tbodyEncontreiro = document.getElementById("tbody-encontreiro");
+        const tbodyEncontreiroGeral = document.getElementById("tbody-encontreiro-geral");
+
+        const cadastroFeedback = document.getElementById("cadastro-feedback");
+        const listaFeedback = document.getElementById("lista-feedback");
+
+        const secEdicao = document.getElementById("sec-editar");
+
+        const blocoRegras = document.getElementById("bloco-regras");
+        const blocoPessoa = document.getElementById("bloco-pessoa");
+
+        const formCadastro = document.getElementById("form-encontreiro");
+        const formEdicao = document.getElementById("form-edicao");
+
+        // selects cadastro
+        const selectEvento = document.getElementById("evento_id");
+        const selectEquipe = document.getElementById("equipe_id");
+
+        // selects edição
+        const selectEditEvento = document.getElementById("edit_evento_id");
+        const selectEditEquipe = document.getElementById("edit_equipe_id");
+
+        // inputs edição
+        const editTeamroleId = document.getElementById("edit_teamrole_id");
+        const editPessoaId = document.getElementById("edit_pessoa_id");
+        const editNome = document.getElementById("edit_nome");
+        const editEmail = document.getElementById("edit_email");
+        const editTelefone = document.getElementById("edit_telefone");
+        const editIsLeader = document.getElementById("edit_is_leader");
+        const editPagou = document.getElementById("edit_pagou");
+
+        // Modo de edição
+        const EDIT_MODE = { NONE: "none", PESSOA: "pessoa", TEAMROLE: "teamrole" };
+        let editMode = EDIT_MODE.NONE;
+
+        // =====================================
+        // CARREGAR EVENTOS E EQUIPES POR EVENTO
+        // =====================================
+        async function carregarEventos() {
+            try {
+                const eventosRes = await fetch(API_EVENTOS, { headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
+                const eventosJson = await eventosRes.json();
+                const eventos = eventosJson.data || [];
+
+                selectEvento.innerHTML = '<option value="">Selecione</option>';
+                selectEditEvento.innerHTML = '<option value="">Selecione</option>';
+
+                eventos.forEach(ev => {
+                    selectEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+                    selectEditEvento.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar eventos:", err);
+            }
+        }
+
+        // Busca equipes vinculadas a um evento e preenche um select (passar o select como elemento alvo)
+        async function carregarEquipesPorEvento(eventoId, targetSelect, selectedEquipeId = "") {
+            try {
+                targetSelect.innerHTML = '<option value="">Carregando...</option>';
+
+                if (!eventoId) {
+                    targetSelect.innerHTML = '<option value="">Selecione um evento primeiro</option>';
+                    return;
+                }
+
+                const res = await fetch(`${API}/equipes-evento/evento/${eventoId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                const lista = json.data || [];
+
+                if (!lista.length) {
+                    targetSelect.innerHTML = '<option value="">Nenhuma equipe vinculada a este evento</option>';
+                    return;
+                }
+
+                targetSelect.innerHTML = '<option value="">Selecione</option>';
+
+                lista.forEach(item => {
+                    const eq = item.equipe; // conforme seu backend
+                    targetSelect.innerHTML += `
+                <option value="${eq.id}" ${eq.id === selectedEquipeId ? "selected" : ""}>
+                    ${eq.nome}
+                </option>
+            `;
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar equipes por evento:", err);
+                targetSelect.innerHTML = '<option value="">Erro ao carregar equipes</option>';
+            }
+        }
+
+        // =====================================
+        // LISTAR ENCONTREIRO GERAL
+        // =====================================
+        async function carregarEncontreiroGeral() {
+            try {
+                tbodyEncontreiroGeral.innerHTML = "";
+
+                const resGeral = await fetch(API_PESSOAS, { headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
+                const jsonGeral = await resGeral.json();
+                const lista = (jsonGeral.data || []).filter(p => p.role !== "admin");
+
+                lista.forEach(p => {
+                    tbodyEncontreiroGeral.innerHTML += `
+                        <tr>
+                            <td>${p.nome || "-"}</td>
+                            <td>${p.email || "-"}</td>
+                            <td>${p.telefone || "-"}</td>
+                            <td>
+                                <button onclick="abrirEdicaoPessoa('${p.id}')">Editar</button>
+                                <button onclick="excluirEncontreiroGeral('${p.id}')">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar encontreiro geral:", err);
+            }
+        }
+
+        // =====================================
+        // LISTAR ENCONTREIRO COM VÍNCULO
+        // =====================================
+        async function carregarEncontreiro() {
+            tbodyEncontreiro.innerHTML = "";
+
+            try {
+                const res = await fetch(API_TEAMROLE, { headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
+                const json = await res.json();
+
+                const lista = (json.data || []).filter(tr => tr.pessoa?.role !== "admin");
+
+                const agrupadoPorEvento = {};
+
+                lista.forEach(tr => {
+                    const eventoNome = tr.evento?.nome || "Sem evento";
+
+                    if (!agrupadoPorEvento[eventoNome]) {
+                        agrupadoPorEvento[eventoNome] = [];
+                    }
+
+                    agrupadoPorEvento[eventoNome].push(tr);
+                });
+
+
+                tbodyEncontreiro.innerHTML = "";
+
+                Object.keys(agrupadoPorEvento).forEach(eventoNome => {
+
+                    // Linha de título do evento
+                    tbodyEncontreiro.innerHTML += `
+                        <tr class="evento-header">
+                            <td colspan="8">
+                                <strong>${eventoNome}</strong>
+                            </td>
+                        </tr>
+                    `;
+
+                    // Linhas dos encontreiros daquele evento
+                    agrupadoPorEvento[eventoNome].forEach(tr => {
+                        tbodyEncontreiro.innerHTML += `
+                                <tr>
+                                    <td>${tr.pessoa?.nome || "-"}</td>
+                                    <td>${tr.pessoa?.email || "-"}</td>
+                                    <td>${tr.pessoa?.telefone || "-"}</td>
+                                    <td>${tr.evento?.nome || "-"}</td>
+                                    <td>${tr.equipe?.nome || "-"}</td>
+
+                                    <td>
+                                        <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                            ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        ${tr.pagou
+                                                    ? `<span class="badge bg-primary">Sim</span>`
+                                                    : `
+                                                <span class="badge bg-danger">
+                                                    Não ${tr.evento?.valor_encontreiro}
+                                                </span>
+                                                <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')">
+                                                    Gerar Pagamento
+                                                </button>
+                                            `}
+                                    </td>
+
+                                    <td>
+                                        <button class="secondary btn-editar-tr" data-id="${tr.id}">Editar</button>
+                                        <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                                    </td>
+                                </tr>
+                            `;
+                    });
+                });
+
+                tbodyEncontreiro.querySelectorAll(".btn-editar-tr").forEach(btn => {
+                    btn.addEventListener("click", () => abrirEdicaoTeamrole(btn.dataset.id));
+                });
+
+                tbodyEncontreiro.querySelectorAll(".btn-excluir-tr").forEach(btn => {
+                    btn.addEventListener("click", () => excluirEncontreiro(btn.dataset.id));
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar encontreiros inscritos:", err);
+                listaFeedback.textContent = "Erro ao carregar.";
+            }
+        }
+
+        // =====================================
+        // CADASTRAR ENCONTREIRO
+        // =====================================
+        async function salvarEncontreiro(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const telefone = document.getElementById("telefone").value.trim();
+            const evento_id = selectEvento.value;
+            const equipe_id = selectEquipe.value;
+            const is_leader = document.getElementById("is_leader").checked;
+
+            try {
+
+                // 1) Criar pessoa
+                const resPessoa = await fetch(API_PESSOAS, {
+                    method: "POST",
+                    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    body: JSON.stringify({ nome, email, telefone }),
+                });
+
+                const pessoaJson = await resPessoa.json();
+                if (!resPessoa.ok) {
+                    console.error("pessoa ok", error);
+                    return;
+                }
+
+                const pessoa = pessoaJson.data;
+                const pessoa_id = pessoa.id;
+
+                // 2) Criar vínculo teamrole
+                const resTR = await fetch(API_TEAMROLE, {
+                    method: "POST",
+                    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        pessoa_id,
+                        evento_id,
+                        equipe_id,
+                        is_leader,
+                        pagou: false,
+                    }),
+                });
+
+                formCadastro.reset();
+
+                withLoader(() => carregarEventos());
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
+                withLoader(() => cancelarEdicao());
+                showToast("Encontreiro salvo!");
+
+            } catch (error) {
+                console.error("Erro ao salvar equipe:", error);
+            }
+        }
+
+        // =====================================
+        // ABRIR EDIÇÃO: PESSOA
+        // =====================================
+        async function abrirEdicaoPessoa(id) {
+            editMode = EDIT_MODE.PESSOA;
+
+            document.getElementById("nav-btn").style.display = "none";
+            document.getElementById("form-encontreiro").style.display = "none";
+
+            document.getElementById("card-editar").style.display = "block";
+            blocoRegras.style.display = "none";
+            blocoPessoa.style.display = "block";
+
+            try {
+                const res = await fetch(`${API_PESSOAS}/${id}`, { headers: { Authorization: "Bearer " + token } });
+                const json = await res.json();
+
+                const p = json.data;
+
+                editPessoaId.value = p.id;
+                editNome.value = p.nome;
+                editEmail.value = p.email || "";
+                editTelefone.value = p.telefone || "";
+
+            } catch (err) {
+                alert("Erro ao abrir edição.");
+            }
+        }
+
+        // =====================================
+        // ABRIR EDIÇÃO: TEAMROLE
+        // =====================================
+        async function abrirEdicaoTeamrole(id) {
+            editMode = EDIT_MODE.TEAMROLE;
+
+            document.getElementById("nav-btn").style.display = "none";
+            document.getElementById("form-encontreiro").style.display = "none";
+
+            document.getElementById("card-editar").style.display = "block";
+            blocoRegras.style.display = "block";
+            blocoPessoa.style.display = "none";
+
+            document.getElementById("nome-regra-vinculo").style.display = "block";
+
+            try {
+                const res = await fetch(`${API_TEAMROLE}/${id}`, { headers: { Authorization: "Bearer " + token } });
+                const json = await res.json();
+
+                const tr = json.data;
+
+                document.getElementById("nome-regra-vinculo").innerText = tr.pessoa.nome;
+                document.getElementById("nome-regra-vinculo").style.display = "inline";
+
+
+
+                editTeamroleId.value = tr.id;
+                editPessoaId.value = tr.pessoa.id;
+
+                editNome.value = tr.pessoa.nome;
+                editEmail.value = tr.pessoa.email || "";
+                editTelefone.value = tr.pessoa.telefone || "";
+
+                // Preencher evento / equipes de edição: primeiro definimos o evento, depois carregamos as equipes daquele evento
+                selectEditEvento.value = tr.evento.id;
+                await carregarEquipesPorEvento(tr.evento.id, selectEditEquipe, tr.equipe.id);
+
+                editIsLeader.checked = tr.is_leader;
+                editPagou.checked = tr.pagou;
+
+            } catch (err) {
+                alert("Erro ao abrir edição.");
+            }
+        }
+
+        // =====================================
+        // SALVAR EDIÇÃO
+        // =====================================
+        formEdicao.addEventListener("submit", async e => {
+            e.preventDefault();
+
+            const pessoa_id = editPessoaId.value;
+            const teamrole_id = editTeamroleId.value;
+
+            const nome = editNome.value.trim();
+            const email = editEmail.value.trim();
+            const telefone = editTelefone.value.trim();
+
+            const evento_id = selectEditEvento.value;
+            const equipe_id = selectEditEquipe.value;
+
+            const is_leader = editIsLeader.checked;
+            const pagou = editPagou.checked;
+
+
+            const payload = {
+                is_leader,
+                pagou
+            };
+
+            if (selectEditEvento.value) payload.evento_id = selectEditEvento.value;
+            if (selectEditEquipe.value) payload.equipe_id = selectEditEquipe.value;
+
+            try {
+                // Atualiza pessoa
+                await fetch(`${API_PESSOAS}/${pessoa_id}`, {
+                    method: "PUT",
+                    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    body: JSON.stringify({ nome, email, telefone }),
+                });
+
+                // Atualiza vínculo (teamrole)
+                if (editMode === EDIT_MODE.TEAMROLE) {
+                    await fetch(`${API_TEAMROLE}/${teamrole_id}`, {
+                        method: "PUT",
+                        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            evento_id,
+                            equipe_id,
+                            is_leader,
+                            pagou
+                        }),
+                    });
+                }
+
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
+                withLoader(() => cancelarEdicao());
+                editMode = EDIT_MODE.NONE;
+
+            } catch (err) {
+                console.error("Erro ao salvar edição:", err);
+            }
+        });
+
+
+        // ============================
+        // 📌 CANCELAR EDIÇÃO
+        // ============================
+
+        function cancelarEdicao() {
+            document.getElementById("form-encontreiro").reset();
+            document.getElementById("form-edicao").reset();
+
+            document.getElementById("nav-btn").style.display = "block";
+            document.getElementById("form-encontreiro").style.display = "none";
+
+            blocoPessoa.style.display = "none";
+            document.getElementById("card-editar").style.display = "none";
+            document.getElementById("card-cadastrar").style.display = "none";
+
+        }
+
+        // Função para exibir o card de criação/edição
+        function mostrarCardEncontreiro() {
+            document.getElementById("card-cadastrar").style.display = "block";
+            document.getElementById("form-encontreiro").style.display = "block";
+            document.getElementById("card-editar").style.display = "none";
+        }
+
+        // =====================================
+        // EXCLUIR TEAMROLE
+        // =====================================
+        async function excluirEncontreiro(id) {
+            showConfirm("Tem certeza que deseja excluir este vínculo?", async () => {
+                try {
+                    const response = await fetch(`${API_TEAMROLE}/${id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    });
+
+                    if (!response.ok) {
+                        alert("Erro ao excluir encontreiro.");
+                        return;
+                    }
+
+                }
+                catch (error) {
+                    console.error("Erro ao excluir equipe:", error);
+                    showToast("Erro ao excluir equipe");
+                }
+
+                withLoader(() => carregarEncontreiro());
+                withLoader(() => carregarEncontreiroGeral());
+                showToast("Vínculo excluído!");
+            });
+        }
+
+
+        // =====================================
+        // EXCLUIR PESSOA
+        // =====================================
+        async function excluirEncontreiroGeral(id) {
+            showConfirm("Tem certeza que deseja excluir este encontreiro?", async () => {
+                try {
+                    const response = await fetch(`${API_PESSOAS}/${id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    });
+                    if (!response.ok) {
+                        showToast("Encontreiro vinculado a uma equipe.");
+                        return;
+                    }
+
+                    withLoader(() => carregarEncontreiro());
+                    withLoader(() => carregarEncontreiroGeral());
+                    showToast("Encontreiro excluído!");
+                } catch (error) {
+                    console.error("Erro ao excluir equipe:", error);
+                    showToast("Erro ao excluir equipe");
+                }
+            });
+        }
+
+        // ======================================================
+        // GERAR PAGAMENTO DO ENCONTREIRO (ATUALIZADO)
+        // ======================================================
+        async function gerarPagamento(teamroleId, nome) {
+            showConfirm("Gerar pagamento PIX para " + nome + "?", async () => {
+
+                withLoader(async () => {
+                    try {
+                        const res = await fetch(`${API}/pagamento/encontreiro/${teamroleId}`, {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({}) // ensure body exists
+                        });
+
+                        const json = await res.json();
+
+                        if (!res.ok) {
+                            alert(json.error || "Erro ao gerar pagamento");
+                            return;
+                        }
+
+                        const { payment_id } = json;
+
+                        // Redireciona para página que exibe QR Code (abre em nova aba)
+                        window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
+
+                    } catch (err) {
+                        alert("Erro ao gerar pagamento.");
+                        console.error(err);
+                    }
+                });
+            });
+        }
+
+        // =====================================
+        // INICIALIZAÇÃO
+        // =====================================
+        withLoader(() => (async function init() {
+            await carregarEventos();
+            await carregarEncontreiro();
+            await carregarEncontreiroGeral();
+
+            // listeners: quando o usuário selecionar um evento no formulário de cadastro, carregamos as equipes daquele evento
+            selectEvento.addEventListener("change", () => {
+                carregarEquipesPorEvento(selectEvento.value, selectEquipe);
+            });
+
+            // listeners para edição: quando o evento mudar, recarregamos as equipes no select de edição
+            selectEditEvento.addEventListener("change", () => {
+                carregarEquipesPorEvento(selectEditEvento.value, selectEditEquipe);
+            });
+        })());
+
+    </script>
+</body>
+
+</html>

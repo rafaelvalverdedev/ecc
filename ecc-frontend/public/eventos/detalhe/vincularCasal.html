@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="stylesheet" href="../../css/loader.css">
+</head>
+
+<body>
+
+    <button class="logout-btn" onclick="logout()">Sair</button>
+    <br><br>
+
+    <!-- Navegação -->
+    <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
+    <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
+    <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
+    <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+    <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+    <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
+    <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
+
+    <h1>Gerenciar Vinculos Encontreiros</h1>
+<span id="toast"></span>
+
+    <div class="card" id="card-vincular">
+        <h2>Vincular Casal à Equipe</h2>
+
+        <form id="form-vinculo">
+
+            <div class="row">
+                <div>
+                    <label for="evento_id">Evento</label>
+                    <select id="evento_id" required>
+                        <option value="">Selecione o evento</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="cadastro_id">Casal</label>
+                    <select id="cadastro_id" required>
+                        <option value="">Selecione o casal</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label for="equipe_id">Equipe</label>
+                    <select id="equipe_id" required>
+                        <option value="">Selecione um evento primeiro</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="is_leader" />
+                        Coordenador de Equipe
+                    </label>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" onclick="cancelarVinculo()">Cancelar</button>
+                <button type="submit">Vincular</button>
+            </div>
+
+        </form>
+    </div>
+
+
+    <script src="../../js/loader.js"></script>
+    <script src="../../js/config.js"></script>
+
+    <script>
+        /* =========================================================
+           🔐 AUTENTICAÇÃO
+        ========================================================= */
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "./auth-login.html";
+        }
+
+        /* =========================================================
+           🌐 CONFIG API
+        ========================================================= */
+        const API = APP_CONFIG.API_BASE_URL;
+
+        const API_EVENTOS = `${API}/eventos`;
+        const API_CADASTROS = `${API}/cadastro`;
+        const API_TEAMROLE = `${API}/teamrole`;
+
+        /* =========================================================
+           📌 ELEMENTOS
+        ========================================================= */
+        const formVinculo = document.getElementById("form-vinculo");
+        const selectEvento = document.getElementById("evento_id");
+        const selectCadastro = document.getElementById("cadastro_id");
+        const selectEquipe = document.getElementById("equipe_id");
+        const checkLeader = document.getElementById("is_leader");
+
+        /* =========================================================
+           🔔 TOAST SIMPLES
+        ========================================================= */
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.style.display = "block";
+            setTimeout(() => toast.style.display = "none", 2500);
+        }
+
+        /* =========================================================
+           📦 CARREGAR EVENTOS
+        ========================================================= */
+        async function carregarEventos() {
+            try {
+                const eventoId = localStorage.getItem("eventoSelecionado");
+
+                if (!eventoId) {
+                    console.warn("Nenhum evento selecionado previamente.");
+                    return;
+                }
+
+                const res = await fetch(`${API_EVENTOS}/${eventoId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                const evento = json.data;
+
+                if (!evento) {
+                    console.warn("Evento não encontrado.");
+                    return;
+                }
+
+                selectEvento.innerHTML = `<option value="${evento.id}" selected> ${evento.nome} </option> `;
+
+                // opcional e recomendado: impedir troca de evento
+                selectEvento.disabled = true;
+
+                // já dispara o carregamento das equipes
+                carregarEquipesPorEvento(evento.id);
+
+            } catch (err) {
+                console.error("Erro ao carregar evento selecionado", err);
+            }
+        }
+
+
+        /* =========================================================
+           📦 CARREGAR CASAIS (CADASTROS)
+        ========================================================= */
+        async function carregarCadastros() {
+            try {
+                const res = await fetch(API_CADASTROS, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                const cadastros = json.data || [];
+
+                selectCadastro.innerHTML = `<option value="">Selecione o casal</option>`;
+
+                cadastros.forEach(c => {
+                    selectCadastro.innerHTML += `
+                    
+                <option value="${c.id}">
+                    ${c.nome_completo_esposo} e ${c.nome_completo_esposa}
+                </option>
+            `;
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar cadastros", err);
+            }
+        }
+
+        /* =========================================================
+           📦 CARREGAR EQUIPES POR EVENTO
+        ========================================================= */
+        async function carregarEquipesPorEvento(eventoId) {
+            if (!eventoId) {
+                selectEquipe.innerHTML = `<option value="">Selecione um evento primeiro</option>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/equipes-evento/evento/${eventoId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                const lista = json.data || [];
+
+                if (!lista.length) {
+                    selectEquipe.innerHTML = `<option value="">Nenhuma equipe neste evento</option>`;
+                    return;
+                }
+
+                selectEquipe.innerHTML = `<option value="">Selecione a equipe</option>`;
+
+                lista.forEach(item => {
+                    selectEquipe.innerHTML += `
+                <option value="${item.equipe.id}">
+                    ${item.equipe.nome}
+                </option>
+            `;
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar equipes", err);
+            }
+        }
+
+        /* =========================================================
+           ✅ SALVAR VÍNCULO (TEAMROLE)
+        ========================================================= */
+        async function salvarVinculo(event) {
+            event.preventDefault();
+
+            const cadastro_id = selectCadastro.value;
+            const evento_id = selectEvento.value;
+            const equipe_id = selectEquipe.value;
+            const is_leader = checkLeader.checked;
+            
+
+            console.log({
+                cadastro_id,
+                evento_id,
+                equipe_id,
+                is_leader
+            });
+            
+            if (!cadastro_id || !evento_id || !equipe_id) {
+                showToast("Preencha todos os campos.");
+                return;
+            }
+
+            try {
+                const res = await fetch(API_TEAMROLE, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        cadastro_id,
+                        evento_id,
+                        equipe_id,
+                        is_leader,
+                        pagou: false
+                    })
+                });
+
+                const json = await res.json();
+
+                if (!res.ok) {
+                    showToast(json.error || "Erro ao vincular casal.");
+                    return;
+                }
+
+                showToast("Casal vinculado com sucesso!");
+                formVinculo.reset();
+
+            } catch (err) {
+                console.error("Erro ao salvar vínculo", err);
+                showToast("Erro inesperado.");
+            }
+        }
+
+        /* =========================================================
+           ❌ CANCELAR
+        ========================================================= */
+        function cancelarVinculo() {
+            formVinculo.reset();
+            document.getElementById("card-vincular").style.display = "none";
+        }
+
+        /* =========================================================
+           🎯 EVENT LISTENERS
+        ========================================================= */
+        selectEvento.addEventListener("change", () => {
+            carregarEquipesPorEvento(selectEvento.value);
+        });
+
+        formVinculo.addEventListener("submit", salvarVinculo);
+
+        /* =========================================================
+           🚀 INIT
+        ========================================================= */
+        (async function init() {
+            await carregarEventos();
+            await carregarCadastros();
+        })();
+    </script>
+
+</body>
+
+</html>

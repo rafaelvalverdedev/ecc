@@ -5,7 +5,7 @@ import { z } from "zod";
 // VALIDAÇÃO
 // ===============================
 const teamRoleSchema = z.object({
-  pessoa_id: z.string().uuid("pessoa_id inválido"),
+  cadastro_id: z.string().uuid("pessoa_id inválido"),
   equipe_id: z.string().uuid("equipe_id inválido"),
   evento_id: z.string().uuid("evento_id inválido"),
   is_leader: z.boolean().optional(),
@@ -23,7 +23,7 @@ export async function listarTeamRoles(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa:pessoa_id (id, nome, email, telefone),
+        pessoa:cadastro_id (id, nome_completo_esposo, nome_completo_esposa),
         equipe:equipe_id (id, nome),
         evento:evento_id (id, nome, valor_encontreiro, valor_encontrista)
       `)
@@ -52,9 +52,10 @@ export async function listarPorPessoa(req, res) {
         is_leader,
         pagou,
         equipe:equipe_id (id, nome),
-        evento:evento_id (id, nome)
+        evento:evento_id (id, nome),
+        cadastro:cadastro_id (id, nome_completo_esposo, nome_completo_esposa)
       `)
-      .eq("pessoa_id", pessoaId);
+      .eq("cadastro_id", pessoaId);
 
     if (error) throw error;
 
@@ -130,7 +131,7 @@ export async function criarTeamRole(req, res) {
     const { data: existente } = await supabase
       .from("teamrole")
       .select("id")
-      .eq("pessoa_id", parsed.pessoa_id)
+      .eq("cadastro_id", parsed.cadastro_id)
       .eq("equipe_id", parsed.equipe_id)
       .eq("evento_id", parsed.evento_id)
       .maybeSingle();

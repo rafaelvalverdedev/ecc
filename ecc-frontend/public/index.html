@@ -14,11 +14,6 @@
     <meta property="og:url" content="https://eccserrinha.vercel.app">
     <meta property="og:site_name" content="Feliz Natal">
 
-    <!-- Fonte Natalina -->
-    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&display=swap"
-        rel="stylesheet">
-
     <style>
         * {
             margin: 0;
@@ -28,7 +23,7 @@
 
         body {
             min-height: 100vh;
-            background: linear-gradient(to bottom, #881202, #b61b06, #881202);
+            background: linear-gradient(to bottom, #d6d5d5, #fdfafa, #d6d5d5);
             overflow: hidden;
             font-family: 'Mountains of Christmas', cursive;
             color: white;
@@ -40,12 +35,7 @@
             /* espaço para o footer */
         }
 
-        /* TOPO */
-        .top {
-            margin-top: 20px;
-            text-align: center;
-            z-index: 2;
-        }
+
 
         h1 {
             font-size: clamp(3rem, 6vw, 5rem);
@@ -146,53 +136,15 @@
 
 <body>
 
-    <!-- TOPO -->
-    <div class="top">
-        <div class="icon">
-            <h1>🎄Feliz Natal!🎄</h1>
-        </div>
-    </div>
 
     <!-- CENTRO -->
     <div class="center">
         <p class="message">
-            ✨ “Assim como Deus os uniu em amor, que neste Natal a presença de Jesus renove a fé, a cumplicidade e a
-            esperança do casal.” ✨
-            <br>
-            <br>
-            🕊️ “Neste Natal, que Jesus seja o alicerce do amor de vocês, trazendo paz ao lar e graça para caminhar
-            juntos.” 🕊️
-            <br><span class="span">Coordenação Geral: <strong>Raimundo e Regina</strong></span>
+            <br><a href="./dashboard">Painel</a></span>
         </p>
     </div>
 
-    <!-- RODAPÉ -->
-    <footer class="footer-logos">
-        <div class="logo-principal">
-            <img src="Logo-v2-2025.png" alt="Logo Principal">
-        </div>
-    </footer>
 
-    <!-- NEVE -->
-    <script>
-        function createSnowflake() {
-            const snowflake = document.createElement("div");
-            snowflake.classList.add("snowflake");
-            snowflake.innerHTML = "❄";
-
-            snowflake.style.left = Math.random() * window.innerWidth + "px";
-            snowflake.style.animationDuration = (Math.random() * 3 + 2) + "s";
-            snowflake.style.fontSize = (Math.random() * 10 + 10) + "px";
-
-            document.body.appendChild(snowflake);
-
-            setTimeout(() => {
-                snowflake.remove();
-            }, 5000);
-        }
-
-        setInterval(createSnowflake, 200);
-    </script>
 
 </body>
 
