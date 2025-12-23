@@ -10,16 +10,17 @@
 
 <body>
 
-  <div class="container">
-    <h2>Login</h2>
+    <div class="container">
+      <h2>Login</h2>
 
-    <input type="email" id="email" placeholder="E-mail">
-    <input type="password" id="password" placeholder="password">
+      <input type="email" id="email" placeholder="E-mail">
+      <input type="password" id="password" placeholder="password">
 
-    <button onclick="login()">Entrar</button>
+      <button onclick="login()">Entrar</button>
 
-    <div id="erro"></div>
-  </div>
+      <div id="toast" class="toast"></div>
+    </div>
+
 
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
@@ -33,11 +34,11 @@
       const password = document.getElementById("password").value.trim();
       const erro = document.getElementById("erro");
 
-      erro.style.display = "none";
+      toast.style.display = "none";
 
       if (!email || !password) {
-        erro.innerText = "Preencha todos os campos.";
-        erro.style.display = "block";
+        toast.innerText = "Preencha todos os campos.";
+        toast.style.display = "block";
         return;
       }
 
@@ -52,8 +53,9 @@
 
         if (!res.ok) {
           hideLoader();
-          erro.innerText = data.error || "Credenciais inválidas.";
-          erro.style.display = "block";
+          toast.innerText = data.error || "Usuário ou Sennha Inválidos";
+          toast.style.display = "block";
+          setTimeout(() => { toast.style.display = "none"; }, 2000);
           return;
         }
 
@@ -67,9 +69,9 @@
         window.location.href = "../dashboard/";
 
       } catch (error) {
-        erro.innerText = "Erro ao conectar ao servidor.";
-        erro.style.display = "block";
-        console.error(error);
+        toast.innerText = "Erro ao conectar ao servidor.";
+        toast.style.display = "block";
+        console.error(toast);
         hideLoader();
       }
     }

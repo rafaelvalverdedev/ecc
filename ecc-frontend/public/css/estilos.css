@@ -1,10 +1,72 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+/* Container do login */
+.container {
+  width: 100%;
+  max-width: 380px;
+  padding: 30px 25px;
+
+  background-color: #ffffff;
+  border-radius: 8px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
+
+/* Título */
+.container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Inputs */
+.container input {
+  width: 100%;
+  padding: 12px 10px;
+  margin-bottom: 12px;
+
+  border: 1px solid #ccc;
+  border-radius: 4px;
+
+  font-size: 14px;
+}
+
+/* Foco no input */
+.container input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* Botão */
+.container button {
+  width: 100%;
+  padding: 12px;
+
+  background-color: #007bff;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 4px;
+
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Hover do botão */
+.container button:hover {
+  background-color: #0056b3;
+}
+
+/* Mensagem de erro */
+#erro {
+  margin-top: 15px;
+  color: #dc3545;
+  font-size: 14px;
+  display: none;
+}
+
+
+
+
 
 .card {
   background: white;
@@ -167,14 +229,6 @@ select {
 }
 
 
-.container {
-  background: white;
-  width: 350px;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
 
 input {
   width: 90%;
@@ -278,23 +332,27 @@ button:hover {
 /* ================= TOAST ================= */
 .toast {
   position: fixed;
-  top: 20px;
+  display: none;
+  bottom: 20px;
   right: 20px;
   background: #323232;
   color: #fff;
   padding: 12px 16px;
   border-radius: 4px;
-  display: none;
   z-index: 1001;
 }
 
 
 .checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* duas colunas */
-  gap: 8px 16px;                         /* espaçamento entre itens */
-  max-height: 300px;                    /* altura máxima */
-  overflow-y: auto;                     /* scroll vertical */
+  grid-template-columns: repeat(2, 1fr);
+  /* duas colunas */
+  gap: 8px 16px;
+  /* espaçamento entre itens */
+  max-height: 300px;
+  /* altura máxima */
+  overflow-y: auto;
+  /* scroll vertical */
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -307,34 +365,37 @@ button:hover {
 }
 
 .titulo-vinculo {
-    margin: 0;
+  margin: 0;
 }
 
 #nome-regra-vinculo {
-    display: inline;       /* 👈 garante que fique na mesma linha */
-    font-weight: bold;
+  display: inline;
+  /* 👈 garante que fique na mesma linha */
+  font-weight: bold;
 }
+
 .toggle-title {
   cursor: pointer;
   user-select: none;
 }
+
 .toggle-title:hover {
   opacity: 0.8;
 }
 
 .cabecalho-evento th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    border-bottom: 2px solid #ccc;
-    padding: 6px;
+  background-color: #f2f2f2;
+  font-weight: bold;
+  border-bottom: 2px solid #ccc;
+  padding: 6px;
 }
 
 .evento-header td {
-    padding: 8px;
+  padding: 8px;
 }
 
 .linha-evento td {
-    padding: 6px;
+  padding: 6px;
 }
 
 
