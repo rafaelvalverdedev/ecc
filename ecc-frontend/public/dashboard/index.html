@@ -180,31 +180,31 @@
       });
     }
 
-    async function carregarCoordenadores() {
-      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole`, {
-        headers: { Authorization: "Bearer " + token }
-      });
+    // async function carregarCoordenadores() {
+    //   const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole`, {
+    //     headers: { Authorization: "Bearer " + token }
+    //   });
 
-      const vinculos_res = await res.json();
-      const vinculos = vinculos_res.data;
+    //   const vinculos_res = await res.json();
+    //   const vinculos = vinculos_res.data;
 
-      const tbody = document.getElementById("lista-coordenadores");
-      tbody.innerHTML = "";
+    //   const tbody = document.getElementById("lista-coordenadores");
+    //   tbody.innerHTML = "";
 
-      vinculos
-        .filter(i => i.is_leader === true)
-        .forEach(i => {
-          const p = i.pessoa; // pessoa já vem no JSON
+    //   vinculos
+    //     .filter(i => i.is_leader === true)
+    //     .forEach(i => {
+    //       const p = i.pessoa; // pessoa já vem no JSON
 
-          tbody.innerHTML += `
-          <tr>
-            <td>${p?.nome ?? "-"}</td>
-            <td>${i?.evento?.nome ?? "-"}</td>
-            <td>${i?.equipe?.nome ?? "-"}</td>
-           </tr>
-        `;
-        });
-    }
+    //       tbody.innerHTML += `
+    //       <tr>
+    //         <td>${p?.nome ?? "-"}</td>
+    //         <td>${i?.evento?.nome ?? "-"}</td>
+    //         <td>${i?.equipe?.nome ?? "-"}</td>
+    //        </tr>
+    //     `;
+    //     });
+    // }
 
     // async function carregarEncontreiros() {
     //   try {

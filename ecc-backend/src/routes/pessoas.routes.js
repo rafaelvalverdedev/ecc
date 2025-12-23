@@ -5,8 +5,7 @@ import {
   criarPessoa,
   atualizarPessoa,
   atualizarSenha,
-  deletarPessoa,
-  buscarCadastro
+  deletarPessoa
 } from "../controllers/pessoas.controller.js";
 
 import { authMiddleware, requireRole, Roles } from "../middlewares/auth.js";
@@ -16,8 +15,6 @@ const router = Router();
 // públicas
 router.get("/", listarPessoas);
 router.get("/:id", buscarPessoa);
-
-router.get("/cadastro", buscarCadastro);
 
 // requer login
 router.post("/", authMiddleware, criarPessoa);

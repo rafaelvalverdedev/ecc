@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Equipes • ECC</title>
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="stylesheet" href="../../css/loader.css">
+</head>
+
+<body>
+
+    <button class="logout-btn" onclick="logout()">Sair</button>
+    <br><br>
+
+    <!-- Navegação -->
+    <button class="nav-btn" onclick="goTo('../dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('../eventos')">Eventos</button>
+    <button class="nav-btn" onclick="goTo('../equipes')">Equipes</button>
+    <button class="nav-btn" onclick="goTo('../equipes_evento')">Evento x Equipe</button>
+    <button class="nav-btn" onclick="goTo('../encontreiro')">Encontreiro</button>
+
+    <h1>Gerenciar Vínculos Encontreiros</h1>
+    <a href="../detalhe/">← Voltar ao Detalhe do Evento</a>
+    <span id="toast" class="toast"></span>
+
+    <div class="card" id="card-vincular">
+        <h2>Vincular Casal à Equipe</h2>
+
+        <form id="form-vinculo">
+
+            <div class="row">
+                <div>
+                    <label for="evento_id">Evento</label>
+                    <select id="evento_id" required></select>
+                </div>
+
+                <div>
+                    <label for="cadastro_id">Casal</label>
+                    <select id="cadastro_id" required></select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label for="equipe_id">Equipe</label>
+                    <select id="equipe_id" required></select>
+                </div>
+
+                <div class="checkbox-group checkbox-item">
+                    <label>
+                        <input type="checkbox" id="is_leader" />
+                        Coordenador de Equipe
+                    </label>
+                </div>
+                <BR>
+                <div class="checkbox-group checkbox-item">
+                    <label>
+                        <input type="checkbox" id="pagou" />
+                        Efetuou o pagamento?
+                    </label>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" onclick="cancelarVinculo()">Cancelar</button>
+                <button type="submit">Vincular</button>
+            </div>
+
+        </form>
+    </div>
+
+    <script src="../../js/loader.js"></script>
+    <script src="../../js/config.js"></script>
+
+    <script>
+        /* ===================== AUTENTICAÇÃO ===================== */
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "./auth-login.html";
+
+        /* ===================== CONFIG API ===================== */
+        const API = APP_CONFIG.API_BASE_URL;
+        const API_EVENTOS = `${API}/eventos`;
+        const API_CADASTROS = `${API}/cadastro`;
+        const API_TEAMROLE = `${API}/teamrole`;
+
+        /* ===================== ELEMENTOS ===================== */
+        const formVinculo = document.getElementById("form-vinculo");
+        const selectEvento = document.getElementById("evento_id");
+        const selectCadastro = document.getElementById("cadastro_id");
+        const selectEquipe = document.getElementById("equipe_id");
+        const checkLeader = document.getElementById("is_leader");
+
+        let modoEdicao = false;
+        let vinculoId = null;
+
+        /* ===================== TOAST ===================== */
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.style.display = "block";
+            setTimeout(() => toast.style.display = "none", 2500);
+        }
+
+        /* ===================== QUERY PARAM ===================== */
+        function getQueryParam(param) {
+            return new URLSearchParams(window.location.search).get(param);
+        }
+
+        /* ===================== EVENTO ===================== */
+        async function carregarEventos() {
+            const eventoId = localStorage.getItem("eventoSelecionado");
+            if (!eventoId) return;
+
+            const res = await fetch(`${API_EVENTOS}/${eventoId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const evento = (await res.json()).data;
+            selectEvento.innerHTML = `<option value="${evento.id}">${evento.nome}</option>`;
+            selectEvento.disabled = true;
+
+            await carregarEquipesPorEvento(evento.id);
+        }
+
+        /* ===================== CASAIS ===================== */
+        async function carregarCadastros() {
+            const res = await fetch(`${API}/teamrole/pessoa/${getQueryParam("id")}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+
+            const cadastros = (await res.json()).data;
+            const vinculo = cadastros[0];
+
+            console.log(vinculo.cadastro.nome_completo_esposo);
+            console.log(vinculo.cadastro.nome_completo_esposa);
+
+
+            selectCadastro.innerHTML = `<option value="">${vinculo?.cadastro?.nome_completo_esposo} e ${vinculo?.cadastro?.nome_completo_esposa}</option>`;
+            selectCadastro.disabled = true;
+
+
+            const is_leader = vinculo.is_leader || true;
+            checkLeader.checked = is_leader;
+
+            const pagou = vinculo.pagou || false;
+            document.getElementById("pagou").checked = pagou;
+
+        }
+
+        /* ===================== EQUIPES ===================== */
+        async function carregarEquipesPorEvento(eventoId) {
+            const res = await fetch(`${API}/teamrole/evento/${eventoId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const lista = (await res.json()).data || [];
+            selectEquipe.innerHTML = `<option value="">Já faz parte da equipe: ${lista[0]?.equipe?.nome}</option><option value="">Selecione a equipe</option>`;
+
+            lista.forEach(item => {
+                selectEquipe.innerHTML += `<option value="${item.equipe.id}"> ${item.equipe.nome}</option>`;
+            });
+        }
+
+        /* ===================== EDITAR ===================== */
+        async function carregarVinculoParaEdicao(id) {
+            const res = await fetch(`${API_TEAMROLE}/pessoa/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const vinculo = (await res.json()).data;
+            if (!vinculo) return;
+
+            modoEdicao = true;
+            vinculoId = id;
+
+            selectEvento.innerHTML = `<option value="${vinculo.evento.id}">${vinculo.evento.nome}</option>`;
+            selectEvento.disabled = true;
+
+            await carregarEquipesPorEvento(vinculo.evento.id);
+            selectEquipe.value = vinculo.equipe.id;
+            selectCadastro.value = vinculo.cadastro.id;
+            checkLeader.checked = vinculo.is_leader;
+
+            document.querySelector("h2").innerText = "Editar vínculo";
+            document.querySelector("button[type='submit']").innerText = "Salvar alterações";
+        }
+
+        /* ===================== SALVAR ===================== */
+        async function salvarVinculo(e) {
+            e.preventDefault();
+
+            const payload = {
+                cadastro_id: selectCadastro.value,
+                evento_id: selectEvento.value,
+                equipe_id: selectEquipe.value,
+                is_leader: checkLeader.checked,
+                pagou: false
+            };
+
+            const url = modoEdicao ? `${API_TEAMROLE}/${vinculoId}` : API_TEAMROLE;
+            const method = modoEdicao ? "PUT" : "POST";
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) return showToast("Erro ao salvar vínculo.");
+
+            showToast(modoEdicao ? "Vínculo atualizado!" : "Vínculo criado!");
+        }
+
+        function cancelarVinculo() {
+            window.history.back();
+        }
+
+        formVinculo.addEventListener("submit", salvarVinculo);
+
+        /* ===================== INIT ===================== */
+        (async () => {
+            await carregarEventos();
+            await carregarCadastros();
+
+            const id = getQueryParam("id");
+            if (id) await carregarVinculoParaEdicao(id);
+        })();
+    </script>
+
+</body>
+
+</html>

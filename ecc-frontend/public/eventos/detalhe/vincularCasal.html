@@ -14,17 +14,18 @@
     <br><br>
 
     <!-- Navegação -->
-    <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
-    <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
-    <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-    <button class="nav-btn" onclick="goTo('equipes_evento')">Evento x Equipe</button>
-    <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
+    <button class="nav-btn" onclick="goTo('../dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="goTo('../eventos')">Eventos</button>
+    <button class="nav-btn" onclick="goTo('../equipes')">Equipes</button>
+    <button class="nav-btn" onclick="goTo('../equipes_evento')">Evento x Equipe</button>
+    <button class="nav-btn" onclick="goTo('../encontreiro')">Encontreiro</button>
     <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
     <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
     <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
 
     <h1>Gerenciar Vinculos Encontreiros</h1>
-<span id="toast"></span>
+    <a href="../detalhe/">← Voltar ao Detalhe do Evento</a>
+    <span id="toast" class="toast"></span>
 
     <div class="card" id="card-vincular">
         <h2>Vincular Casal à Equipe</h2>
@@ -225,15 +226,7 @@
             const evento_id = selectEvento.value;
             const equipe_id = selectEquipe.value;
             const is_leader = checkLeader.checked;
-            
 
-            console.log({
-                cadastro_id,
-                evento_id,
-                equipe_id,
-                is_leader
-            });
-            
             if (!cadastro_id || !evento_id || !equipe_id) {
                 showToast("Preencha todos os campos.");
                 return;

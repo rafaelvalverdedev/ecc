@@ -11,7 +11,7 @@
 
 <body>
 
-    <button onclick="voltar()">← Voltar</button>
+    <button onclick="voltar()"> ← Voltar</button>
 
     <h1 id="evento-nome">Carregando evento...</h1>
 
@@ -36,7 +36,7 @@
 
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>Pessoas do Evento</h2>
+            <h2> ▶ Pessoas do Evento</h2>
             <a href="./pessoas.html">Gerenciar pessoas</a>
         </div>
 
@@ -44,8 +44,10 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>Contato</th>
                     <th>Equipe</th>
                     <th>Papel</th>
+                    <th>PGTO</th>
                 </tr>
             </thead>
             <tbody id="pessoas-evento-lista"></tbody>
@@ -86,15 +88,6 @@
         function voltar() {
             window.location.href = "../../dashboard";
         }
-
-        const selectEvento = document.getElementById("evento_id");
-        const selectCadastro = document.getElementById("cadastro_id");
-        const selectEquipe = document.getElementById("equipe_id");
-        const checkboxLeader = document.getElementById("is_leader");
-
-
-        console.log("Evento ID selecionado:", eventoId);
-        console.log("selectEvento:", selectEvento);
 
         async function carregarEvento() {
             const res = await fetch(`${APP_CONFIG.API_BASE_URL}/eventos/${eventoId}`, {
@@ -149,6 +142,8 @@
                 const jsonEquipes = await resEquipes.json();
                 const equipes = jsonEquipes.data || [];
 
+
+
                 if (!equipes.length) {
                     document.getElementById("pessoas-vazio").style.display = "block";
                     return;
@@ -158,7 +153,7 @@
                 const idsEquipes = equipes.map(eq => eq.equipe.id);
 
                 // Carrega as pessoas do evento
-                const resPessoas = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/pessoa/9b8fef96-abc2-41d7-b2e3-705bd439c8bd`, {
+                const resPessoas = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/evento/${eventoId}`, {
                     headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" }
                 });
 
@@ -179,16 +174,22 @@
                 tbodyEncontreiro.innerHTML = "";
                 pessoasNoEvento.forEach(tr => {
                     tbodyEncontreiro.innerHTML += `
-                <tr>
-                    <td>${tr.cadastro?.nome_completo_esposo || "-"} - <br> ${tr.cadastro?.nome_completo_esposa || "-"}</td>
-                    <td>${tr.equipe?.nome || "-"}</td>
-                    <td>
-                        <span class="badge ${tr.is_leader ? "blue" : "red"}">
-                            ${tr.is_leader ? "Coordenador" : "Encontreiro"}
-                        </span>
-                    </td>
-                </tr>
-            `;
+                    <tr>
+                        <td><a href="pessoas.html?id=${tr.cadastro?.id || "-"}"> ${tr.cadastro?.nome_completo_esposo || "-"} - <br> ${tr.cadastro?.nome_completo_esposa || "-"} </a></td>
+                        <td>${tr.cadastro?.celular_esposo || "-"} - <br> ${tr.cadastro?.celular_esposa || "-"}</td>
+                        <td>${tr.equipe?.nome || "-"}</td>
+                        <td>
+                            <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                ${tr.is_leader ? "Coordenador" : "Encontreiro"}
+                                </span>
+                                </td>
+                        <td>
+                            <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                                ${tr.pagou ? "Sim" : "Não"}
+                                </span>
+                                </td>
+                                </tr>
+                                `;
                 });
 
             } catch (err) {

@@ -106,7 +106,7 @@ export async function listarPorEvento(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa:pessoa_id (id, nome),
+        cadastro:cadastro_id (id, nome_completo_esposo, nome_completo_esposa, celular_esposo, celular_esposa),
         equipe:equipe_id (id, nome)
       `)
       .eq("evento_id", eventoId);

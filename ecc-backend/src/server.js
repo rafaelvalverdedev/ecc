@@ -18,6 +18,10 @@ import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
 import cadastro from "./routes/cadastro.routes.js"; // Nova Rota para Cadastro de Pessoas, Futuros encontreiros e encontristas
 import pagamentoRoutes from "./routes/pagamento.routes.js";
+// rota teste
+import rotateste from "./routes/rotateste.routes.js";
+
+
 import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
 
 import devRoutes from "./routes/dev.routes.js";
@@ -65,7 +69,8 @@ app.use("/dev", devRoutes);
 // ROTAS DE CADASTRO (PÚBLICAS)
 // ======================================================
 app.use("/cadastro", cadastro);  // por enquanto ainda é pública
-
+// ROTA TESTE
+app.use("/rotateste", authMiddleware, rotateste); // rota para testes
 
 // Pagamento público (apenas geração do PIX é protegida)
 app.use("/pagamento", pagamentoRoutes);

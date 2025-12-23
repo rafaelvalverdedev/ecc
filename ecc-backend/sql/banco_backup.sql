@@ -1,6 +1,49 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.cadastro (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  nome_completo_esposo text,
+  data_nascimento_esposo date,
+  profissao_esposo text,
+  como_chamar_esposo text,
+  igreja_esposo text,
+  local_trabalho_esposo text,
+  email_esposo text,
+  celular_esposo text,
+  redesocial_esposo text,
+  restricoes_alimentares_esposo text,
+  medicamentos_alergias_esposo text,
+  religiao_esposo text,
+  escolaridade_esposo text,
+  nome_completo_esposa text,
+  data_nascimento_esposa date,
+  profissao_esposa text,
+  como_chamar_esposa text,
+  igreja_esposa text,
+  local_trabalho_esposa text,
+  email_esposa text,
+  celular_esposa text,
+  redesocial_esposa text,
+  restricoes_alimentares_esposa text,
+  medicamentos_alergias_esposa text,
+  religiao_esposa text,
+  escolaridade_esposa text,
+  endereco text,
+  cidade text,
+  uf text,
+  data_casamento date,
+  possui_conducao boolean,
+  possui_filhos boolean,
+  quantidade_filhos integer,
+  nome_responsavel_filhos text,
+  grau_parentesco_responsavel_filhos text,
+  telefone_responsavel text,
+  endereco_responsavel text,
+  created_at timestamp without time zone DEFAULT now(),
+  foto_casal_url text,
+  CONSTRAINT cadastro_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.encontrista_inscricao (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   nome_completo_esposo text,
@@ -36,7 +79,6 @@ CREATE TABLE public.encontrista_inscricao (
   cep text,
   data_casamento date,
   telefone_principal text,
-  email text,
   possui_filhos boolean,
   quantidade_filhos integer,
   grau_parentesco_outro text,
@@ -50,6 +92,8 @@ CREATE TABLE public.encontrista_inscricao (
   casal_que_convidou text,
   telefone_casal_que_convidou text,
   created_at timestamp without time zone DEFAULT now(),
+  email_esposo text,
+  email_esposa text,
   CONSTRAINT encontrista_inscricao_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.equipes (
@@ -87,11 +131,11 @@ CREATE TABLE public.inscricoes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   evento_id uuid NOT NULL,
   pessoa_id uuid NOT NULL,
-  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'confirmed'::text, 'cancelled'::text])),
+  status text CHECK (status = ANY (ARRAY['pending'::text, 'confirmed'::text, 'cancelled'::text])),
   paid_by_pessoa_id uuid,
   created_at timestamp without time zone DEFAULT now(),
   updated_at timestamp without time zone DEFAULT now(),
-  tipo text DEFAULT 'encontrista'::text CHECK (tipo = ANY (ARRAY['encontrista'::text, 'encontreiro'::text])),
+  tipo text,
   valor numeric,
   CONSTRAINT inscricoes_pkey PRIMARY KEY (id),
   CONSTRAINT fk_inscricoes_evento FOREIGN KEY (evento_id) REFERENCES public.eventos(id),
@@ -162,14 +206,14 @@ CREATE TABLE public.pessoas (
 );
 CREATE TABLE public.teamrole (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  pessoa_id uuid NOT NULL,
   equipe_id uuid NOT NULL,
   is_leader boolean DEFAULT false,
   created_at timestamp without time zone DEFAULT now(),
   evento_id uuid,
   pagou boolean DEFAULT false,
+  cadastro_id uuid,
   CONSTRAINT teamrole_pkey PRIMARY KEY (id),
   CONSTRAINT fk_teamrole_equipe FOREIGN KEY (equipe_id) REFERENCES public.equipes(id),
-  CONSTRAINT fk_teamrole_pessoa FOREIGN KEY (pessoa_id) REFERENCES public.pessoas(id),
-  CONSTRAINT teamrole_evento_id_fkey FOREIGN KEY (evento_id) REFERENCES public.eventos(id)
+  CONSTRAINT teamrole_evento_id_fkey FOREIGN KEY (evento_id) REFERENCES public.eventos(id),
+  CONSTRAINT teamrole_cadastro_id_fkey FOREIGN KEY (cadastro_id) REFERENCES public.cadastro(id)
 );

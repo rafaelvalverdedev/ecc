@@ -38,26 +38,6 @@ export async function listarPessoas(req, res) {
 }
 
 // ========================================================
-// BUSCAR CADASTRO 
-// ========================================================
-export async function buscarCadastro(req, res) {
-  try {
-    const { data, error } = await supabase
-      .from("cadastro")
-      .select("id, nome_completo_esposo")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    return res.json({ data });
-  } catch (err) {
-    console.error("LISTAR PESSOAS ERROR:", err);
-    return res.status(500).json({ error: err.message });
-  }
-}
-
-
-// ========================================================
 // BUSCAR PESSOA POR ID
 // ========================================================
 export async function buscarPessoa(req, res) {

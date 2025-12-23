@@ -210,7 +210,7 @@ export async function buscar(req, res) {
         const { id } = req.params;
 
         const { data, error } = await supabase
-            .from("encontrista_inscricao")
+            .from("cadastro")
             .select("*")
             .eq("id", id)
             .single();

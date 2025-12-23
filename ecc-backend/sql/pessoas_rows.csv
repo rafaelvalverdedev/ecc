@@ -1,0 +1,2 @@
+id,nome,email,telefone,created_at,updated_at,password_hash,role
+7f007ca7-9eb1-40ff-b9ca-3367b5b688f4,Administrador ECC,admin@ecc.com,999999999,2025-12-23 01:32:09.061197,2025-12-23 01:32:09.061197,$2a$06$w5zOctp1cbT7X4eHiGWHJO61xdV4hQeUZwjyRamEwn9VNswBwy27u,admin
