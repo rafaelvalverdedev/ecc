@@ -21,3 +21,23 @@ function formatarDataBR(dataISO) {
   const [ano, mes, dia] = dataISO.split("-");
   return `${dia}/${mes}/${ano}`;
 }
+
+// ====================================
+// 🔄 Toggle  Geral
+// ====================================
+const ativarToggle = () => {
+  document.querySelectorAll(".toggle-title").forEach(title => {
+    title.addEventListener("click", () => {
+      const id = title.dataset.id;
+      const tabela = document.querySelector(`.grupo-${id}`);
+
+      if (!tabela) return;
+
+      const aberto = tabela.style.display !== "none";
+      tabela.style.display = aberto ? "none" : "table";
+
+      // Atualiza ícone
+      title.textContent = `${aberto ? "▶" : "▼"} ${title.textContent.replace(/[▶▼]\s*/, "")}`;
+    });
+  });
+};

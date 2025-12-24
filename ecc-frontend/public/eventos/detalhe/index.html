@@ -20,7 +20,7 @@
         <h2 class="toggle-title" data-id="eventos">
             ▶ Equipes do Evento
         </h2>
-        <table class="grupo-eventos" style="display: none;">
+        <table class="grupo-eventos">
             <thead>
                 <tr>
                     <th>Nome da Equipe</th>
@@ -44,10 +44,12 @@
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>Contato</th>
+                    <th>E-mail</th>
+                    <th>Telefone</th>
                     <th>Equipe</th>
-                    <th>Papel</th>
-                    <th>PGTO</th>
+                    <th>Regras</th>
+                    <th>Pagou?</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="pessoas-evento-lista"></tbody>
@@ -59,16 +61,50 @@
     </div>
 
     <div class="card">
-        <h2>Gestão do Evento</h2>
+        <h2> ▶ Gestão do Evento</h2>
 
         <ul>
             <li><a href="./equipes.html">Equipes</a></li>
             <li><a href="./pessoas.html">Pessoas</a></li>
             <li><a href="./inscricoes.html">Inscrições</a></li>
-
             <li><a href="./vincularCasal.html">Vincular Casal ao Evento</a></li>
         </ul>
     </div>
+
+    <!-- Edição -->
+    <div class="card" id="card-editar" style="display:none;">
+        <h2>Editar Encontreiro</h2>
+        <form id="form-edicao">
+            <div id="bloco-regras" style="display: none;">
+                <span> Regras de vínculo para: </span>
+                <span id="nome-regra-vinculo"></span>
+                
+                <span>Equipe Atual: </span>
+                <span id="nome-equipe-atual"></span>
+
+                <div>
+                    <select id="edit_equipe_id">
+                        <option value="">Selecione um equipe primeiro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="checkbox-item"> Coordenador / Líder
+                        <input id="edit_is_leader" type="checkbox" />
+                    </label>
+
+                    <label class="checkbox-item"> Pagou
+                        <input id="edit_pagou" type="checkbox" />
+                    </label>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+                <button type="submit">Salvar alterações</button>
+            </div>
+        </form>
+    </div>
+
 
     <script src="../../js/config.js"></script>
     <script src="../../js/loader.js"></script>
@@ -76,6 +112,29 @@
     <script>
         const token = localStorage.getItem("token");
         const eventoId = localStorage.getItem("eventoId");
+
+
+        const API = APP_CONFIG.API_BASE_URL;
+
+        const API_PESSOAS = API + "/pessoas";
+        const API_EVENTOS = API + "/eventos";
+        const API_EQUIPES_EVENTO = API + "/eventos";
+        const API_TEAMROLE = API + "/teamrole";
+
+        // =====================================
+        // ELEMENTOS
+        // =====================================
+        const card = document.getElementById("card");
+        const tbodyEncontreiro = document.getElementById("tbody-encontreiro");
+        const blocoRegras = document.getElementById("bloco-regras");
+        const formEdicao = document.getElementById("form-edicao");
+
+        // selects edição
+        const selectEditEquipe = document.getElementById("edit_equipe_id");
+
+        // Modo de edição
+        const EDIT_MODE = { NONE: "none", PESSOA: "pessoa", TEAMROLE: "teamrole" };
+        let editMode = EDIT_MODE.NONE;
 
         if (!token) {
             window.location.href = "../../auth/login.html";
@@ -123,11 +182,11 @@
             lista.forEach(item => {
                 const eq = item.equipe;
                 tbody.innerHTML += `
-      <tr>
-        <td>${eq.nome}</td>
-        <td>${eq.descricao ?? "-"}</td>
-      </tr>
-    `;
+                    <tr>
+                        <td>${eq.nome}</td>
+                        <td>${eq.descricao ?? "-"}</td>
+                    </tr>
+                    `;
             });
         }
 
@@ -143,12 +202,6 @@
                 const jsonEquipes = await resEquipes.json();
                 const equipes = jsonEquipes.data || [];
 
-
-
-                if (!equipes.length) {
-                    document.getElementById("pessoas-vazio").style.display = "block";
-                    return;
-                }
 
                 // Extrai os IDs das equipes vinculadas ao evento
                 const idsEquipes = equipes.map(eq => eq.equipe.id);
@@ -175,21 +228,28 @@
                 tbodyEncontreiro.innerHTML = "";
                 pessoasNoEvento.forEach(tr => {
                     tbodyEncontreiro.innerHTML += `
-                    <tr>
-                        <td><a href="#" onclick="AbrirVinculo('${tr.cadastro?.id}')"> ${tr.cadastro?.nome_completo_esposo || "-"} - <br> ${tr.cadastro?.nome_completo_esposa || "-"} </a></td>
-                        <td>${tr.cadastro?.celular_esposo || "-"} - <br> ${tr.cadastro?.celular_esposa || "-"}</td>
-                        <td>${tr.equipe?.nome || "-"}</td>
-                        <td>
-                            <span class="badge ${tr.is_leader ? "blue" : "red"}">
+                        <tr>
+                            <td><a href="#" onclick="AbrirVinculo('${tr.cadastro?.id}')"> ${tr.cadastro?.nome_completo_esposo || "-"} <br> ${tr.cadastro?.nome_completo_esposa || "-"} </a></td>
+                            <td>${tr.cadastro?.email_esposo || "-"} <br> ${tr.cadastro?.email_esposa || "-"}</td>
+                            <td>${tr.cadastro?.celular_esposo || "-"} <br> ${tr.cadastro?.celular_esposa || "-"}</td>
+                            <td>${tr.equipe?.nome || "-"}</td>
+                            <td>
+                                <span class="badge ${tr.is_leader ? "blue" : "red"}">
                                 ${tr.is_leader ? "Coordenador" : "Encontreiro"}
                                 </span>
-                                </td>
-                        <td>
-                            <span class="badge ${tr.is_leader ? "blue" : "red"}">
-                                ${tr.pagou ? "Sim" : "Não"}
-                                </span>
-                                </td>
-                                </tr>
+                            </td>
+                            <td>
+                                ${tr.pagou ? `SIM` : `NÃO ${tr.evento?.valor_encontreiro}
+                                <button onclick="gerarPagamento('${tr.id}', '${tr.pessoa?.nome}')">
+                                Gerar Pagamento
+                                </button>
+                                `}
+                            </td>
+                            <td>
+                                <button class="secondary btn-editar-tr" data-id="${tr.id}" onclick="abrirEdicaoTeamrole('${tr.id}');">Editar</button>
+                                <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                            </td>
+                        </tr>
                                 `;
                 });
 
@@ -199,34 +259,64 @@
             }
         }
 
-
-        const ativarToggle = () => {
-            document.querySelectorAll(".toggle-title").forEach(title => {
-                title.addEventListener("click", () => {
-                    const id = title.dataset.id;
-                    const tabela = document.querySelector(`.grupo-${id}`);
-
-                    if (!tabela) return;
-
-                    const aberto = tabela.style.display !== "none";
-                    tabela.style.display = aberto ? "none" : "table";
-
-                    // Atualiza ícone
-                    title.textContent = `${aberto ? "▶" : "▼"} ${title.textContent.replace(/[▶▼]\s*/, "")}`;
-                });
-            });
-        };
-
-        function AbrirVinculo(id) {
-            localStorage.setItem("CasalId", id);
-            window.location.href = "./vincularCasal.html";
+        function cancelarEdicao() {
+            document.getElementById("form-edicao").reset();
+            document.getElementById("card-editar").style.display = "none";
         }
 
-        carregarPessoasEvento();
-        carregarEquipesEvento();
-        carregarEquipesEvento();
-        ativarToggle();
-        carregarEvento();
+        // =====================================
+        // ABRIR EDIÇÃO: TEAMROLE
+        // =====================================
+        async function abrirEdicaoTeamrole(id) {
+
+            editMode = EDIT_MODE.TEAMROLE;
+
+            document.getElementById("card-editar").style.display = "block";
+            document.getElementById("nome-regra-vinculo").style.display = "block";
+            blocoRegras.style.display = "block";
+
+            try {
+                const res = await fetch(`${API}/teamrole/evento/${eventoId}`, { headers: { Authorization: `Bearer ${token}` } });
+                const cadastros = (await res.json()).data;
+                const vinculo = cadastros[0];
+
+                const nomeRegraVinculo = document.getElementById("nome-regra-vinculo");
+                nomeRegraVinculo.innerHTML = `${vinculo?.cadastro?.nome_completo_esposo} e ${vinculo?.cadastro?.nome_completo_esposa}`;
+
+                const nomeEquipeAtual = document.getElementById("nome-equipe-atual");
+                nomeEquipeAtual.innerHTML = `${vinculo?.equipe.nome}`;
+
+                const isLeaderCheckbox = document.getElementById("edit_is_leader");
+                const pagouCheckbox = document.getElementById("edit_pagou");
+
+                isLeaderCheckbox.checked = vinculo?.is_leader ?? false;
+                pagouCheckbox.checked = vinculo?.pagou ?? false;
+
+                selectEditEquipe.innerHTML = `<option value="${vinculo?.equipe.id}" selected> ${vinculo?.equipe.nome} </option> `;
+                selectEditEquipe.disabled = true;
+
+                // const tr = json.data;
+
+            } catch (err) {
+                alert("Erro ao abrir edição.");
+            }
+        }
+
+        // =====================================
+        // INICIALIZAÇÃO
+        // =====================================
+        withLoader(() => (async function init() {
+            // await carregarEncontreiro();
+            //await carregarEncontreiroGeral();
+            await carregarPessoasEvento();
+            await carregarEquipesEvento();
+            await carregarEquipesEvento();
+            await ativarToggle();
+            await carregarEvento();
+        })());
+
+
+
     </script>
 
 </body>

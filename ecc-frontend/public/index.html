@@ -8,10 +8,16 @@
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="ECC Serrinha - Feliz Natal">
-    <meta property="og:description" content="Votos do casal coordenador Raimundo e Regina">
+    <meta property="og:description"
+        content="Votos de toda as equipes do Encontro de Casais com Cristo das Igrejas Batistas de Serrinha">
     <meta property="og:image" content="https://eccserrinha.vercel.app/preview-natal.jpg">
     <meta property="og:url" content="https://eccserrinha.vercel.app">
     <meta property="og:site_name" content="Feliz Natal">
+
+    <!-- Fonte elegante -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Montserrat:wght@300;500&display=swap"
+        rel="stylesheet">
 
     <style>
         * {
@@ -21,34 +27,137 @@
         }
 
         body {
-            min-height: 100vh;
-            background: linear-gradient(to bottom, #d6d5d5, #fdfafa, #d6d5d5);
-            overflow: hidden;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            padding-bottom: 120px;
-        }
-
-        .center {
-            flex: 1;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            background: url('51101349.jpeg') no-repeat center center / cover;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            max-width: 900px;
+            color: #ffffff;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+            z-index: 1;
+        }
+
+        /* Logo */
+        .logo {
+            position: absolute;
+            bottom: 20px;
+
+            justify-content: center;
+            z-index: 3;
+        }
+
+        .logo img {
+            width: 330px;
+            max-width: 35vw;
+        }
+
+        /* Conteúdo */
+        .content {
+            position: relative;
             z-index: 2;
+            text-align: center;
+            padding: 20px;
+            max-width: 900px;
+            animation: fadeIn 1.8s ease;
+        }
+
+        .content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .content p {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .verse {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+            font-style: italic;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .reference {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.85;
+        }
+
+        /* Animação */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .logo img {
+                width: 150px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="center">
-        <a href="./dashboard">Painel</a>
+    <div class="overlay"></div>
+
+    <!-- Logo -->
+    <div class="logo">
+        <img src="Logo-v2-2025.png" alt="ECC - Encontro de Casais com Cristo">
     </div>
+
+    <!-- Conteúdo -->
+    <div class="content">
+        <h1>Gratidão e Esperança no Senhor</h1>
+
+        <p>
+            Neste tempo santo do Natal, elevamos nosso coração em profunda gratidão a Deus
+            por cada casal que, com amor, dedicação e fé, tem se colocado a serviço do
+            propósito do Senhor Jesus Cristo.
+        </p>
+
+        <p>
+            Que o Menino Jesus, centro e razão do nosso caminhar, recompense abundantemente
+            todo o empenho, perseverança e amor. FELIZ NATAL!!
+        </p>
+
+        <div class="verse" id="verse">
+            “Tudo o que fizerem, façam de todo o coração, como para o Senhor.”
+            <div class="reference">Colossenses 3:23</div>
+        </div>
+    </div>
+
+    <script>
+        // Animação suave do versículo
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('verse').style.opacity = '1';
+            }, 800);
+        });
+    </script>
 
 </body>
 
