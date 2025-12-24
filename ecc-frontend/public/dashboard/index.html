@@ -23,8 +23,6 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
 
-  <h1>Dashboard ECC</h1>
-
   <p>Bem-vindo, <strong><span id="user-email"></span></strong></p>
 
   <!-- Eventos -->
@@ -34,9 +32,9 @@
     </h2>
     <table class="grupo-eventos">
       <thead>
-        <!-- <tr>
-          <th colspan="6"><a href="eventos.html">Gerenciar Eventos</a></th>
-        </tr> -->
+        <tr>
+          <th colspan="6"><a href="../eventos">Gerenciar Eventos</a></th>
+        </tr>
         <tr>
           <th>Nome</th>
           <th>Local</th>
@@ -338,8 +336,8 @@
 
 
     function abrirEvento(eventoId) {
-      localStorage.setItem("eventoSelecionado", eventoId);
-      window.location.href = "../eventos/detalhe/index.html";
+      localStorage.setItem("eventoId", eventoId);
+      window.location.href = "../eventos/detalhe/";
     }
 
     // ====================================
@@ -354,6 +352,9 @@
       //carregarEncontristas();
       carregarPessoas();
       carregarCadastro();
+      
+      localStorage.removeItem("CasalId");
+      localStorage.removeItem("eventoId");
     });
   </script>
 

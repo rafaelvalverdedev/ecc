@@ -19,7 +19,7 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(6),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 // ================================
@@ -99,18 +99,22 @@ export async function login(req, res) {
 
     if (error || !pessoa) {
       console.log("Usuário não encontrado:", email);
-      return res.status(401).json({ error: "Credenciais inválidas" });
+      return res.status(401).json({ error: "E-mail não cadastrado." });
+    }
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Preencher campo." });
     }
 
     if (!pessoa.password_hash) {
-      return res.status(400).json({ error: "Usuário sem senha cadastrada" });
+      return res.status(400).json({ error: "Usuário sem senha cadastrada." });
     }
 
     const senhaCorreta = await bcrypt.compare(password, pessoa.password_hash);
 
     if (!senhaCorreta) {
       console.log("Senha incorreta para:", email);
-      return res.status(401).json({ error: "Credenciais inválidas" });
+      return res.status(401).json({ error: "Senha incorreta para: " + email + "." });
     }
 
     const token = gerarToken(pessoa);

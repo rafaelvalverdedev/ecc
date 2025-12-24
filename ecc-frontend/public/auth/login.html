@@ -8,19 +8,47 @@
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
+<style>
+  /* Reset básico e fonte */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Verdana', sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+  }
+
+  /* Contêiner da caixa de login */
+  .login-container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+</style>
+
 <body>
 
-    <div class="container">
-      <h2>Login</h2>
+  <div class="login-container">
+    <h2>Acesso</h2>
 
-      <input type="email" id="email" placeholder="E-mail">
-      <input type="password" id="password" placeholder="password">
+    <input type="email" id="email" placeholder="E-mail" required>
+    <input type="password" id="password" placeholder="Senha" required>
 
-      <button onclick="login()">Entrar</button>
+    <button onclick="login()">Entrar</button>
 
-      <div id="toast" class="toast"></div>
-    </div>
-
+    <div id="toast" class="toast"></div>
+  </div>
 
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
@@ -39,6 +67,8 @@
       if (!email || !password) {
         toast.innerText = "Preencha todos os campos.";
         toast.style.display = "block";
+        setTimeout(() => { toast.style.display = "none"; }, 2000);
+        hideLoader();
         return;
       }
 
@@ -53,19 +83,20 @@
 
         if (!res.ok) {
           hideLoader();
-          toast.innerText = data.error || "Usuário ou Sennha Inválidos";
+          if (data.error.includes('Email inválido')) { toast.innerText = "O email com formato inválido"; } else { toast.innerText = data.error || "Erro desconhecido"; }
+          if (data.error.includes('Senha deve ter pelo menos 6 caracteres')) { toast.innerText = "Senha deve ter pelo menos 6 caracteres"; } else { toast.innerText = data.error || "Erro desconhecido"; }
           toast.style.display = "block";
           setTimeout(() => { toast.style.display = "none"; }, 2000);
           return;
         }
 
-        // 🔥 SALVAR TOKEN
+        // SALVAR TOKEN
         localStorage.setItem("token", data.token);
 
-        // 🔥 SALVAR DADOS DO USUÁRIO
+        // SALVAR DADOS DO USUÁRIO
         localStorage.setItem("user", JSON.stringify({ email }));
 
-        // 🔥 REDIRECIONAR PARA O DASHBOARD
+        // REDIRECIONAR PARA O DASHBOARD
         window.location.href = "../dashboard/";
 
       } catch (error) {

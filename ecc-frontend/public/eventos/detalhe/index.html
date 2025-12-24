@@ -75,7 +75,7 @@
 
     <script>
         const token = localStorage.getItem("token");
-        const eventoId = localStorage.getItem("eventoSelecionado");
+        const eventoId = localStorage.getItem("eventoId");
 
         if (!token) {
             window.location.href = "../../auth/login.html";
@@ -86,6 +86,7 @@
         }
 
         function voltar() {
+            localStorage.removeItem("eventoId");
             window.location.href = "../../dashboard";
         }
 
@@ -175,7 +176,7 @@
                 pessoasNoEvento.forEach(tr => {
                     tbodyEncontreiro.innerHTML += `
                     <tr>
-                        <td><a href="pessoas.html?id=${tr.cadastro?.id || "-"}"> ${tr.cadastro?.nome_completo_esposo || "-"} - <br> ${tr.cadastro?.nome_completo_esposa || "-"} </a></td>
+                        <td><a href="#" onclick="AbrirVinculo('${tr.cadastro?.id}')"> ${tr.cadastro?.nome_completo_esposo || "-"} - <br> ${tr.cadastro?.nome_completo_esposa || "-"} </a></td>
                         <td>${tr.cadastro?.celular_esposo || "-"} - <br> ${tr.cadastro?.celular_esposa || "-"}</td>
                         <td>${tr.equipe?.nome || "-"}</td>
                         <td>
@@ -216,6 +217,10 @@
             });
         };
 
+        function AbrirVinculo(id) {
+            localStorage.setItem("CasalId", id);
+            window.location.href = "./vincularCasal.html";
+        }
 
         carregarPessoasEvento();
         carregarEquipesEvento();

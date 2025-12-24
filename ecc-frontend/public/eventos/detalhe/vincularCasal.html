@@ -31,7 +31,6 @@
         <h2>Vincular Casal à Equipe</h2>
 
         <form id="form-vinculo">
-
             <div class="row">
                 <div>
                     <label for="evento_id">Evento</label>
@@ -56,17 +55,24 @@
                     </select>
                 </div>
 
-                <div class="checkbox-group">
+                <div class="checkbox-group checkbox-item">
                     <label>
                         <input type="checkbox" id="is_leader" />
                         Coordenador de Equipe
+                    </label>
+                </div>
+
+                <div class="checkbox-group checkbox-item">
+                    <label>
+                        <input type="checkbox" id="pagou" />
+                        Pago?
                     </label>
                 </div>
             </div>
 
             <div class="actions">
                 <button type="button" onclick="cancelarVinculo()">Cancelar</button>
-                <button type="submit">Vincular</button>
+                <button type="submit">Atualizar Vínculo</button>
             </div>
 
         </form>
@@ -78,7 +84,7 @@
 
     <script>
         /* =========================================================
-           🔐 AUTENTICAÇÃO
+           AUTENTICAÇÃO
         ========================================================= */
         const token = localStorage.getItem("token");
         if (!token) {
@@ -86,7 +92,7 @@
         }
 
         /* =========================================================
-           🌐 CONFIG API
+           CONFIG API
         ========================================================= */
         const API = APP_CONFIG.API_BASE_URL;
 
@@ -95,16 +101,16 @@
         const API_TEAMROLE = `${API}/teamrole`;
 
         /* =========================================================
-           📌 ELEMENTOS
+           ELEMENTOS
         ========================================================= */
         const formVinculo = document.getElementById("form-vinculo");
         const selectEvento = document.getElementById("evento_id");
         const selectCadastro = document.getElementById("cadastro_id");
         const selectEquipe = document.getElementById("equipe_id");
         const checkLeader = document.getElementById("is_leader");
-
+        const checkPagou = document.getElementById("pagou");
         /* =========================================================
-           🔔 TOAST SIMPLES
+           TOAST SIMPLES
         ========================================================= */
         function showToast(msg) {
             const toast = document.getElementById("toast");
@@ -114,11 +120,11 @@
         }
 
         /* =========================================================
-           📦 CARREGAR EVENTOS
+           CARREGAR EVENTOS
         ========================================================= */
         async function carregarEventos() {
             try {
-                const eventoId = localStorage.getItem("eventoSelecionado");
+                const eventoId = localStorage.getItem("eventoId");
 
                 if (!eventoId) {
                     console.warn("Nenhum evento selecionado previamente.");
@@ -138,10 +144,7 @@
                 }
 
                 selectEvento.innerHTML = `<option value="${evento.id}" selected> ${evento.nome} </option> `;
-
-                // opcional e recomendado: impedir troca de evento
                 selectEvento.disabled = true;
-
                 // já dispara o carregamento das equipes
                 carregarEquipesPorEvento(evento.id);
 
@@ -150,29 +153,22 @@
             }
         }
 
-
         /* =========================================================
-           📦 CARREGAR CASAIS (CADASTROS)
+           CARREGAR CASAIS (CADASTROS)
         ========================================================= */
         async function carregarCadastros() {
+            const CasalId = localStorage.getItem("CasalId");
+
             try {
-                const res = await fetch(API_CADASTROS, {
+                const res = await fetch(`${API_CADASTROS}/${CasalId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
                 const json = await res.json();
-                const cadastros = json.data || [];
+                const cadastros = json.data;
 
-                selectCadastro.innerHTML = `<option value="">Selecione o casal</option>`;
-
-                cadastros.forEach(c => {
-                    selectCadastro.innerHTML += `
-                    
-                <option value="${c.id}">
-                    ${c.nome_completo_esposo} e ${c.nome_completo_esposa}
-                </option>
-            `;
-                });
+                selectCadastro.innerHTML = `<option value="${cadastros?.id}" selected> ${cadastros?.nome_completo_esposo} </option> `;
+                selectCadastro.disabled = true;
 
             } catch (err) {
                 console.error("Erro ao carregar cadastros", err);
@@ -180,14 +176,9 @@
         }
 
         /* =========================================================
-           📦 CARREGAR EQUIPES POR EVENTO
+           CARREGAR EQUIPES POR EVENTO
         ========================================================= */
         async function carregarEquipesPorEvento(eventoId) {
-            if (!eventoId) {
-                selectEquipe.innerHTML = `<option value="">Selecione um evento primeiro</option>`;
-                return;
-            }
-
             try {
                 const res = await fetch(`${API}/equipes-evento/evento/${eventoId}`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -195,11 +186,6 @@
 
                 const json = await res.json();
                 const lista = json.data || [];
-
-                if (!lista.length) {
-                    selectEquipe.innerHTML = `<option value="">Nenhuma equipe neste evento</option>`;
-                    return;
-                }
 
                 selectEquipe.innerHTML = `<option value="">Selecione a equipe</option>`;
 
