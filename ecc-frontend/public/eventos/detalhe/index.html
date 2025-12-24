@@ -75,10 +75,13 @@
     <div class="card" id="card-editar" style="display:none;">
         <h2>Editar Encontreiro</h2>
         <form id="form-edicao">
+            <input type="hidden" id="team-role-Em-Edicao-Id">
+            <input type="hidden" id="team-role-Id">
+
             <div id="bloco-regras" style="display: none;">
                 <span> Regras de vínculo para: </span>
                 <span id="nome-regra-vinculo"></span>
-                
+
                 <span>Equipe Atual: </span>
                 <span id="nome-equipe-atual"></span>
 
@@ -105,6 +108,8 @@
         </form>
     </div>
 
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
 
     <script src="../../js/config.js"></script>
     <script src="../../js/loader.js"></script>
@@ -112,7 +117,6 @@
     <script>
         const token = localStorage.getItem("token");
         const eventoId = localStorage.getItem("eventoId");
-
 
         const API = APP_CONFIG.API_BASE_URL;
 
@@ -196,21 +200,15 @@
 
             try {
                 // Carrega as equipes do evento
-                const resEquipes = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
-                    headers: { Authorization: "Bearer " + token }
-                });
+                const resEquipes = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, { headers: { Authorization: "Bearer " + token } });
                 const jsonEquipes = await resEquipes.json();
                 const equipes = jsonEquipes.data || [];
-
 
                 // Extrai os IDs das equipes vinculadas ao evento
                 const idsEquipes = equipes.map(eq => eq.equipe.id);
 
                 // Carrega as pessoas do evento
-                const resPessoas = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/evento/${eventoId}`, {
-                    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" }
-                });
-
+                const resPessoas = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/evento/${eventoId}`, { headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
                 const jsonPessoas = await resPessoas.json();
                 const listaPessoas = (jsonPessoas.data || []).filter(tr => tr.pessoa?.role !== "admin");
 
@@ -280,6 +278,12 @@
                 const cadastros = (await res.json()).data;
                 const vinculo = cadastros[0];
 
+                teamroleEmEdicaoId = document.getElementById("team-role-Em-Edicao-Id");
+                teamroleEmEdicaoId.value = vinculo?.cadastro?.id;
+
+                teamRoleId = document.getElementById("team-role-Id");
+                teamRoleId.value = vinculo?.id;
+
                 const nomeRegraVinculo = document.getElementById("nome-regra-vinculo");
                 nomeRegraVinculo.innerHTML = `${vinculo?.cadastro?.nome_completo_esposo} e ${vinculo?.cadastro?.nome_completo_esposa}`;
 
@@ -302,12 +306,43 @@
             }
         }
 
+        // ========================================
+        // ENVIO DO FORMULARIO DE EDICAO DE VINCULO 
+        // ========================================
+        formEdicao.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                is_leader: document.getElementById("edit_is_leader").checked,
+                pagou: document.getElementById("edit_pagou").checked
+            };
+
+            try {
+                const res = await fetch(`${API}/teamrole/${teamRoleId.value}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error("Erro ao salvar");
+
+                showToast("Vínculo atualizado com sucesso.");
+                cancelarEdicao();
+                await carregarPessoasEvento();
+
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao salvar alterações.");
+            }
+        });
+
         // =====================================
         // INICIALIZAÇÃO
         // =====================================
         withLoader(() => (async function init() {
-            // await carregarEncontreiro();
-            //await carregarEncontreiroGeral();
             await carregarPessoasEvento();
             await carregarEquipesEvento();
             await carregarEquipesEvento();

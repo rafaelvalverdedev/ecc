@@ -26,7 +26,8 @@
   <h1>Gerenciar Equipes</h1> <span><a href="../dashboard"> ← Voltar</a></span>
   <br>
   <button class="nav-btn" id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
-  <button class="nav-btn" onclick="window.location.href='vinculo_equipes_evento.html?autoVinculo=1'"> Vincular Equipe a Evento </button>
+  <button class="nav-btn" onclick="window.location.href='vinculo_equipes_evento.html?autoVinculo=1'"> Vincular Equipe a
+    Evento </button>
 
   <div class="card" id="card" style="display:none;">
     <h2>Criar / Editar Equipe</h2>
@@ -45,6 +46,15 @@
     </form>
   </div>
 
+  <!-- LISTA DE VÍNCULOS -->
+  <div class="card">
+    <h2>Vínculos cadastrados</h2>
+    <table>
+      <tbody id="vinculos-list"></tbody>
+    </table>
+  </div>
+
+  <!-- EQUIPES CADASTRADAS -->
   <div class="card">
     <h2>Equipes cadastradas</h2>
 
@@ -92,40 +102,6 @@
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "./auth-login.html";
-    }
-
-    // ============================
-    // 🔔 TOAST
-    // ============================
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.style.display = "block";
-
-      setTimeout(() => {
-        toast.style.display = "none";
-      }, 2500);
-    }
-
-    // ============================
-    // ❓ MODAL
-    // ============================
-    let onConfirmCallback = null;
-
-    function showConfirm(message, callback) {
-      document.getElementById("modalMessage").innerText = message;
-      document.getElementById("modalConfirm").style.display = "flex";
-      onConfirmCallback = callback;
-    }
-
-    function closeModal() {
-      document.getElementById("modalConfirm").style.display = "none";
-      onConfirmCallback = null;
-    }
-
-    function confirmAction() {
-      if (onConfirmCallback) onConfirmCallback();
-      closeModal();
     }
 
     const API_URL = `${APP_CONFIG.API_BASE_URL}/equipes`;
@@ -291,8 +267,84 @@
       });
     }
 
+
+
+    // ============================
+    // 🔵 CARREGAR EVENTOS / EQUIPES / VÍNCULOS
+    // ============================
+
+    const API_EVENTOS = `${APP_CONFIG.API_BASE_URL}/eventos`;
+    const API_EQUIPES = `${APP_CONFIG.API_BASE_URL}/equipes`;
+    const API_VINCULOS = `${APP_CONFIG.API_BASE_URL}/equipes-evento`;
+
+    let eventos = [];
+    let equipes = [];
+    let vinculos = [];
+
+    async function carregarListas() {
+      try {
+        const eventosRes = await fetch(API_EVENTOS, { headers: { Authorization: "Bearer " + token } });
+        const eventosJson = await eventosRes.json();
+        eventos = eventosJson.data?.data || eventosJson.data || [];
+
+        const equipesRes = await fetch(API_EQUIPES, { headers: { Authorization: "Bearer " + token } });
+        const equipesJson = await equipesRes.json();
+        equipes = equipesJson.data?.data || equipesJson.data || [];
+
+        const vinculosRes = await fetch(API_VINCULOS, { headers: { Authorization: "Bearer " + token } });
+        const vinculosJson = await vinculosRes.json();
+        vinculos = vinculosJson.data?.data || vinculosJson.data || [];
+
+        listarVinculos();
+
+      } catch (err) {
+        console.error("Erro ao carregar listas:", err);
+        showToast("Erro ao carregar dados.");
+      }
+    }
+
+
+    // ============================
+    // 🔵 LISTAR VÍNCULOS NA TABELA
+    // ============================
+    function listarVinculos() {
+      const tbody = document.getElementById("vinculos-list");
+      tbody.innerHTML = "";
+
+      const grupos = {};
+
+      vinculos.forEach(v => {
+        const eventoNome = v.evento?.nome || "(Sem nome)";
+        if (!grupos[eventoNome]) grupos[eventoNome] = [];
+        grupos[eventoNome].push(v);
+      });
+
+      Object.keys(grupos).forEach(eventoNome => {
+        const lista = grupos[eventoNome];
+        const id = eventoNome.replace(/\s+/g, "_");
+
+        tbody.innerHTML += `
+          <tr class="toggle-title" data-id="vinculo">
+            <td colspan="3"> ${eventoNome} — ${lista.length} equipe(s)</td>
+          </tr>
+        `;
+
+        lista.forEach(v => {
+          tbody.innerHTML += `
+            <tr class="grupo-vinculo" style="display: none;">
+              <td>${v.equipe?.nome ?? "-"}</td>
+              <td>
+                <button class="btn-danger" onclick="excluirVinculo('${v.id}')">Excluir</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+
+    }
+
     // ▶ INICIAR
-    withLoader(() => listarEquipes());
+    withLoader(() => listarEquipes(), listarVinculos(), carregarListas(), ativarToggle());
   </script>
 
 </body>

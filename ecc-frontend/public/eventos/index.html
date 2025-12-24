@@ -26,7 +26,6 @@
   <h1>Gerenciar Eventos</h1> <span><a href="../dashboard/"> ← Voltar</a></span>
   <br>
 
-
   <div class="card" id="card" style="display:none;">
     <h2>Criar / Editar Evento</h2>
 
@@ -117,39 +116,6 @@
       window.location.href = "../auth/login.html";
     }
 
-    // ============================
-    // 🔔 TOAST
-    // ============================
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.style.display = "block";
-
-      setTimeout(() => {
-        toast.style.display = "none";
-      }, 2500);
-    }
-
-    // ============================
-    // ❓ MODAL
-    // ============================
-    let onConfirmCallback = null;
-
-    function showConfirm(message, callback) {
-      document.getElementById("modalMessage").innerText = message;
-      document.getElementById("modalConfirm").style.display = "flex";
-      onConfirmCallback = callback;
-    }
-
-    function closeModal() {
-      document.getElementById("modalConfirm").style.display = "none";
-      onConfirmCallback = null;
-    }
-
-    function confirmAction() {
-      if (onConfirmCallback) onConfirmCallback();
-      closeModal();
-    }
 
     const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
 

@@ -172,8 +172,7 @@ export async function atualizarTeamRole(req, res) {
       .from("teamrole")
       .update(parsed)
       .eq("id", id)
-      .select()
-      .single();
+      .select();
 
     if (error) throw error;
 

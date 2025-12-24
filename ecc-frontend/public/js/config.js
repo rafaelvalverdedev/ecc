@@ -41,3 +41,37 @@ const ativarToggle = () => {
     });
   });
 };
+
+// ============================
+// 🔔 TOAST
+// ============================
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.innerText = msg;
+  toast.style.display = "block";
+
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 2500);
+}
+
+// ============================
+// ❓ MODAL
+// ============================
+let onConfirmCallback = null;
+
+function showConfirm(message, callback) {
+  document.getElementById("modalMessage").innerText = message;
+  document.getElementById("modalConfirm").style.display = "flex";
+  onConfirmCallback = callback;
+}
+
+function closeModal() {
+  document.getElementById("modalConfirm").style.display = "none";
+  onConfirmCallback = null;
+}
+
+function confirmAction() {
+  if (onConfirmCallback) onConfirmCallback();
+  closeModal();
+}
