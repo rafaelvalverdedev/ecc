@@ -30,3 +30,46 @@
     transform: rotate(360deg);
   }
 }
+
+
+
+
+/* Overlay tela inteira */
+#loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* opcional */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Imagem das alianças */
+.loader-aliancas {
+  width: 120px;
+  height: auto;
+
+  animation: glowLoop 2.2s ease-in-out infinite;
+}
+
+/* Animação de sombra pulsante */
+@keyframes glowLoop {
+  0% {
+    filter: drop-shadow(0 0 0 rgba(255, 215, 0, 0));
+    transform: scale(1);
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 0 6px rgba(255, 215, 0, 0.6))
+      drop-shadow(0 0 14px rgba(255, 200, 0, 0.4));
+    transform: scale(1.02);
+  }
+
+
+  100% {
+    filter: drop-shadow(0 0 0 rgba(255, 215, 0, 0));
+    transform: scale(1);
+  }
+}

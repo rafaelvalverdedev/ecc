@@ -60,14 +60,10 @@
         </p>
     </div>
 
-    <div class="card">
+    <div class="card" >
         <h2> ▶ Gestão do Evento</h2>
 
-        <ul>
-            <li><a href="./equipes.html">Equipes</a></li>
-            <li><a href="./pessoas.html">Pessoas</a></li>
-            <li><a href="./inscricoes.html">Inscrições</a></li>
-            <li><a href="./vincularCasal.html">Vincular Casal ao Evento</a></li>
+        <ul id="gestao-evento">
         </ul>
     </div>
 
@@ -110,6 +106,17 @@
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
+
+    <!-- MODAL DE CONFIRMAÇÃO -->
+    <div class="modal-overlay" id="modalConfirm">
+        <div class="modal">
+            <p id="modalMessage"></p>
+            <div class="modal-actions">
+                <button onclick="closeModal()">Cancelar</button>
+                <button onclick="confirmAction()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="../../js/config.js"></script>
     <script src="../../js/loader.js"></script>
@@ -173,10 +180,18 @@
 
             const tbody = document.getElementById("equipes-evento-lista");
             const vazio = document.getElementById("equipes-vazio");
+            const gestaoEvento = document.getElementById("gestao-evento");
+
+
 
             tbody.innerHTML = "";
-
+            
             if (!lista.length) {
+                gestaoEvento.innerHTML = `
+                        <li><a href="./equipes.html">Equipes</a></li>
+                        <li><a href="./pessoas.html">Pessoas</a></li>
+                        <li><a href="./inscricoes.html">Inscrições</a></li>
+                        <li><a href="./vincularCasal.html">Vincular Casal ao Evento</a></li>`;    
                 vazio.style.display = "block";
                 return;
             }
@@ -245,7 +260,7 @@
                             </td>
                             <td>
                                 <button class="secondary btn-editar-tr" data-id="${tr.id}" onclick="abrirEdicaoTeamrole('${tr.id}');">Editar</button>
-                                <button class="danger btn-excluir-tr" data-id="${tr.id}">Excluir</button>
+                                <button class="danger btn-excluir-tr" data-id="${tr.id}" onclick="excluirEncontreiroGeral('${tr.id}');">Excluir</button>
                             </td>
                         </tr>
                                 `;
@@ -338,6 +353,30 @@
                 showToast("Erro ao salvar alterações.");
             }
         });
+
+        // =====================================
+        // EXCLUIR PESSOA
+        // =====================================
+        async function excluirEncontreiroGeral(id) {
+            showConfirm("Tem certeza que deseja excluir este encontreiro?", async () => {
+                try {
+                    const response = await fetch(`${API}/teamrole/${id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+                    });
+                    if (!response.ok) {
+                        showToast("Encontreiro vinculado a uma equipe.");
+                        return;
+                    }
+                    await carregarPessoasEvento();
+
+                    showToast("Encontreiro excluído!");
+                } catch (error) {
+                    console.error("Erro ao excluir equipe:", error);
+                    showToast("Erro ao excluir equipe");
+                }
+            });
+        }
 
         // =====================================
         // INICIALIZAÇÃO

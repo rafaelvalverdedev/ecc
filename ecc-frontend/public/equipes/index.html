@@ -26,12 +26,11 @@
   <h1>Gerenciar Equipes</h1> <span><a href="../dashboard"> ← Voltar</a></span>
   <br>
   <button class="nav-btn" id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
-  <button class="nav-btn" onclick="window.location.href='vinculo_equipes_evento.html?autoVinculo=1'"> Vincular Equipe a
-    Evento </button>
+  <button class="nav-btn" onclick="mostrarCardVinculo();"> Vincular Equipe a Evento </button>
 
   <div class="card" id="card" style="display:none;">
+    <!-- FORM EDITAR / CRIAR EQUIPE -->
     <h2>Criar / Editar Equipe</h2>
-
     <form id="form-equipe" onsubmit="salvarEquipe(event)">
       <input type="hidden" id="equipe_id">
 
@@ -46,11 +45,36 @@
     </form>
   </div>
 
+
+  <!-- FORM DE VÍNCULO -->
+  <div class="card-edit" id="card" style="display:none;">
+    <h2>Criar/Atualizar Vínculos</h2>
+
+    <form id="form-vinculo" onsubmit="withLoader(() => salvarVinculos(event))">
+      <label>Evento:</label>
+      <select id="evento_id" onchange="renderizarCheckboxes()"></select>
+
+      <!-- SELECIONAR TODOS -->
+      <div>
+        <label>Equipes:</label>
+        <label class="checkbox-item checkbox-select-all">
+          <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+          <span>Selecionar todos</span>
+        </label>
+        <div id="checkboxContainer" class="checkbox-grid"></div>
+      </div>
+
+      <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+      <button type="submit" id="btnSalvar">Salvar Vínculos</button>
+    </form>
+  </div>
+
+
   <!-- LISTA DE VÍNCULOS -->
   <div class="card">
     <h2>Vínculos cadastrados</h2>
     <table>
-      <tbody id="vinculos-list"></tbody>
+      <tbody id="lista-vinculos"></tbody>
     </table>
   </div>
 
@@ -236,9 +260,19 @@
     // Função para exibir o card de criação/edição
     function mostrarCardEquipe() {
       document.getElementById("card").style.display = "block";  // Torna o card visível
+      document.getElementById("card-edit").style.display = "none";  // Torna o card visível
+
       // Oculta o botão de cadastrar
       const btnCadastrar = document.querySelector("button[onclick='mostrarCardEquipe()']");
-      btnCadastrar.style.display = "none";
+      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
+    }
+
+    // Função para exibir o card de criação/edição
+    function mostrarCardVinculo() {
+      document.getElementById("card").style.display = "none";  // Torna o card visível
+      document.getElementById("card-edit").style.display = "block";  // Torna o card visível
+      // Oculta o botão de cadastrar
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCardVinculo()']");
       document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
     }
 
@@ -304,11 +338,13 @@
     }
 
 
+
+
     // ============================
     // 🔵 LISTAR VÍNCULOS NA TABELA
     // ============================
     function listarVinculos() {
-      const tbody = document.getElementById("vinculos-list");
+      const tbody = document.getElementById("lista-vinculos");
       tbody.innerHTML = "";
 
       const grupos = {};
@@ -323,26 +359,40 @@
         const lista = grupos[eventoNome];
         const id = eventoNome.replace(/\s+/g, "_");
 
+        // HEADER (toggle principal)
         tbody.innerHTML += `
-          <tr class="toggle-title" data-id="vinculo">
-            <td colspan="3"> ${eventoNome} — ${lista.length} equipe(s)</td>
+          <tr>
+            <td>
+              <span class="toggle-title" data-id="${id}">
+                ▶ ${eventoNome} — ${lista.length} equipe(s)
+              </span>
+            </td>
           </tr>
         `;
 
-        lista.forEach(v => {
-          tbody.innerHTML += `
-            <tr class="grupo-vinculo" style="display: none;">
-              <td>${v.equipe?.nome ?? "-"}</td>
-              <td>
-                <button class="btn-danger" onclick="excluirVinculo('${v.id}')">Excluir</button>
-              </td>
-            </tr>
-          `;
-        });
+        // CONTAINER ÚNICO DOS SUBITENS (OBRIGATÓRIO)
+        tbody.innerHTML += `
+          <tr class="grupo-${id}" style="display: none;">
+            <td>
+              <table>
+                  ${lista.map(v => `
+                    <tr>
+                      <td>
+                        ${v.equipe?.nome ?? "-"}
+                      </td>
+                      <td>
+                        <button  onclick="excluirVinculo('${v.id}')">Excluir</button>
+                      </td>
+                    </tr>
+                  `).join("")}
+              </table>
+            </td>
+          </tr>
+        `;
       });
 
+      ativarToggle();
     }
-
     // ▶ INICIAR
     withLoader(() => listarEquipes(), listarVinculos(), carregarListas(), ativarToggle());
   </script>

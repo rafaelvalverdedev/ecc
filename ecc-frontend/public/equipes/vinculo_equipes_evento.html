@@ -23,24 +23,9 @@
   <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
   <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
 
-  <h1>Vínculo Equipe x Evento</h1>
+  <h1>Vínculo Equipe x Evento</h1> <span><a href="../dashboard/"> ← Voltar</a></span>
+
   <button class="nav-btn" id="nav-btn" onclick="mostrarCardVinculo()">Cadastrar Vínculos</button>
-
-  <!-- EVENTOS CADASTRADOS -->
-  <div class="card">
-    <h2>Eventos cadastrados</h2>
-    <table>
-      <tbody id="lista-eventos"></tbody>
-    </table>
-  </div>
-
-  <!-- LISTA DE VÍNCULOS -->
-  <div class="card">
-    <h2>Vínculos cadastrados</h2>
-    <table>
-      <tbody id="lista-vinculos"></tbody>
-    </table>
-  </div>
 
   <!-- FORM DE VÍNCULO -->
   <div class="card" id="card" style="display:none;">
@@ -65,7 +50,25 @@
     </form>
   </div>
 
+  <!-- EVENTOS CADASTRADOS -->
+  <div class="card">
+    <h2>Eventos cadastrados</h2>
+    <table>
+      <tbody id="lista-eventos"></tbody>
+    </table>
+  </div>
 
+  <!-- LISTA DE VÍNCULOS -->
+  <div class="card">
+    <h2>Vínculos cadastrados</h2>
+    <table>
+      <tbody id="lista-vinculos"></tbody>
+    </table>
+  </div>
+
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
   <!-- MODAL DE CONFIRMAÇÃO -->
   <div class="modal-overlay" id="modalConfirm">
@@ -77,9 +80,6 @@
       </div>
     </div>
   </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
 
   <script src="../js/loader.js"></script>
   <script src="../js/config.js"></script>
@@ -283,22 +283,36 @@
         const lista = grupos[eventoNome];
         const id = eventoNome.replace(/\s+/g, "_");
 
+        // HEADER (toggle principal)
         tbody.innerHTML += `
-          <tr class="grupo-header" data-id="${id}">
-            <td colspan="3">▶ ${eventoNome} — ${lista.length} equipe(s)</td>
+          <tr>
+            <td>
+              <span class="toggle-title" data-id="${id}">
+                ▶ ${eventoNome} — ${lista.length} equipe(s)
+              </span>
+            </td>
           </tr>
         `;
 
-        lista.forEach(v => {
-          tbody.innerHTML += `
-            <tr class="grupo-linha grupo-${id}" style="display:none;">
-              <td>${v.equipe?.nome ?? "-"}</td>
-              <td>
-                <button class="btn-danger" onclick="excluirVinculo('${v.id}')">Excluir</button>
-              </td>
-            </tr>
-          `;
-        });
+        // CONTAINER ÚNICO DOS SUBITENS (OBRIGATÓRIO)
+        tbody.innerHTML += `
+          <tr class="grupo-${id}" style="display: none;">
+            <td>
+              <table>
+                  ${lista.map(v => `
+                    <tr>
+                      <td>
+                        ${v.equipe?.nome ?? "-"}
+                      </td>
+                      <td>
+                        <button  onclick="excluirVinculo('${v.id}')">Excluir</button>
+                      </td>
+                    </tr>
+                  `).join("")}
+              </table>
+            </td>
+          </tr>
+        `;
       });
 
       ativarToggle();
@@ -346,7 +360,7 @@
             return;
           }
 
-          carregarListas();
+          withLoader(() => carregarListas());
 
         } catch (err) {
           console.error(err);

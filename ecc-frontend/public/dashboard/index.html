@@ -56,7 +56,7 @@
     <table class="grupo-equipes" style="display: none;">
       <thead>
         <tr>
-          <th colspan="2"><a href="equipes.html">Gerenciar Equipes</a></th>
+          <th colspan="2"><a href="../equipes">Gerenciar Equipes</a></th>
         </tr>
         <tr>
           <th>Nome</th>
@@ -72,6 +72,9 @@
     <h2 class="toggle-title" data-id="cadastro"> ▶ Pessoas Cadastradas - Cadastro Geral </h2>
     <table class="grupo-cadastro" style="display: none;">
       <thead>
+        <tr>
+          <th colspan="3"><a href="../cadastro">Gerenciar Pessoas</a></th>
+        </tr>
         <tr>
           <th>Nome</th>
           <th>Email</th>
@@ -330,7 +333,7 @@
       //carregarEncontristas();
       carregarPessoas();
       carregarCadastro();
-      
+
       localStorage.removeItem("CasalId");
       localStorage.removeItem("eventoId");
     });

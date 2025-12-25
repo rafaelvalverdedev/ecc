@@ -1,12 +1,22 @@
-// Insere o loader no DOM
+const BASE_URL = window.location.origin;
+
 document.body.insertAdjacentHTML(
-    "beforeend",
-    `
-<div id="global-loader">
-  <div class="loader-spinner"></div>
-</div>
-`
+  "beforeend",
+  `
+  <div id="global-loader">
+    <img
+      src="${BASE_URL}/ecc-frontend/public/assets/aliancas.svg"
+      alt="Carregando"
+      class="loader-aliancas"
+    />
+    <!-- <div class="loader-spinner"></div> -->
+  </div>
+  `
 );
+
+
+
+
 
 const loader = document.getElementById("global-loader");
 
