@@ -5,7 +5,7 @@ document.body.insertAdjacentHTML(
   `
   <div id="global-loader">
     <img
-      src="${BASE_URL}/ecc-frontend/public/assets/aliancas.svg"
+      src="${BASE_URL}/assets/aliancas.svg"
       alt="Carregando"
       class="loader-aliancas"
     />
