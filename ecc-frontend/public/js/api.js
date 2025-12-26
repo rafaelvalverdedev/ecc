@@ -1,6 +1,6 @@
 const API_BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:3001"
+  window.location.hostname === "http://127.0.0.1"
+    ? "http://127.0.0.1:3001"
     : "https://ecc-backend-8i9l.onrender.com";
 
 function api(url, options = {}) {
