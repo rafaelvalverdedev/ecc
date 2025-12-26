@@ -111,7 +111,7 @@
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!token) {
-      window.location.href = "../auth/login.html";
+      window.location.href = "../auth";
     }
     document.getElementById("user-email").innerText = user?.email ?? "";
 
@@ -121,7 +121,7 @@
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "../auth/login.html";
+      window.location.href = "../auth";
     }
 
     // ====================================

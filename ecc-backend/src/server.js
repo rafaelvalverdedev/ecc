@@ -74,23 +74,24 @@ app.use("/rotateste", authMiddleware, rotateste); // rota para testes
 
 // Pagamento público (apenas geração do PIX é protegida)
 app.use("/pagamento", pagamentoRoutes);
+
 // ======================================================
 // ROTAS PROTEGIDAS (LOGIN OBRIGATÓRIO)
 // ======================================================
-app.use("/pessoas", pessoasRoutes);
-app.use("/eventos",  eventosRoutes);
-app.use("/equipes",  equipeRoutes);
-app.use("/equipes-evento",  equipesEventoRoutes);
-app.use("/teamrole",  teamroleRoutes);
-app.use("/momentos",  momentosRoutes);
+app.use("/pessoas", authMiddleware, pessoasRoutes);
+app.use("/eventos", authMiddleware, eventosRoutes);
+app.use("/equipes", authMiddleware, equipeRoutes);
+app.use("/equipes-evento", authMiddleware, equipesEventoRoutes);
+app.use("/teamrole", authMiddleware, teamroleRoutes);
+app.use("/momentos", authMiddleware, momentosRoutes);
 
 // inscrições comuns são públicas (mantido como você usava)
-app.use("/inscricoes", inscricoesRoutes);
+app.use("/inscricoes", authMiddleware,inscricoesRoutes);
 
-app.use("/coordenadores",  coordenadoresRoutes);
+app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
 
 // Encontrista-inscrição é protegida por auth
-app.use("/encontrista_inscricao",  encontristaInscricaoRoutes);
+app.use("/encontrista_inscricao",  authMiddleware, encontristaInscricaoRoutes);
 
 // Admin
 app.use("/admin",  adminRoutes);

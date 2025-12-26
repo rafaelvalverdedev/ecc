@@ -14,12 +14,7 @@ const registerSchema = z.object({
   nome: z.string().min(3, "Nome muito curto"),
   email: z.string().email("Email inválido"),
   telefone: z.string().optional(),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-});
-
-const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  password: z.string().min(6),
 });
 
 // ================================
@@ -88,8 +83,7 @@ export async function register(req, res) {
 // ================================
 export async function login(req, res) {
   try {
-    const parsed = loginSchema.parse(req.body);
-    const { email, password } = parsed;
+const { email, password } = req.body;
 
     const { data: pessoa, error } = await supabase
       .from("pessoas")

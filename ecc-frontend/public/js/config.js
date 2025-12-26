@@ -3,8 +3,6 @@ window.APP_CONFIG = {
   // API_BASE_URL: "https://ecc-backend-8i9l.onrender.com" // producao 
 };
 
-
-
 // ====================================
 // 🔄 Navegação
 // ====================================
@@ -20,6 +18,15 @@ function formatarDataBR(dataISO) {
 
   const [ano, mes, dia] = dataISO.split("-");
   return `${dia}/${mes}/${ano}`;
+}
+
+// ====================================
+// 🔓 Logout
+// ====================================
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "../auth";
 }
 
 // ====================================

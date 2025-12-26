@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Equipes • ECC</title>
+
+  <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/loader.css">
+
+  <style>
+    /* Reset básico e fonte */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f2f5;
+    }
+
+    /* Contêiner da caixa de login */
+    .login-container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      margin-bottom: 20px;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .login-container button {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <h2>Acesso</h2>
+    <form onsubmit="login(event)">
+      <input type="email" id="email" placeholder="E-mail" required>
+      <input type="password" id="password" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+    </form>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="../js/loader.js"></script>
+  <script src="../js/auth-check.js"></script>
+  <script src="../js/config.js"></script>
+  <script>
+    const API = APP_CONFIG.API_BASE_URL;
+    const toast = document.getElementById("toast");
+
+    async function login() {
+      event.preventDefault();
+      showLoader();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      toast.style.display = "none";
+
+      // Validação básica frontend (já existia, mantida)
+      if (!email || !password) {
+        toast.innerText = "Preencha todos os campos.";
+        toast.style.display = "block";
+        setTimeout(() => toast.style.display = "none", 2000);
+        hideLoader();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        // ============================
+        // 🔴 TRATAMENTO DE ERROS (ZOD / API)
+        // ============================
+        if (!res.ok) {
+          hideLoader();
+
+          // Erros de validação vindos do Zod
+          if (data.fields && Array.isArray(data.fields)) {
+            toast.innerText = data.fields[0].message;
+          } else {
+            toast.innerText = data.error || "Erro desconhecido.";
+          }
+
+          toast.style.display = "block";
+          setTimeout(() => toast.style.display = "none", 2500);
+          return;
+        }
+
+        // ============================
+        // ✅ LOGIN OK
+        // ============================
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.pessoa));
+
+        window.location.href = "../dashboard/";
+
+      } catch (error) {
+        hideLoader();
+        toast.innerText = "Erro ao conectar ao servidor.";
+        toast.style.display = "block";
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+
+</html>

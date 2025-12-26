@@ -31,7 +31,7 @@
   <div class="card" id="card" style="display:none;">
     <!-- FORM EDITAR / CRIAR EQUIPE -->
     <h2>Criar / Editar Equipe</h2>
-    <form id="form-equipe" onsubmit="salvarEquipe(event)">
+    <form id="form-equipe" onsubmit="withLoader(() => salvarEquipe(event))">
       <input type="hidden" id="equipe_id">
 
       <label>Nome:</label>
@@ -47,7 +47,7 @@
 
 
   <!-- FORM DE VÍNCULO -->
-  <div class="card-edit" id="card" style="display:none;">
+  <div class="card" id="card-edit" style="display:none;">
     <h2>Criar/Atualizar Vínculos</h2>
 
     <form id="form-vinculo" onsubmit="withLoader(() => salvarVinculos(event))">
@@ -109,25 +109,9 @@
   <div class="toast" id="toast"></div>
 
   <script src="../js/loader.js"></script>
+  <script src="../js/auth-check.js"></script>
   <script src="../js/config.js"></script>
   <script>
-    // ============================
-    // 🔐 Autenticação
-    // ============================
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    if (!token) { window.location.href = "./auth-login.html"; }
-
-    // ============================
-    // 🔓 Logout
-    // ============================
-    function logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "./auth-login.html";
-    }
-
     const API_URL = `${APP_CONFIG.API_BASE_URL}/equipes`;
 
     // ============================
@@ -145,15 +129,15 @@
 
         equipes.forEach(eq => {
           tbody.innerHTML += `
-        <tr>
-          <td>${eq.nome}</td>
-          <td>${eq.descricao ?? "-"}</td>
-          <td>
-            <button onclick="carregarEquipe('${eq.id}')">Editar</button>
-            <button onclick="excluirEquipe('${eq.id}')">Excluir</button>
-          </td>
-        </tr>
-      `;
+            <tr>
+              <td>${eq.nome}</td>
+              <td>${eq.descricao ?? "-"}</td>
+              <td>
+                <button onclick="carregarEquipe('${eq.id}')">Editar</button>
+                <button onclick="withLoader(() => excluirEquipe('${eq.id}'))">Excluir</button>
+              </td>
+            </tr>
+          `;
         });
       } catch (error) {
         console.error("Erro ao listar equipes:", error);
@@ -161,7 +145,7 @@
     }
 
     // ============================
-    // 📌 SALVAR (CRIAR OU EDITAR)
+    // SALVAR (CRIAR OU EDITAR)
     // ============================
     async function salvarEquipe(event) {
       event.preventDefault();
@@ -199,7 +183,7 @@
     }
 
     // ============================
-    // 📌 EDITAR
+    // EDITAR
     // ============================
     async function editarEquipe(id) {
       const res = await fetch(`${API_URL}/${id}`, {
@@ -217,7 +201,7 @@
     }
 
     // ======================================
-    // 📌 CARREGAR EQUIPE PARA EDIÇÃO
+    // CARREGAR EQUIPE PARA EDIÇÃO
     // ======================================
     async function carregarEquipe(id) {
       try {
@@ -241,70 +225,209 @@
     }
 
     // ============================
-    // 📌 CANCELAR EDIÇÃO
+    // CANCELAR EDIÇÃO
     // ============================
     function cancelarEdicao() {
-      document.getElementById("equipe_id").value = "";
       document.getElementById("form-equipe").reset();
-      document.getElementById("btn-cancelar").style.display = "none";
-      const cardEquipes = document.getElementById("card");
-      cardEquipes.style.display = "none";
+      document.getElementById("form-vinculo").reset();
 
-      // Exibe novamente o botão de cadastrar equipe
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEquipe()']");
-      btnCadastrar.style.display = "inline-block";  // Exibe o botão "Cadastrar equipe" novamente
-      document.getElementById("form-equipe").reset();  // Reseta o formulário
-      document.getElementById("btn-cancelar").style.display = "none";  // Oculta o botão "Cancelar"
-    }
+      document.getElementById("card-edit").style.display = "none";
+      document.getElementById("card").style.display = "none";
 
-    // Função para exibir o card de criação/edição
-    function mostrarCardEquipe() {
-      document.getElementById("card").style.display = "block";  // Torna o card visível
-      document.getElementById("card-edit").style.display = "none";  // Torna o card visível
-
-      // Oculta o botão de cadastrar
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEquipe()']");
-      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
-    }
-
-    // Função para exibir o card de criação/edição
-    function mostrarCardVinculo() {
-      document.getElementById("card").style.display = "none";  // Torna o card visível
-      document.getElementById("card-edit").style.display = "block";  // Torna o card visível
-      // Oculta o botão de cadastrar
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCardVinculo()']");
-      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
     }
 
     // ============================
-    // 📌 EXCLUIR EQUIPE
+    // EXCLUIR EQUIPE
     // ============================
     async function excluirEquipe(id) {
       showConfirm("Tem certeza que deseja excluir este equipe?", async () => {
-        try {
-          const response = await fetch(`${API_URL}/${id}`, {
+        withLoader(async () => {
+          try {
+            const response = await fetch(`${API_URL}/${id}`, {
+              method: "DELETE",
+              headers: { Authorization: "Bearer " + token }
+            });
+
+            if (!response.ok) {
+              showToast("Erro ao excluir equipe");
+              return;
+            }
+
+            showToast("Equipe excluída!");
+            await carregarListas();
+            await listarEquipes();
+          } catch (error) {
+            console.error("Erro ao excluir equipe:", error);
+            showToast("Erro ao excluir equipe");
+          }
+        });
+      });
+    }
+
+    // ============================
+    // LISTAR VÍNCULOS NA TABELA
+    // ============================
+    function listarVinculos() {
+      const tbody = document.getElementById("lista-vinculos");
+      tbody.innerHTML = "";
+
+      const grupos = {};
+
+      vinculos.forEach(v => {
+        const eventoNome = v.evento?.nome || "(Sem nome)";
+        if (!grupos[eventoNome]) grupos[eventoNome] = [];
+        grupos[eventoNome].push(v);
+      });
+
+      Object.keys(grupos).forEach(eventoNome => {
+        const lista = grupos[eventoNome];
+        const id = eventoNome.replace(/\s+/g, "_");
+
+        // HEADER (toggle principal)
+        tbody.innerHTML += `
+              <tr>
+                <td>
+                  <span class="toggle-title" data-id="${id}">
+                    ▶ ${eventoNome} — ${lista.length} equipe(s)
+                  </span>
+                </td>
+              </tr>
+            `;
+
+        // CONTAINER ÚNICO DOS SUBITENS (OBRIGATÓRIO)
+        tbody.innerHTML += `
+              <tr class="grupo-${id}" style="display: none;">
+                <td>
+                  <table>
+                      ${lista.map(v => `
+                        <tr>
+                          <td>
+                            ${v.equipe?.nome ?? "-"}
+                          </td>
+                          <td>
+                            <button  onclick="excluirVinculo('${v.id}')">Excluir</button>
+                          </td>
+                        </tr>
+                      `).join("")}
+                  </table>
+                </td>
+              </tr>
+            `;
+      });
+
+      ativarToggle();
+    }
+
+    // ============================
+    // SALVAR VÍNCULOS
+    // ============================
+    async function salvarVinculos(event) {
+      event.preventDefault();
+
+      const eventoId = document.getElementById("evento_id").value;
+
+      const selecionadas = Array.from(
+        document.querySelectorAll(
+          "#checkboxContainer input:checked:not(:disabled)"
+        )
+      ).map(cb => cb.value);
+
+      const vinculadasAntes = vinculos
+        .filter(v => v.evento_id === eventoId)
+        .map(v => v.equipe_id);
+
+      const paraCriar = selecionadas.filter(id => !vinculadasAntes.includes(id));
+      const paraExcluir = vinculadasAntes.filter(id => !selecionadas.includes(id));
+
+      // Criar vínculos
+      for (const equipeId of paraCriar) {
+        const res = await fetch(API_VINCULOS, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            evento_id: eventoId,
+            equipe_id: equipeId
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("Erro ao criar vínculo");
+        }
+      }
+
+      // Excluir vínculos
+      for (const equipeId of paraExcluir) {
+        const vinculo = vinculos.find(
+          v => v.evento_id === eventoId && v.equipe_id === equipeId
+        );
+
+        if (vinculo) {
+          const res = await fetch(`${API_VINCULOS}/${vinculo.id}`, {
             method: "DELETE",
             headers: { Authorization: "Bearer " + token }
           });
 
-          if (!response.ok) {
-            showToast("Erro ao excluir equipe");
-            return;
+          if (!res.ok) {
+            throw new Error("Erro ao excluir vínculo");
           }
-
-          showToast("Equipe excluída!");
-          listarEquipes();
-        } catch (error) {
-          console.error("Erro ao excluir equipe:", error);
-          showToast("Erro ao excluir equipe");
         }
+      }
+
+      await carregarListas();
+      showToast("Vínculos atualizados com sucesso!");
+      cancelarEdicao();
+    }
+
+    // ============================
+    // EXCLUIR VÍNCULO
+    // ============================
+    function excluirVinculo(id) {
+      showConfirm("Tem certeza que deseja excluir este vínculo?", () => {
+        withLoader(async () => {
+          try {
+            const res = await fetch(`${API_VINCULOS}/${id}`, {
+              method: "DELETE",
+              headers: { Authorization: "Bearer " + token },
+            });
+
+            if (!res.ok) {
+              showToast("Erro ao excluir vínculo.");
+              return;
+            }
+
+            await carregarListas();
+            await listarEquipes();
+            showToast("Vínculo excluído com sucesso!");
+
+          } catch (err) {
+            console.error(err);
+            showToast("Erro ao excluir vínculo.");
+          }
+        });
       });
     }
 
 
+    // Função para exibir o card de criação/edição
+    function mostrarCardEquipe() {
+      document.getElementById("card").style.display = "block";
+      document.getElementById("card-edit").style.display = "none";
+      document.getElementById("btn-cancelar").style.display = "block";
+    }
+
+    // Função para exibir o card de criação/edição
+    function mostrarCardVinculo() {
+      document.getElementById("card").style.display = "none";
+      document.getElementById("card-edit").style.display = "block";
+      document.getElementById("btn-cancelar").style.display = "block";
+      carregarListas();
+    }
 
     // ============================
-    // 🔵 CARREGAR EVENTOS / EQUIPES / VÍNCULOS
+    // CARREGAR EVENTOS / EQUIPES / VÍNCULOS
     // ============================
 
     const API_EVENTOS = `${APP_CONFIG.API_BASE_URL}/eventos`;
@@ -329,6 +452,8 @@
         const vinculosJson = await vinculosRes.json();
         vinculos = vinculosJson.data?.data || vinculosJson.data || [];
 
+        preencherEventos();
+        renderizarCheckboxes();
         listarVinculos();
 
       } catch (err) {
@@ -337,64 +462,81 @@
       }
     }
 
+    // SELECT DE EVENTOS
+    function preencherEventos() {
+      const select = document.getElementById("evento_id");
+      if (!select) return;
 
+      select.innerHTML = "";
 
-
-    // ============================
-    // 🔵 LISTAR VÍNCULOS NA TABELA
-    // ============================
-    function listarVinculos() {
-      const tbody = document.getElementById("lista-vinculos");
-      tbody.innerHTML = "";
-
-      const grupos = {};
-
-      vinculos.forEach(v => {
-        const eventoNome = v.evento?.nome || "(Sem nome)";
-        if (!grupos[eventoNome]) grupos[eventoNome] = [];
-        grupos[eventoNome].push(v);
+      eventos.forEach(ev => {
+        select.innerHTML += `<option value="${ev.id}">${ev.nome}</option>`;
       });
-
-      Object.keys(grupos).forEach(eventoNome => {
-        const lista = grupos[eventoNome];
-        const id = eventoNome.replace(/\s+/g, "_");
-
-        // HEADER (toggle principal)
-        tbody.innerHTML += `
-          <tr>
-            <td>
-              <span class="toggle-title" data-id="${id}">
-                ▶ ${eventoNome} — ${lista.length} equipe(s)
-              </span>
-            </td>
-          </tr>
-        `;
-
-        // CONTAINER ÚNICO DOS SUBITENS (OBRIGATÓRIO)
-        tbody.innerHTML += `
-          <tr class="grupo-${id}" style="display: none;">
-            <td>
-              <table>
-                  ${lista.map(v => `
-                    <tr>
-                      <td>
-                        ${v.equipe?.nome ?? "-"}
-                      </td>
-                      <td>
-                        <button  onclick="excluirVinculo('${v.id}')">Excluir</button>
-                      </td>
-                    </tr>
-                  `).join("")}
-              </table>
-            </td>
-          </tr>
-        `;
-      });
-
-      ativarToggle();
     }
+
+    // RENDERIZAR CHECKBOXES + SINCRONIZAR
+    function renderizarCheckboxes() {
+      const eventoId = document.getElementById("evento_id").value;
+      const container = document.getElementById("checkboxContainer");
+      const selectAll = document.getElementById("selectAll");
+
+      container.innerHTML = "";
+      selectAll.checked = false;
+
+      if (!eventoId) return;
+
+      const vinculadas = vinculos
+        .filter(v => v.evento?.id === eventoId)
+        .map(v => v.equipe?.id);
+
+      equipes.forEach(eq => {
+        const jaVinculada = vinculadas.includes(eq.id);
+
+        container.innerHTML += `
+      <label class="checkbox-item ${jaVinculada ? 'checkbox-disabled' : ''}">
+        <input
+          type="checkbox"
+          value="${eq.id}"
+          ${jaVinculada ? 'checked disabled' : ''}
+          onchange="syncSelectAll()"
+        >
+        <span>${eq.nome}</span>
+      </label>
+    `;
+      });
+
+      syncSelectAll();
+    }
+
+    // 🔵 SELECIONAR TODOS
+    function toggleSelectAll(master) {
+      const checkboxes = document.querySelectorAll(
+        '#checkboxContainer input[type="checkbox"]:not(:disabled)'
+      );
+
+      checkboxes.forEach(cb => cb.checked = master.checked);
+    }
+
+    // 🔵 Sincronizar estado do selectAll
+    function syncSelectAll() {
+      const checkboxes = document.querySelectorAll(
+        '#checkboxContainer input[type="checkbox"]:not(:disabled)'
+      );
+
+      if (checkboxes.length === 0) {
+        document.getElementById("selectAll").checked = false;
+        return;
+      }
+
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      document.getElementById("selectAll").checked = allChecked;
+    }
+
     // ▶ INICIAR
-    withLoader(() => listarEquipes(), listarVinculos(), carregarListas(), ativarToggle());
+    withLoader(async () => {
+      await listarEquipes();
+      await carregarListas();
+    });
   </script>
 
 </body>
