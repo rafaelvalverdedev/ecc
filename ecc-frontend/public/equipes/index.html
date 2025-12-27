@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
@@ -28,45 +29,51 @@
   <button class="nav-btn" id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
   <button class="nav-btn" onclick="mostrarCardVinculo();"> Vincular Equipe a Evento </button>
 
-  <div class="card" id="card" style="display:none;">
-    <!-- FORM EDITAR / CRIAR EQUIPE -->
-    <h2>Criar / Editar Equipe</h2>
-    <form id="form-equipe" onsubmit="withLoader(() => salvarEquipe(event))">
-      <input type="hidden" id="equipe_id">
+  <div class="card-modal-overlay" id="card" style="display:none;">
+    <div class="card-modal">
+      <!-- FORM EDITAR / CRIAR EQUIPE -->
+      <h2>Criar / Editar Equipe</h2>
+      <form id="form-equipe" onsubmit="withLoader(() => salvarEquipe(event))">
+        <input type="hidden" id="equipe_id">
 
-      <label>Nome:</label>
-      <input id="nome" required>
+        <label>Nome:</label>
+        <input id="nome" required>
 
-      <label>Descrição:</label>
-      <input id="descricao" required>
+        <label>Descrição:</label>
+        <input id="descricao" required>
 
-      <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
-      <button type="submit" id="btnSalvar">Salvar</button>
-    </form>
+        <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+        <button type="submit" id="btnSalvar">Salvar</button>
+      </form>
+    </div>
   </div>
 
 
   <!-- FORM DE VÍNCULO -->
-  <div class="card" id="card-edit" style="display:none;">
-    <h2>Criar/Atualizar Vínculos</h2>
 
-    <form id="form-vinculo" onsubmit="withLoader(() => salvarVinculos(event))">
-      <label>Evento:</label>
-      <select id="evento_id" onchange="renderizarCheckboxes()"></select>
+  <div class="card-modal-overlay" id="card-edit" style="display:none;">
+    <div class="card-modal">
 
-      <!-- SELECIONAR TODOS -->
-      <div>
-        <label>Equipes:</label>
-        <label class="checkbox-item checkbox-select-all">
-          <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
-          <span>Selecionar todos</span>
-        </label>
-        <div id="checkboxContainer" class="checkbox-grid"></div>
-      </div>
+      <h2>Criar/Atualizar Vínculos</h2>
 
-      <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
-      <button type="submit" id="btnSalvar">Salvar Vínculos</button>
-    </form>
+      <form id="form-vinculo" onsubmit="withLoader(() => salvarVinculos(event))">
+        <label>Evento:</label>
+        <select id="evento_id" onchange="renderizarCheckboxes()"></select>
+
+        <!-- SELECIONAR TODOS -->
+        <div>
+          <label>Equipes:</label>
+          <label class="checkbox-item checkbox-select-all">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+            <span>Selecionar todos</span>
+          </label>
+          <div id="checkboxContainer" class="checkbox-grid"></div>
+        </div>
+
+        <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+        <button type="submit" id="btnSalvar">Salvar Vínculos</button>
+      </form>
+    </div>
   </div>
 
 

@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
@@ -25,193 +26,195 @@
 
   <h1>Cadastro Geral</h1> <a href="../dashboard/"> ← Voltar</a>
   <br>
-  <button type="button" id="btnCadastrar" class="nav-btn" onclick="mostrarCadastro()">Cadastrar Pessoas</button>
+  
+  <button id="btnCadastrar" class="nav-btn" onclick="mostrarCadastro()">Cadastrar Pessoas</button>
+  <div class="card-modal-overlay" id="card-cadastro" style="display:none;">
+    <div class="card-modal">
 
-  <div class="card" id="card-cadastro" style="display: none;">
-    <br>
-    <button type="button" class="nav-btn" onclick="preencherMock()">Preencher (DEV)</button>
-    <br>
-    <form id="formInscricao">
+      <form id="formInscricao">
+        
+        <!-- ===================== ETAPA 1 - ESPOSO ====================== -->
+        
+        <div class="step active" id="step1">
+          <h2>Dados do Esposo</h2>
+          
+          <button type="button" class="nav-btn" onclick="preencherMock()">Preencher (DEV)</button>
+          <label>Nome Completo</label>
+          <input required id="nome_completo_esposo">
 
-      <!-- ===================== ETAPA 1 - ESPOSO ====================== -->
-      <div class="step active" id="step1">
-        <h2>Dados do Esposo</h2>
+          <label>Data de Nascimento</label>
+          <input type="date" required id="data_nascimento_esposo">
 
-        <label>Nome Completo</label>
-        <input required id="nome_completo_esposo">
+          <label>Profissão</label>
+          <input required id="profissao_esposo">
 
-        <label>Data de Nascimento</label>
-        <input type="date" required id="data_nascimento_esposo">
+          <label>Local de Trabalho</label>
+          <input required id="local_trabalho_esposo">
 
-        <label>Profissão</label>
-        <input required id="profissao_esposo">
+          <label>Como deseja ser chamado</label>
+          <input required id="como_chamar_esposo">
 
-        <label>Local de Trabalho</label>
-        <input required id="local_trabalho_esposo">
+          <label>Igreja</label>
+          <input required id="igreja_esposo">
 
-        <label>Como deseja ser chamado</label>
-        <input required id="como_chamar_esposo">
+          <label>E-mail</label>
+          <input required id="email_esposo">
 
-        <label>Igreja</label>
-        <input required id="igreja_esposo">
+          <label>Celular</label>
+          <input type="tel" required id="celular_esposo">
 
-        <label>E-mail</label>
-        <input required id="email_esposo">
+          <label>Instagran/Facebook</label>
+          <input type="text" required id="redesocial_esposo">
 
-        <label>Celular</label>
-        <input type="tel" required id="celular_esposo">
+          <label>Restriçõe Alimentares</label>
+          <input type="text" required id="restricoes_alimentares_esposo">
 
-        <label>Instagran/Facebook</label>
-        <input type="text" required id="redesocial_esposo">
+          <label>Medicamentos/Alergias</label>
+          <input type="text" required id="medicamentos_alergias_esposo">
 
-        <label>Restriçõe Alimentares</label>
-        <input type="text" required id="restricoes_alimentares_esposo">
+          <label>Religião</label>
+          <select required id="religiao_esposo">
+            <option value="" disabled selected>Selecione</option>
+            <option value="catolico">Católico</option>
+            <option value="evangelico">Evangélico</option>
+            <option value="espirita">Espírita</option>
+            <option value="outro">Outro</option>
+            <option value="nenhuma">Nenhuma</option>
+          </select>
 
-        <label>Medicamentos/Alergias</label>
-        <input type="text" required id="medicamentos_alergias_esposo">
+          <label>Escolaridade</label>
+          <select required id="escolaridade_esposo">
+            <option value="" disabled selected>Selecione</option>
+            <option value="fundamental">Fundamental</option>
+            <option value="medio">Ensino Médio</option>
+            <option value="superior">Ensino Superior</option>
+            <option value="nenhuma">Nenhuma</option>
+          </select>
 
-        <label>Religião</label>
-        <select required id="religiao_esposo">
-          <option value="" disabled selected>Selecione</option>
-          <option value="catolico">Católico</option>
-          <option value="evangelico">Evangélico</option>
-          <option value="espirita">Espírita</option>
-          <option value="outro">Outro</option>
-          <option value="nenhuma">Nenhuma</option>
-        </select>
-
-        <label>Escolaridade</label>
-        <select required id="escolaridade_esposo">
-          <option value="" disabled selected>Selecione</option>
-          <option value="fundamental">Fundamental</option>
-          <option value="medio">Ensino Médio</option>
-          <option value="superior">Ensino Superior</option>
-          <option value="nenhuma">Nenhuma</option>
-        </select>
-
-        <button type="button" class="nav-btn" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-        <button type="button" class="nav-btn" onclick="nextStep()">Próximo</button>
-      </div>
-
-      <!-- ===================== ETAPA 2 - ESPOSA ====================== -->
-      <div class="step" id="step2">
-        <h2>Dados da Esposa</h2>
-
-        <label>Nome Completo</label>
-        <input required id="nome_completo_esposa">
-
-        <label>Data de Nascimento</label>
-        <input type="date" required id="data_nascimento_esposa">
-
-        <label>Profissão</label>
-        <input required id="profissao_esposa">
-
-        <label>Local de Trabalho</label>
-        <input required id="local_trabalho_esposa">
-
-        <label>Como deseja ser chamada</label>
-        <input required id="como_chamar_esposa">
-
-        <label>Igreja</label>
-        <input required id="igreja_esposa">
-
-        <label>E-mail</label>
-        <input required id="email_esposa">
-
-        <label>Celular</label>
-        <input type="tel" required id="celular_esposa">
-
-        <label>Instagran/Facebook</label>
-        <input type="text" required id="redesocial_esposa">
-
-        <label>Restriçõe Alimentares</label>
-        <input type="text" required id="restricoes_alimentares_esposa">
-
-        <label>Medicamentos/Alergias</label>
-        <input type="text" required id="medicamentos_alergias_esposa">
-
-        <label>Religião</label>
-        <select required id="religiao_esposa">
-          <option value="" disabled selected>Selecione</option>
-          <option value="catolico">Católico</option>
-          <option value="evangelico">Evangélico</option>
-          <option value="espirita">Espírita</option>
-          <option value="outro">Outro</option>
-          <option value="nenhuma">Nenhuma</option>
-        </select>
-
-        <label>Escolaridade</label>
-        <select required id="escolaridade_esposa">
-          <option value="" disabled selected>Selecione</option>
-          <option value="fundamental">Fundamental</option>
-          <option value="medio">Ensino Médio</option>
-          <option value="superior">Ensino Superior</option>
-        </select>
-
-        <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-        <button type="button" onclick="prevStep()">Voltar</button>
-        <button type="button" onclick="nextStep()">Próximo</button>
-      </div>
-
-      <!-- ===================== ETAPA 3 - CASAL ====================== -->
-      <div class="step" id="step3">
-        <h2>Dados do Casal</h2>
-
-        <label>Endereço</label>
-        <input required id="endereco">
-
-        <label>Cidade</label>
-        <input required id="cidade">
-
-        <label>UF</label>
-        <input required maxlength="2" id="uf">
-
-        <label>Data de Casamento</label>
-        <input type="date" required id="data_casamento">
-
-
-        <label>Possui Condução</label>
-        <select required id="possui_conducao" onchange="toggleFilhos()">
-          <option value="" disabled selected>Selecione</option>
-          <option value="false">Não</option>
-          <option value="true">Sim</option>
-        </select>
-
-        <label>Possui filhos?</label>
-        <select required id="possui_filhos" onchange="toggleFilhos()">
-          <option value="" disabled selected>Selecione</option>
-          <option value="false">Não</option>
-          <option value="true">Sim</option>
-        </select>
-
-        <div id="dados_filhos" style="display:none">
-          <label>Quantidade de filhos</label>
-          <input type="number" min="1" id="quantidade_filhos">
-
-          <label>Responsável pelos filhos</label>
-          <input id="nome_responsavel_filhos">
-
-          <label>Grau de Parentesco do Responsável pelos filhos</label>
-          <input id="grau_parentesco_responsavel_filhos">
-
-          <label>Endereço do responsável</label>
-          <input type="tel" id="endereco_responsavel">
-
-          <label>Telefone do responsável</label>
-          <input type="tel" id="telefone_responsavel">
-
+          <button type="button" class="nav-btn" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+          <button type="button" class="nav-btn" onclick="nextStep()">Próximo</button>
         </div>
 
-        <label>Foto do Casal</label>
-        <input type="file" id="foto_casal" accept="image/*" required />
+        <!-- ===================== ETAPA 2 - ESPOSA ====================== -->
+        <div class="step" id="step2">
+          <h2>Dados da Esposa</h2>
+
+          <label>Nome Completo</label>
+          <input required id="nome_completo_esposa">
+
+          <label>Data de Nascimento</label>
+          <input type="date" required id="data_nascimento_esposa">
+
+          <label>Profissão</label>
+          <input required id="profissao_esposa">
+
+          <label>Local de Trabalho</label>
+          <input required id="local_trabalho_esposa">
+
+          <label>Como deseja ser chamada</label>
+          <input required id="como_chamar_esposa">
+
+          <label>Igreja</label>
+          <input required id="igreja_esposa">
+
+          <label>E-mail</label>
+          <input required id="email_esposa">
+
+          <label>Celular</label>
+          <input type="tel" required id="celular_esposa">
+
+          <label>Instagran/Facebook</label>
+          <input type="text" required id="redesocial_esposa">
+
+          <label>Restriçõe Alimentares</label>
+          <input type="text" required id="restricoes_alimentares_esposa">
+
+          <label>Medicamentos/Alergias</label>
+          <input type="text" required id="medicamentos_alergias_esposa">
+
+          <label>Religião</label>
+          <select required id="religiao_esposa">
+            <option value="" disabled selected>Selecione</option>
+            <option value="catolico">Católico</option>
+            <option value="evangelico">Evangélico</option>
+            <option value="espirita">Espírita</option>
+            <option value="outro">Outro</option>
+            <option value="nenhuma">Nenhuma</option>
+          </select>
+
+          <label>Escolaridade</label>
+          <select required id="escolaridade_esposa">
+            <option value="" disabled selected>Selecione</option>
+            <option value="fundamental">Fundamental</option>
+            <option value="medio">Ensino Médio</option>
+            <option value="superior">Ensino Superior</option>
+          </select>
+
+          <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+          <button type="button" onclick="prevStep()">Voltar</button>
+          <button type="button" onclick="nextStep()">Próximo</button>
+        </div>
+
+        <!-- ===================== ETAPA 3 - CASAL ====================== -->
+        <div class="step" id="step3">
+          <h2>Dados do Casal</h2>
+
+          <label>Endereço</label>
+          <input required id="endereco">
+
+          <label>Cidade</label>
+          <input required id="cidade">
+
+          <label>UF</label>
+          <input required maxlength="2" id="uf">
+
+          <label>Data de Casamento</label>
+          <input type="date" required id="data_casamento">
 
 
-        <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-        <button type="button" onclick="prevStep()">Voltar</button>
-        <button type="submit">Enviar</button>
-      </div>
+          <label>Possui Condução</label>
+          <select required id="possui_conducao" onchange="toggleFilhos()">
+            <option value="" disabled selected>Selecione</option>
+            <option value="false">Não</option>
+            <option value="true">Sim</option>
+          </select>
 
-    </form>
+          <label>Possui filhos?</label>
+          <select required id="possui_filhos" onchange="toggleFilhos()">
+            <option value="" disabled selected>Selecione</option>
+            <option value="false">Não</option>
+            <option value="true">Sim</option>
+          </select>
+
+          <div id="dados_filhos" style="display:none">
+            <label>Quantidade de filhos</label>
+            <input type="number" min="1" id="quantidade_filhos">
+
+            <label>Responsável pelos filhos</label>
+            <input id="nome_responsavel_filhos">
+
+            <label>Grau de Parentesco do Responsável pelos filhos</label>
+            <input id="grau_parentesco_responsavel_filhos">
+
+            <label>Endereço do responsável</label>
+            <input type="tel" id="endereco_responsavel">
+
+            <label>Telefone do responsável</label>
+            <input type="tel" id="telefone_responsavel">
+
+          </div>
+
+          <label>Foto do Casal</label>
+          <input type="file" id="foto_casal" accept="image/*" required />
+
+
+          <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+          <button type="button" onclick="prevStep()">Voltar</button>
+          <button type="submit">Enviar</button>
+        </div>
+
+      </form>
+    </div>
   </div>
 
   <!-- Cadastros -->
@@ -230,55 +233,58 @@
     </table>
   </div>
 
-  <div class="card" id="card-vincular" style="display: none;">
-    <h2>Vincular Casal à Equipe</h2>
 
-    <form id="form-vinculo">
-      <div class="row">
-        <div>
-          <label for="evento_id">Evento</label>
-          <select id="evento_id" required>
-            <option value="">Selecione o evento</option>
-          </select>
+  <div class="card-modal-overlay" id="card-vincular" style="display:none;">
+    <div class="card-modal">
+      <h2>Vincular Casal à Equipe</h2>
+
+      <form id="form-vinculo">
+        <div class="row">
+          <div>
+            <label for="evento_id">Evento</label>
+            <select id="evento_id" required>
+              <option value="">Selecione o evento</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cadastro_id">Casal</label>
+            <select id="cadastro_id" required>
+              <option value="">Selecione o casal</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label for="cadastro_id">Casal</label>
-          <select id="cadastro_id" required>
-            <option value="">Selecione o casal</option>
-          </select>
+        <div class="row">
+          <div>
+            <label for="equipe_id">Equipe</label>
+            <select id="equipe_id" required>
+              <option value="">Selecione um evento primeiro</option>
+            </select>
+          </div>
+
+          <div class="checkbox-group checkbox-item">
+            <label>
+              <input type="checkbox" id="is_leader" />
+              Coordenador de Equipe
+            </label>
+          </div>
+
+          <div class="checkbox-group checkbox-item">
+            <label>
+              <input type="checkbox" id="pagou" />
+              Pago?
+            </label>
+          </div>
         </div>
-      </div>
 
-      <div class="row">
-        <div>
-          <label for="equipe_id">Equipe</label>
-          <select id="equipe_id" required>
-            <option value="">Selecione um evento primeiro</option>
-          </select>
+        <div class="actions">
+          <button type="button" onclick="ocultarCadastro()">Cancelar</button>
+          <button type="submit">Atualizar Vínculo</button>
         </div>
 
-        <div class="checkbox-group checkbox-item">
-          <label>
-            <input type="checkbox" id="is_leader" />
-            Coordenador de Equipe
-          </label>
-        </div>
-
-        <div class="checkbox-group checkbox-item">
-          <label>
-            <input type="checkbox" id="pagou" />
-            Pago?
-          </label>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button type="button" onclick="ocultarCadastro()">Cancelar</button>
-        <button type="submit">Atualizar Vínculo</button>
-      </div>
-
-    </form>
+      </form>
+    </div>
   </div>
 
   <script src="../js/loader.js"></script>
@@ -519,6 +525,7 @@
     function ocultarCadastro() {
       document.getElementById("card-cadastro").style.display = "none";  // Torna o card visível
       document.getElementById("card-vincular").style.display = "none";  // Torna o card visível
+      document.getElementById("btnCadastrar").style.display = "block";  // Oculta o botão "Cancelar"
 
       // Oculta o botão de cadastrar
       const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");

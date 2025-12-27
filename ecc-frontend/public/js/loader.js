@@ -5,14 +5,17 @@ BASE_URL === "http://127.0.0.1:5500" ? BASE_URL = "http://127.0.0.1:5500/ecc-fro
 document.body.insertAdjacentHTML(
   "beforeend",
   `
-  <div id="global-loader">
+<div id="global-loader">
+  <div class="spinner-wrapper">
+    <div class="spinner-circle"></div>
+
     <img
       src="${BASE_URL}/assets/aliancas.svg"
       alt="Carregando"
       class="loader-aliancas"
     />
-    <!-- <div class="loader-spinner"></div> -->
   </div>
+</div>
   `
 );
 

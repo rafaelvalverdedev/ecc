@@ -1,0 +1,158 @@
+/* ================================
+   FORMULÁRIO (CRIAR/EDITAR EVENTO)
+   ================================ */
+
+/* Container do formulário */
+.card-modal form {
+  display: grid;
+  gap: 20px; /* Espaçamento entre os campos */
+  grid-template-columns: 1fr; /* Todos os campos ocupam a largura total */
+  width: 100%;
+  max-width: 500px; /* Largura máxima do formulário */
+  margin: 0 auto; /* Centraliza o formulário */
+}
+
+/* Estilos para inputs e textareas */
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box; /* Garantir que padding não afete o tamanho total */
+}
+
+/* Foco nos campos de input */
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #1d72db;
+  box-shadow: 0 0 4px rgba(0, 80, 255, 0.25);
+}
+
+/* Estilo para os botões */
+button {
+  padding: 12px;
+  background-color: #457b9d;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056c7;
+}
+
+/* Estilo para o botão "Cancelar" */
+button[type="button"] {
+  background-color: #ccc;
+}
+
+button[type="button"]:hover {
+  background-color: #999;
+}
+
+/* Títulos do Formulário */
+.card-modal h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+/* Espaçamento entre os campos */
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block; /* Garante que o label seja em linha com o campo */
+  color: #333;
+}
+
+/* Estilos específicos para campos de data */
+input[type="date"] {
+  padding: 12px;
+  font-size: 14px;
+}
+
+input[type="number"] {
+  padding: 12px;
+  font-size: 14px;
+}
+
+input[type="date"], input[type="number"] {
+  width: 100%; /* Garante que os campos de data e número ocupem toda a largura */
+}
+
+/* Adiciona algum espaçamento entre o formulário e o botão "Cancelar" */
+.card-modal button[type="button"] {
+  margin-top: 20px;
+}
+
+
+
+
+
+/* =============================
+   GRID DE CHECKBOXES (EM EXIBIÇÕES)
+   ============================= */
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* duas colunas */
+  gap: 8px 16px;
+  /* espaçamento entre itens */
+  max-height: 300px;
+  /* altura máxima */
+  overflow-y: auto;
+  /* scroll vertical */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* =============================
+   ESTILOS VARIADOS PARA DROPDOWN
+   ============================= */
+
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-selected {
+  padding: 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #fff;
+}
+
+.dropdown-list {
+  position: absolute;
+  width: 100%;
+  border: 1px solid #ccc;
+  background: #fff;
+  display: none;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f1f1f1;
+}
+
+.dropdown-item .titulo {
+  font-weight: bold;
+}
+
+.dropdown-item .subtitulo {
+  font-size: 12px;
+  color: #666;
+}

@@ -6,8 +6,6 @@ window.APP_CONFIG = {
   API_BASE_URL
 };
 
-
-console.log(API_BASE_URL)
 // ====================================
 // 🔄 Navegação
 // ====================================

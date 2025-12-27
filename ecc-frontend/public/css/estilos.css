@@ -1,74 +1,10 @@
+/* =============================
+   ESTILOS GERAIS
+   ============================= */
+
 body {
   background-color: #e7e6cf;
 }
-/* Container do login */
-.container {
-  width: 100%;
-  max-width: 380px;
-  padding: 30px 25px;
-
-  background-color: #ffffff;
-  border-radius: 8px;
-
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-/* Título */
-.container h2 {
-  margin-bottom: 20px;
-  color: #333;
-}
-
-/* Inputs */
-.container input {
-  width: 100%;
-  padding: 12px 10px;
-  margin-bottom: 12px;
-
-  border: 1px solid #ccc;
-  border-radius: 4px;
-
-  font-size: 14px;
-}
-
-/* Foco no input */
-.container input:focus {
-  outline: none;
-  border-color: #007bff;
-}
-
-/* Botão */
-.container button {
-  width: 100%;
-  padding: 12px;
-
-  background-color: #007bff;
-  color: #ffffff;
-
-  border: none;
-  border-radius: 4px;
-
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Hover do botão */
-.container button:hover {
-  background-color: #0056b3;
-}
-
-/* Mensagem de erro */
-#erro {
-  margin-top: 15px;
-  color: #dc3545;
-  font-size: 14px;
-  display: none;
-}
-
-
-
 
 
 .card {
@@ -79,6 +15,52 @@ body {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* =============================
+   MODAIS
+   ============================= */
+
+/* Overlay do Modal */
+.card-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+/* Card do Modal */
+.card-modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 450px;
+  box-sizing: border-box;
+  transform: translate(-50%, -40%);
+  position: relative;
+  top: 50%;
+  left: 50%;
+}
+
+/* Mensagem de erro no Modal */
+#erro {
+  margin-top: 15px;
+  color: #dc3545;
+  font-size: 14px;
+  display: none;
+}
+
+
+/* =============================
+   BOTÕES
+   ============================= */
+
 button {
   padding: 10px 14px;
   border: none;
@@ -87,6 +69,7 @@ button {
   margin-top: 10px;
 }
 
+/* Botões de Logout e Navegação */
 .logout-btn {
   background: #e63946;
   color: white;
@@ -100,9 +83,13 @@ button {
   margin-bottom: 20px;
 }
 
-label {
-  display: inline;
+button:hover {
+  background: #0056c7;
 }
+
+/* =============================
+   INPUTS E TEXTAREAS
+   ============================= */
 
 input,
 textarea {
@@ -112,22 +99,18 @@ textarea {
   box-sizing: border-box;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th,
-td {
+input {
+  width: 90%;
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
+  font-size: 15px;
 }
 
-th {
-  background-color: #f0f0f0;
-}
+/* =============================
+   ESTILOS PARA CHECKBOXES
+   ============================= */
 
 .checkbox-list {
   margin-top: 10px;
@@ -137,10 +120,8 @@ th {
   border: 1px solid #ccc;
   max-height: 300px;
   overflow-y: auto;
-
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* duas colunas */
   gap: 10px;
 }
 
@@ -149,10 +130,8 @@ th {
   align-items: center;
   gap: 10px;
   padding: 10px;
-
   border: 1px solid #dcdcdc;
   border-radius: 8px;
-
   background: #fafafa;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -164,7 +143,6 @@ th {
   box-shadow: 0 0 4px rgba(0, 80, 255, 0.2);
 }
 
-/* Checkbox estilizado */
 .checkbox-item input[type="checkbox"] {
   width: 20px;
   height: 20px;
@@ -180,24 +158,19 @@ th {
   color: #333;
 }
 
+/* =============================
+   SELECT (DROP-DOWN)
+   ============================= */
 
-
-
-/* ============================
-SELECT DE EVENTOS (ESTILO PRO)
-============================ */
 select {
   width: 100%;
   padding: 12px 14px;
   font-size: 16px;
-
   background: #ffffff;
   border: 1px solid #ccc;
   border-radius: 8px;
-
   margin-top: 6px;
   margin-bottom: 12px;
-
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
@@ -218,41 +191,46 @@ select {
   font-size: 15px;
 }
 
-.hidden {
-  display: none !important;
-}
+/* =============================
+   TABLE (TABELAS)
+   ============================= */
 
-
-.step {
-  display: none;
-}
-
-.step.active {
-  display: block;
-}
-
-
-
-input {
-  width: 90%;
-  padding: 10px;
-  margin-top: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-}
-
-
-button:hover {
-  background: #0056c7;
-}
-
-#erro {
+table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 10px;
-  color: red;
-  font-size: 14px;
-  display: none;
 }
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+/* =============================
+   TOAST (MENSAGENS DE ALERTA)
+   ============================= */
+
+.toast {
+  position: fixed;
+  display: none;
+  bottom: 20px;
+  right: 20px;
+  background: #323232;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 4px;
+  z-index: 1001;
+}
+
+/* =============================
+   PIX (IMAGEM E STATUS)
+   ============================= */
 
 .pix-container {
   max-width: 420px;
@@ -270,10 +248,6 @@ button:hover {
 .status {
   margin-top: 15px;
   font-size: 16px;
-}
-
-.btn-voltar {
-  margin-top: 25px;
 }
 
 .qr-code {
@@ -306,8 +280,10 @@ button:hover {
   color: #333;
 }
 
+/* =============================
+   MODAL
+   ============================= */
 
-/* ================= MODAL ================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -320,9 +296,10 @@ button:hover {
 
 .modal {
   background: #fff;
-  padding: 20px;
+  padding: 10px;
   border-radius: 6px;
-  width: 320px;
+  width: 1420px;
+  height: 800px;
   text-align: center;
 }
 
@@ -332,114 +309,12 @@ button:hover {
   margin-top: 20px;
 }
 
-/* ================= TOAST ================= */
-.toast {
-  position: fixed;
+
+
+.step {
   display: none;
-  bottom: 20px;
-  right: 20px;
-  background: #323232;
-  color: #fff;
-  padding: 12px 16px;
-  border-radius: 4px;
-  z-index: 1001;
 }
 
-
-.checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  /* duas colunas */
-  gap: 8px 16px;
-  /* espaçamento entre itens */
-  max-height: 300px;
-  /* altura máxima */
-  overflow-y: auto;
-  /* scroll vertical */
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.titulo-vinculo {
-  margin: 0;
-}
-
-#nome-regra-vinculo {
-  display: inline;
-  /* 👈 garante que fique na mesma linha */
-  font-weight: bold;
-}
-
-.toggle-title {
-  cursor: pointer;
-  user-select: none;
-}
-
-.toggle-title:hover {
-  opacity: 0.8;
-}
-
-.cabecalho-evento th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-  border-bottom: 2px solid #ccc;
-  padding: 6px;
-}
-
-.evento-header td {
-  padding: 8px;
-}
-
-.linha-evento td {
-  padding: 6px;
-}
-
-
-
-.dropdown {
-  position: relative;
-  width: 100%;
-}
-
-.dropdown-selected {
-  padding: 10px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  background: #fff;
-}
-
-.dropdown-list {
-  position: absolute;
-  width: 100%;
-  border: 1px solid #ccc;
-  background: #fff;
-  display: none;
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 10;
-}
-
-.dropdown-item {
-  padding: 8px 10px;
-  cursor: pointer;
-}
-
-.dropdown-item:hover {
-  background: #f1f1f1;
-}
-
-.dropdown-item .titulo {
-  font-weight: bold;
-}
-
-.dropdown-item .subtitulo {
-  font-size: 12px;
-  color: #666;
+.step.active {
+  display: block;
 }

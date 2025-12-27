@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
@@ -26,39 +27,42 @@
   <h1>Gerenciar Eventos</h1> <span><a href="../dashboard/"> ← Voltar</a></span>
   <br>
 
-  <div class="card" id="card" style="display:none;">
-    <h2>Criar / Editar Evento</h2>
+  <div class="card-modal-overlay" id="card" style="display:none;">
+    <div class="card-modal">
 
-    <form id="form-evento" onsubmit="salvarEvento(event)">
-      <input type="hidden" id="evento_id">
+      <h2>Criar / Editar Evento</h2>
 
-      <label>Nome:</label>
-      <input id="nome" required>
+      <form id="form-evento" onsubmit="salvarEvento(event)">
+        <input type="hidden" id="evento_id">
 
-      <label>Descrição:</label>
-      <input id="descricao" required>
+        <label>Nome:</label>
+        <input id="nome" required>
 
-      <label>Local:</label>
-      <input id="local" required>
+        <label>Descrição:</label>
+        <input id="descricao" required>
 
-      <label>Data Início:</label>
-      <input type="date" id="start_date" required>
+        <label>Local:</label>
+        <input id="local" required>
 
-      <label>Data Fim:</label>
-      <input type="date" id="end_date" required>
+        <label>Data Início:</label>
+        <input type="date" id="start_date" required>
 
-      <label>Qtd Inscrições:</label>
-      <input type="number" id="capacity" min="0" required>
+        <label>Data Fim:</label>
+        <input type="date" id="end_date" required>
 
-      <label>Valor Inscrições:</label>
-      <input type="number" id="valor_encontreiro" min="0" required>
+        <label>Qtd Inscrições:</label>
+        <input type="number" id="capacity" min="0" required>
 
-      <label>Valor Inscrições:</label>
-      <input type="number" id="valor_encontrista" min="0" required>
+        <label>Valor Inscrições:</label>
+        <input type="number" id="valor_encontreiro" min="0" required>
 
-      <button id="btn-criar" type="submit">Salvar</button>
-      <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">Cancelar</button>
-    </form>
+        <label>Valor Inscrições:</label>
+        <input type="number" id="valor_encontrista" min="0" required>
+
+        <button id="btn-criar" type="submit">Salvar</button>
+        <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">Cancelar</button>
+      </form>
+    </div>
   </div>
 
   <div class="card">
@@ -165,7 +169,6 @@
       const method = id ? "PUT" : "POST";
       const url = id ? `${API_URL}/${id}` : API_URL;
 
-
       const start = new Date(data.start_date);
       const end = new Date(data.end_date);
 
@@ -173,7 +176,6 @@
         showToast("A data final não pode ser anterior à data inicial.");
         return;
       }
-
 
       try {
         const response = await fetch(url, {
@@ -195,9 +197,9 @@
           return;
         }
 
-        withLoader(() => listarEventos(), carregarEvento());
+        withLoader(() => listarEventos(id), cancelarEdicao());
         showToast("Evento salvo com sucesso!");
-        cancelarEdicao();
+
       } catch (error) {
         console.error("Erro ao salvar evento:", error);
       }
@@ -208,6 +210,7 @@
     // ======================================
     async function carregarEvento(id) {
       try {
+
         const response = await fetch(`${API_URL}/${id}`, {
           headers: { Authorization: "Bearer " + token }
         });
