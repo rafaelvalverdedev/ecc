@@ -1,8 +1,13 @@
+let API_BASE_URL = window.location.origin;
+
+API_BASE_URL === "http://127.0.0.1:5500" ? API_BASE_URL = "http://127.0.0.1:3001" : API_BASE_URL = "https://ecc-backend-8i9l.onrender.com";
+
 window.APP_CONFIG = {
-  // API_BASE_URL: "http://localhost:3001" // testes local
-  API_BASE_URL: "https://ecc-backend-8i9l.onrender.com" // producao 
+  API_BASE_URL
 };
 
+
+console.log(API_BASE_URL)
 // ====================================
 // 🔄 Navegação
 // ====================================
