@@ -28,6 +28,7 @@
   <br>
   
   <button id="btnCadastrar" class="nav-btn" onclick="mostrarCadastro()">Cadastrar Pessoas</button>
+  
   <div class="card-modal-overlay" id="card-cadastro" style="display:none;">
     <div class="card-modal">
 
@@ -220,13 +221,12 @@
   <!-- Cadastros -->
   <div class="card">
     <h2 class="toggle-title" data-id="cadastro"> ▶ Pessoas Cadastradas - Cadastro Geral </h2>
-    <table class="grupo-cadastro" style="display: none;">
+    <table class="grupo-cadastro">
       <thead>
         <tr>
           <th>Nome</th>
           <th>Email</th>
           <th>Telefone</th>
-          <th>Ação</th>
         </tr>
       </thead>
       <tbody id="cadastro-list"></tbody>
@@ -234,63 +234,12 @@
   </div>
 
 
-  <div class="card-modal-overlay" id="card-vincular" style="display:none;">
-    <div class="card-modal">
-      <h2>Vincular Casal à Equipe</h2>
-
-      <form id="form-vinculo">
-        <div class="row">
-          <div>
-            <label for="evento_id">Evento</label>
-            <select id="evento_id" required>
-              <option value="">Selecione o evento</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="cadastro_id">Casal</label>
-            <select id="cadastro_id" required>
-              <option value="">Selecione o casal</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label for="equipe_id">Equipe</label>
-            <select id="equipe_id" required>
-              <option value="">Selecione um evento primeiro</option>
-            </select>
-          </div>
-
-          <div class="checkbox-group checkbox-item">
-            <label>
-              <input type="checkbox" id="is_leader" />
-              Coordenador de Equipe
-            </label>
-          </div>
-
-          <div class="checkbox-group checkbox-item">
-            <label>
-              <input type="checkbox" id="pagou" />
-              Pago?
-            </label>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button type="button" onclick="ocultarCadastro()">Cancelar</button>
-          <button type="submit">Atualizar Vínculo</button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
   <script src="../js/loader.js"></script>
   <script src="../js/auth-check.js"></script>
   <script src="../js/config.js"></script>
   <script>
+    requireAuth();
+    const token = localStorage.getItem("token");
 
     // --------- envio para o backend ----------
     const API_BASE = `${APP_CONFIG.API_BASE_URL}`;
@@ -523,26 +472,15 @@
 
     // Função para exibir o card de criação/edição
     function ocultarCadastro() {
-      document.getElementById("card-cadastro").style.display = "none";  // Torna o card visível
-      document.getElementById("card-vincular").style.display = "none";  // Torna o card visível
-      document.getElementById("btnCadastrar").style.display = "block";  // Oculta o botão "Cancelar"
-
-      // Oculta o botão de cadastrar
+      document.getElementById("card-cadastro").style.display = "none";
+      document.getElementById("btnCadastrar").style.display = "block";
       const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
     }
-    // Função para exibir o card de criação/edição
+
     function mostrarCadastro() {
-      document.getElementById("card-cadastro").style.display = "block";  // Torna o card visível
-      // Oculta o botão de cadastrar
+      document.getElementById("card-cadastro").style.display = "block";
       const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
-      document.getElementById("btnCadastrar").style.display = "none";  // Oculta o botão "Cancelar"
-    }
-
-    function mostrarVinculo() {
-      document.getElementById("card-vincular").style.display = "block";  // Torna o card visível
-      // Oculta o botão de cadastrar
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
-      document.getElementById("btnCadastrar").style.display = "none";  // Oculta o botão "Cancelar"
+      document.getElementById("btnCadastrar").style.display = "none"; 
     }
 
     async function carregarCadastro() {
@@ -561,7 +499,6 @@
           <td>${c.nome_completo_esposo ?? "-"} <BR> ${c.nome_completo_esposa ?? "-"}</td>
           <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
           <td>${c.celular_esposo ?? "-"} <br> ${c.celular_esposa ?? "-"}</td>
-          <td><button onclick="mostrarVinculo('${c.id}')">Vincular à Equipe</button></td>
         </tr>
       `;
       });

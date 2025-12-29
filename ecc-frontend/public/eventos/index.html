@@ -104,6 +104,9 @@
   <script src="../js/auth-check.js"></script>
   <script src="../js/config.js"></script>
   <script>
+    requireAuth();
+    const token = localStorage.getItem("token");
+    
     const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
 
     // ======================================

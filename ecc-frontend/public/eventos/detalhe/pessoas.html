@@ -69,12 +69,11 @@
     </div>
 
     <script src="../../js/loader.js"></script>
+    <script src="../../js/auth-check.js"></script>
     <script src="../../js/config.js"></script>
-
     <script>
-        /* ===================== AUTENTICAÇÃO ===================== */
+        requireAuth();
         const token = localStorage.getItem("token");
-        if (!token) window.location.href = "./auth-login.html";
 
         /* ===================== CONFIG API ===================== */
         const API = APP_CONFIG.API_BASE_URL;
