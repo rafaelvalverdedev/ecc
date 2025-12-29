@@ -3,13 +3,19 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Equipes • ECC</title>
+  <title>Eventos • ECC</title>
+
   <link rel="stylesheet" href="../css/estilos.css">
-  <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
 <body>
+
+  <!-- 🔐 Auth -->
+  <script src="../js/auth-check.js"></script>
+  <script>
+    requireAuth();
+  </script>
 
   <button class="logout-btn" onclick="logout()">Sair</button>
   <br><br>
@@ -19,39 +25,30 @@
   <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
   <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
   <button class="nav-btn" onclick="goTo('cadastro')">Cadastro</button>
-  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
-  <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
+  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
 
-  <h1>Gerenciar Eventos</h1> <span><a href="../dashboard/"> ← Voltar</a></span>
-  <br>
+  <h1>Gerenciar Eventos</h1>
 
+  <!-- ================= FORM EVENTO ================= -->
   <div class="card-modal-overlay" id="card" style="display:none;">
     <div class="card-modal">
+      <h2 id="titulo-form">Novo Evento</h2>
 
-      <h2>Criar / Editar Evento</h2>
-
-      <form id="form-evento" onsubmit="salvarEvento(event)">
-        <input type="hidden" id="evento_id">
-
-        <label>Nome:</label>
+      <form id="form-evento" onsubmit="salvarEvento(); return false;">
+        <label>Nome</label>
         <input id="nome" required>
 
-        <label>Descrição:</label>
-        <input id="descricao" required>
-
-        <label>Local:</label>
+        <label>Local</label>
         <input id="local" required>
 
-        <label>Data Início:</label>
+        <label>Data Início</label>
         <input type="date" id="start_date" required>
 
-        <label>Data Fim:</label>
+        <label>Data Fim</label>
         <input type="date" id="end_date" required>
 
-        <label>Qtd Inscrições:</label>
-        <input type="number" id="capacity" min="0" required>
+        <label>Capacidade</label>
+        <input type="number" id="capacity" required>
 
         <label>Valor Inscrições:</label>
         <input type="number" id="valor_encontreiro" min="0" required>
@@ -59,16 +56,19 @@
         <label>Valor Inscrições:</label>
         <input type="number" id="valor_encontrista" min="0" required>
 
-        <button id="btn-criar" type="submit">Salvar</button>
-        <button id="btn-cancelar" type="button" onclick="cancelarEdicao()">Cancelar</button>
+        <br><br>
+        <button type="submit">Salvar</button>
+        <button type="button" onclick="limparFormulario()">Cancelar</button>
       </form>
     </div>
   </div>
 
+  <!-- ================= LISTAGEM ================= -->
   <div class="card">
-    <h2>Lista de Eventos
-      <button class="nav-btn" id="nav-btn" onclick="mostrarCardEvento()">Cadastrar Evento</button>
-    </h2>
+    <h2>Eventos Cadastrados</h2>
+    <button onclick="document.getElementById('card').style = 'display: block'">Eventos</button>
+    <button onclick="document.getElementById('card').style = 'display: block'">Vincular Equipes</button>
+
     <table>
       <thead>
         <tr>
@@ -77,14 +77,15 @@
           <th>Início</th>
           <th>Fim</th>
           <th>Capacidade</th>
-          <th>Valor Inscrição Encontreiro</th>
-          <th>Valor Inscrição Encontrista</th>
-          <th>Ações</th>
+          <th>Valor Encontreiro</th>
+          <th>Valor Encontrista</th>
+          <th>Ação</th>
         </tr>
       </thead>
       <tbody id="lista-eventos"></tbody>
     </table>
   </div>
+
 
   <!-- MODAL DE CONFIRMAÇÃO -->
   <div class="modal-overlay" id="modalConfirm">
@@ -100,221 +101,134 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <script src="../js/loader.js"></script>
-  <script src="../js/auth-check.js"></script>
+
+  <!-- ================= SCRIPTS ================= -->
   <script src="../js/config.js"></script>
-  <script>
-    requireAuth();
-    const token = localStorage.getItem("token");
-    
-    const API_URL = `${APP_CONFIG.API_BASE_URL}/eventos`;
+  <script src="../js/loader.js"></script>
 
-    // ======================================
-    // 📌 LISTAR EVENTOS
-    // ======================================
-    async function listarEventos() {
-      try {
-        const res = await fetch(API_URL, { headers: { Authorization: "Bearer " + token } });
+  <script type="module">
+    import {
+      listarEventos,
+      criarEvento,
+      buscarEvento,
+      atualizarEvento,
+      excluirEvento
+    } from "../modules/eventos.js";
 
-        const resultado = await res.json();
-        const eventos = resultado.data;
+    let eventoEditandoId = null;
 
-        const tbody = document.getElementById("lista-eventos");
-        tbody.innerHTML = "";
+    // =====================
+    // LISTAR
+    // =====================
+    async function carregarEventos() {
+      const eventos = await listarEventos();
+      const tbody = document.getElementById("lista-eventos");
+      tbody.innerHTML = "";
 
-        eventos.forEach(ev => {
-          tbody.innerHTML += `
+      eventos.forEach(ev => {
+        tbody.innerHTML += `
           <tr>
-            <td>
-               <a href="#" onclick="abrirEvento('${ev.id}')">
-                ${ev.nome}
-              </a>
-            </td>
+            <td>${ev.nome}</td>
             <td>${ev.local}</td>
-            <td>${formatarDataBR(ev.start_date) ?? "-"}</td>
-            <td>${formatarDataBR(ev.end_date) ?? "-"}</td>
+            <td>${formatarDataString(ev.start_date) ?? "-"}</td>
+            <td>${formatarDataString(ev.end_date) ?? "-"}</td>
             <td>${ev.capacity ?? "-"}</td>
-            <td>${formatarMoedaBR(ev.valor_encontreiro) ?? "-"}</td>
-            <td>${formatarMoedaBR(ev.valor_encontrista) ?? "-"}</td>            
+            <td>${formatarParaReal(ev.valor_encontreiro) ?? "-"}</td>
+            <td>${formatarParaReal(ev.valor_encontrista) ?? "-"}</td>
             <td>
-              <button onclick="carregarEvento('${ev.id}')">Editar</button>
-              <button onclick="deletarEvento('${ev.id}')">Excluir</button>
+              <button onclick="editar('${ev.id}');"">Editar</button>
+              <button onclick="deletar('${ev.id}');">Excluir</button>
             </td>
           </tr>
         `;
-        });
-      } catch (error) {
-        console.error("Erro ao listar eventos:", error);
-      }
-    }
-
-    // ======================================
-    // 📌 CRIAR / ATUALIZAR EVENTO
-    // ======================================
-    async function salvarEvento(event) {
-      event.preventDefault();
-
-      const id = document.getElementById("evento_id").value;
-
-      const data = {
-        nome: document.getElementById("nome").value,
-        descricao: document.getElementById("descricao").value,
-        local: document.getElementById("local").value,
-        start_date: document.getElementById("start_date").value,
-        end_date: document.getElementById("end_date").value || null,
-        capacity: document.getElementById("capacity").value
-          ? Number(document.getElementById("capacity").value)
-          : null,
-        valor_encontreiro: Number(document.getElementById("valor_encontreiro").value),
-        valor_encontrista: Number(document.getElementById("valor_encontrista").value),
-      };
-
-      const method = id ? "PUT" : "POST";
-      const url = id ? `${API_URL}/${id}` : API_URL;
-
-      const start = new Date(data.start_date);
-      const end = new Date(data.end_date);
-
-      if (data.end_date && end < start) {
-        showToast("A data final não pode ser anterior à data inicial.");
-        return;
-      }
-
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token
-          },
-          body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-          let msg = "Erro ao salvar evento";
-          try {
-            const err = await response.json();
-            if (err.error) msg = err.error;
-          } catch (_) { }
-          showToast(msg);
-          return;
-        }
-
-        withLoader(() => listarEventos(id), cancelarEdicao());
-        showToast("Evento salvo com sucesso!");
-
-      } catch (error) {
-        console.error("Erro ao salvar evento:", error);
-      }
-    }
-
-    // ======================================
-    // 📌 CARREGAR EVENTO PARA EDIÇÃO
-    // ======================================
-    async function carregarEvento(id) {
-      try {
-
-        const response = await fetch(`${API_URL}/${id}`, {
-          headers: { Authorization: "Bearer " + token }
-        });
-        const equipes = await response.json();
-        const ev = equipes.data;
-
-        document.getElementById("evento_id").value = ev.id;
-        document.getElementById("nome").value = ev.nome;
-        document.getElementById("descricao").value = ev.descricao || "";
-        document.getElementById("local").value = ev.local || "";
-        document.getElementById("start_date").value = ev.start_date || "";
-        document.getElementById("end_date").value = ev.end_date || "";
-        document.getElementById("capacity").value = ev.capacity ?? "";
-        document.getElementById("valor_encontreiro").value = ev.valor_encontreiro ?? "";
-        document.getElementById("valor_encontrista").value = ev.valor_encontrista ?? "";
-
-        document.getElementById("card").style.display = "block";
-        document.getElementById("btn-cancelar").style.display = "inline-block";
-        document.getElementById("nav-btn").style.display = "none";
-
-      } catch (error) {
-        console.error("Erro ao carregar evento:", error);
-      }
-    }
-
-    // ======================================
-    // 📌 CANCELAR EDIÇÃO
-    // ======================================
-    function cancelarEdicao() {
-      document.getElementById("evento_id").value = "";
-      document.getElementById("form-evento").reset();
-      document.getElementById("btn-cancelar").style.display = "none";
-      const cardEvento = document.getElementById("card");
-      cardEvento.style.display = "none";
-
-      // Exibe novamente o botão de cadastrar evento
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
-      btnCadastrar.style.display = "inline-block";  // Exibe o botão "Cadastrar Evento" novamente
-      document.getElementById("form-evento").reset();  // Reseta o formulário
-      document.getElementById("btn-cancelar").style.display = "none";  // Oculta o botão "Cancelar"
-    }
-
-    // Função para exibir o card de criação/edição
-    function mostrarCardEvento() {
-      document.getElementById("card").style.display = "block";  // Torna o card visível
-      // Oculta o botão de cadastrar
-      const btnCadastrar = document.querySelector("button[onclick='mostrarCardEvento()']");
-      btnCadastrar.style.display = "none";
-      document.getElementById("btn-cancelar").style.display = "block";  // Oculta o botão "Cancelar"
-    }
-
-    // ======================================
-    // 📌 EXCLUIR EVENTO
-    // ======================================
-    function deletarEvento(id) {
-      showConfirm("Tem certeza que deseja excluir este evento?", async () => {
-        try {
-          const response = await fetch(`${API_URL}/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: "Bearer " + token }
-          });
-
-          if (!response.ok) {
-            showToast("Erro ao excluir evento");
-            return;
-          }
-
-          showToast("Evento excluído com sucesso");
-          listarEventos();
-        } catch (error) {
-          console.error("Erro ao excluir evento:", error);
-          showToast("Erro ao excluir evento");
-        }
       });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const acao = params.get("acao");
+    // =====================
+    // CREATE / UPDATE
+    // =====================
+    async function salvarEvento() {
 
-      if (acao === "cadastro") {
-        mostrarCardEvento();
-      }
-    });
+      const data = {
+        nome: document.getElementById("nome").value.trim(),
+        local: document.getElementById("local").value.trim(),
 
+        start_date: document.getElementById("start_date").value || null,
+        end_date: document.getElementById("end_date").value || null,
 
-    function abrirEvento(eventoId) {
-      localStorage.setItem("eventoId", eventoId);
-      window.location.href = "./detalhe/";
+        capacity: document.getElementById("capacity").value
+          ? Number(document.getElementById("capacity").value)
+          : null,
+
+        // se existir no seu backend
+        valor_encontreiro: document.getElementById("valor_encontreiro")?.value
+          ? Number(document.getElementById("valor_encontreiro").value)
+          : null,
+
+        valor_encontrista: document.getElementById("valor_encontrista")?.value
+          ? Number(document.getElementById("valor_encontrista").value)
+          : null
+      };
+
+      await withLoader(async () => {
+        if (eventoEditandoId) {
+          await atualizarEvento(eventoEditandoId, data);
+        } else {
+          await criarEvento(data);
+        }
+      });
+
+      limparFormulario();
+      carregarEventos();
     }
 
-    const formatarMoedaBR = (valor) => {
-      return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 2,
-      }).format(valor);
-    };
+    // =====================
+    // EDITAR
+    // =====================
+    async function editar(id) {
+      const ev = await buscarEvento(id);
 
-    // ▶ Inicializa listagem
-    withLoader(() => listarEventos());
+      document.getElementById("card").style = "display: block";
+      document.getElementById("titulo-form").innerText = "Editar Evento";
+      document.getElementById("nome").value = ev.nome;
+      document.getElementById("local").value = ev.local;
+      document.getElementById("start_date").value = ev.start_date ?? "";
+      document.getElementById("end_date").value = ev.end_date ?? "";
+      document.getElementById("capacity").value = ev.capacity ?? "";
+      document.getElementById("valor_encontreiro").value = ev.valor_encontreiro ?? "";
+      document.getElementById("valor_encontrista").value = ev.valor_encontrista ?? "";
+
+      eventoEditandoId = id;
+    }
+
+    // =====================
+    // DELETE
+    // =====================
+    async function deletar(id) {
+      showConfirm("Tem certeza que deseja excluir este equipe?", async () => {
+        withLoader(async () => {
+          await excluirEvento(id);
+        });
+        carregarEventos();
+      });
+    }
+
+    function limparFormulario() {
+      document.getElementById("form-evento").reset();
+      document.getElementById("card").style = "display: none"
+      document.getElementById("titulo-form").innerText = "Novo Evento";
+      eventoEditandoId = null;
+    }
+
+    // =====================
+    // INIT
+    // =====================
+    window.salvarEvento = salvarEvento;
+    window.editar = editar;
+    window.deletar = deletar;
+    window.limparFormulario = limparFormulario;
+
+    carregarEventos();
   </script>
 
 </body>

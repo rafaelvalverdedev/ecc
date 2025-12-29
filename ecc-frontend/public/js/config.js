@@ -16,21 +16,30 @@ function goTo(page) {
 // ====================================
 // 🔄 Formatação de datas
 // ====================================
-function formatarDataBR(dataISO) {
-  if (!dataISO) return "";
+function formatarDataString(dataString) {
+  // Divide a string em um array: ["111", "11", "11"]
+  const partes = dataString.split('-');
 
-  const [ano, mes, dia] = dataISO.split("-");
-  return `${dia}/${mes}/${ano}`;
+  // Reorganiza as partes para o formato desejado: "11/11/1111"
+  const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+  return dataFormatada;
+}
+// ====================================
+// 🔄 Formatação de valores para real
+// ====================================
+function formatarParaReal(numero) {
+  // Cria um formatador para a localidade 'pt-BR' (português do Brasil)
+  // e o estilo 'currency' (moeda), especificando 'BRL' (Real Brasileiro)
+  const formatador = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+
+  // Retorna o número formatado como string
+  return formatador.format(numero);
 }
 
-// ====================================
-// 🔓 Logout
-// ====================================
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.location.href = "../auth";
-}
 
 // ====================================
 // 🔄 Toggle  Geral

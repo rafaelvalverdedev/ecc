@@ -295,18 +295,18 @@ th {
 }
 
 .modal {
-  background: #fff;
+  background: #c7c5bd;
   padding: 10px;
   border-radius: 6px;
-  width: 1420px;
-  height: 800px;
+  width: 420px;
+  height: 150px;
   text-align: center;
 }
 
 .modal-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin: 20px;
 }
 
 

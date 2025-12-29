@@ -1,7 +1,5 @@
 let BASE_URL = window.location.origin;
 
-BASE_URL === "http://127.0.0.1:5500" ? BASE_URL = "http://127.0.0.1:5500/ecc-frontend/public" : BASE_URL;
-
 document.body.insertAdjacentHTML(
   "beforeend",
   `

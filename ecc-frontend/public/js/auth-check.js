@@ -6,7 +6,7 @@ function requireAuth() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
   if (!token) {
-   alert(window.location.href = `${window.location.origin}/auth`);
+    window.location.href = `${window.location.origin}/auth`;
   }
 }
 
@@ -16,6 +16,7 @@ function requireAuth() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-    window.location.href = `${window.location.origin}/auth`;
+  localStorage.removeItem("eventoId");
+  window.location.href = `${window.location.origin}/auth`;
 }
 
