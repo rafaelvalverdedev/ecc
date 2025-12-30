@@ -341,7 +341,8 @@
                         const { payment_id } = json;
 
                         // Redireciona para página que exibe QR Code (abre em nova aba)
-                        window.open(`${window.location.origin}/pagamento.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
+                        console.log(window.location.origin);
+                        //window.open(`pagamento.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
 
                     } catch (err) {
                         alert("Erro ao gerar pagamento.");
