@@ -295,7 +295,7 @@ th {
 }
 
 .modal {
-  background: #c7c5bd;
+  background: #fff;
   padding: 10px;
   border-radius: 6px;
   width: 420px;
@@ -306,7 +306,7 @@ th {
 .modal-actions {
   display: flex;
   justify-content: space-between;
-  margin: 20px;
+  margin-top: 20px;
 }
 
 

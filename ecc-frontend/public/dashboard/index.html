@@ -121,11 +121,7 @@
         eventos.forEach(ev => {
           tbodyEventos.innerHTML += `
             <tr>
-              <td>
-                <a href="#" onclick="abrirEvento('${ev.id}')">
-                  ${ev.nome}
-                </a>
-              </td>
+              <td>${ev.nome}</td>
               <td>${ev.local ?? "-"}</td>
               <td>${ev.start_date ?? "-"}</td>
               <td>${ev.end_date ?? "-"}</td>

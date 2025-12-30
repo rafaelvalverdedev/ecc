@@ -67,7 +67,6 @@
   <div class="card">
     <h2>Eventos Cadastrados</h2>
     <button onclick="document.getElementById('card').style = 'display: block'">Eventos</button>
-    <button onclick="document.getElementById('card').style = 'display: block'">Vincular Equipes</button>
 
     <table>
       <thead>
@@ -86,7 +85,6 @@
     </table>
   </div>
 
-
   <!-- MODAL DE CONFIRMAÇÃO -->
   <div class="modal-overlay" id="modalConfirm">
     <div class="modal">
@@ -101,7 +99,6 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-
   <!-- ================= SCRIPTS ================= -->
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
@@ -115,8 +112,10 @@
       excluirEvento
     } from "../modules/eventos.js";
 
-    let eventoEditandoId = null;
+    import { abrirEvento } from "../modules/dashboard.js";
 
+    let eventoEditandoId = null;
+    window.abrirEvento = abrirEvento;
     // =====================
     // LISTAR
     // =====================
@@ -128,7 +127,7 @@
       eventos.forEach(ev => {
         tbody.innerHTML += `
           <tr>
-            <td>${ev.nome}</td>
+            <td><a href="#" onclick="abrirEvento('${ev.id}')">${ev.nome}</a></td>
             <td>${ev.local}</td>
             <td>${formatarDataString(ev.start_date) ?? "-"}</td>
             <td>${formatarDataString(ev.end_date) ?? "-"}</td>
@@ -208,8 +207,8 @@
       showConfirm("Tem certeza que deseja excluir este equipe?", async () => {
         withLoader(async () => {
           await excluirEvento(id);
+          carregarEventos();
         });
-        carregarEventos();
       });
     }
 
