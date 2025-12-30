@@ -31,14 +31,8 @@
     <div class="card">
         <div class="bloco-header">
             <h2>▶ Equipes do Evento</h2>
-            <p id="info-equipes-evento"></p>
         </div>
-
-        <button onclick="abrirModalVincularEquipe()">
-            Vincular Equipe ao Evento
-        </button>
-
-        <br><br>
+        <button onclick="abrirModalVincularEquipe()"> Vincular Equipe ao Evento</button>
 
         <table>
             <thead>
@@ -57,17 +51,22 @@
         <div class="card-modal">
             <h3>Vincular Equipe ao Evento</h3>
 
-            <label>Equipe</label>
-            <select id="select-equipe">
-                <option value="">Selecione a equipe</option>
-            </select>
+            <label>Equipes</label>
+
+            <label class="checkbox-item checkbox-select-all">
+                <input type="checkbox" id="selectAllEquipes" />
+                Selecionar todas as equipes
+            </label>
+
+            <div id="checkbox-equipes" class="checkbox-grid">
+            </div>
+
 
             <br><br>
             <button onclick="salvarVinculoEquipe()">Salvar</button>
             <button onclick="fecharModalVincularEquipe()">Cancelar</button>
         </div>
     </div>
-
 
     <!-- MODAL DE CONFIRMAÇÃO -->
     <div class="modal-overlay" id="modalConfirm">
@@ -90,24 +89,17 @@
     <script type="module">
         const eventoId = localStorage.getItem("eventoId");
 
-        if (!eventoId) {
-            alert("Nenhum evento selecionado.");
-            window.location.href = "../";
-        }
-
         import {
             listarEquipesDoEvento,
-            desvincularEquipeDoEvento
+            desvincularEquipeDoEvento,
+            vincularEquipeAoEvento
         } from "../../modules/equipes-evento.js";
         import { listarEquipes } from "../../modules/equipes.js";
-        import { vincularEquipeAoEvento } from "../../modules/equipes-evento.js";
 
         async function carregarEquipesDoEvento() {
             const vinculos = await listarEquipesDoEvento(eventoId);
             const tbody = document.getElementById("lista-equipes-evento");
-            const info = document.getElementById("info-equipes-evento");
 
-            info.innerText = `Evento: ${info.innerText} ${vinculos.length} equipe(s) vinculada(s)`;
             tbody.innerHTML = "";
 
             vinculos.forEach(v => {
@@ -127,9 +119,8 @@
             showConfirm("Tem certeza que deseja excluir este vínculo?", () => {
                 withLoader(async () => {
                     await desvincularEquipeDoEvento(vinculoId);
+                    carregarEquipesDoEvento();
                 });
-
-                carregarEquipesDoEvento();
             });
         }
 
@@ -143,46 +134,60 @@
         }
 
         async function carregarSelectEquipes() {
-            const select = document.getElementById("select-equipe");
-            select.innerHTML = `<option value="">Selecione a equipe</option>`;
+            const container = document.getElementById("checkbox-equipes");
+            container.innerHTML = "";
+
+            const checkboxSelectAll = document.getElementById("selectAllEquipes");
+            checkboxSelectAll.checked = false;
 
             // todas as equipes
             const equipes = await listarEquipes();
 
-            // equipes já vinculadas ao evento
+            // equipes já vinculadas
             const vinculos = await listarEquipesDoEvento(eventoId);
             const equipesVinculadasIds = vinculos.map(v => v.equipe.id);
 
             equipes.forEach(eq => {
-                const opt = document.createElement("option");
-                opt.value = eq.id;
-                opt.textContent = eq.nome;
+                const jaVinculada = equipesVinculadasIds.includes(eq.id);
 
-                // se já estiver vinculada, desabilita
-                if (equipesVinculadasIds.includes(eq.id)) {
-                    opt.disabled = true;
-                    opt.textContent += " (já vinculada)";
-                }
+                const label = document.createElement("label");
+                label.style.display = "block";
+                label.style.marginBottom = "6px";
 
-                select.appendChild(opt);
+                label.innerHTML = `
+                <label class="checkbox-item ${jaVinculada ? 'checkbox-disabled' : ''}">
+                    <input type="checkbox" value="${eq.id}" ${jaVinculada ? "checked disabled" : ""} />
+                    ${eq.nome} ${jaVinculada ? "(já vinculada)" : ""}
+                </label>`;
+
+                container.appendChild(label);
             });
+
+            // selecionar todos
+            checkboxSelectAll.onchange = () => {
+                const checkboxes = container.querySelectorAll(
+                    'input[type="checkbox"]:not(:disabled)'
+                );
+                checkboxes.forEach(cb => cb.checked = checkboxSelectAll.checked);
+            };
         }
 
-        async function salvarVinculoEquipe() {
-            const equipeId = document.getElementById("select-equipe").value;
 
-            if (!equipeId) {
-                alert("Selecione uma equipe.");
-                return;
-            }
+        async function salvarVinculoEquipe() {
+            const checkboxes = document.querySelectorAll(
+                '#checkbox-equipes input[type="checkbox"]:checked:not(:disabled)'
+            );
 
             await withLoader(async () => {
-                await vincularEquipeAoEvento(eventoId, equipeId);
+                for (const cb of checkboxes) {
+                    await vincularEquipeAoEvento(eventoId, cb.value);
+                }
             });
 
             fecharModalVincularEquipe();
             carregarEquipesDoEvento();
         }
+
 
         window.removerEquipe = removerEquipe;
         window.abrirModalVincularEquipe = abrirModalVincularEquipe;
