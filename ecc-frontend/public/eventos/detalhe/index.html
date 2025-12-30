@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Eventos • ECC</title>
+    <title>Detalhe do Evento • ECC</title>
 
     <link rel="stylesheet" href="../../css/estilos.css">
     <link rel="stylesheet" href="../../css/loader.css">
@@ -25,20 +25,21 @@
     <button class="nav-btn" onclick="goTo('../eventos')">Eventos</button>
     <button class="nav-btn" onclick="goTo('../equipes')">Equipes</button>
     <button class="nav-btn" onclick="goTo('../cadastro')">Cadastro</button>
-    <button class="nav-btn" onclick="goTo('../pessoas')">Pessoas</button>
 
     <!-- ================= EQUIPES DO EVENTO ================= -->
     <div class="card">
         <div class="bloco-header">
             <h2>▶ Equipes do Evento</h2>
+            <p id="info-equipes-evento"></p>
         </div>
-        <button onclick="abrirModalVincularEquipe()"> Vincular Equipe ao Evento</button>
+
+        <button onclick="abrirModalVincularEquipe()">Vincular Equipe ao Evento</button>
+        <br><br>
 
         <table>
             <thead>
                 <tr>
-                    <th>Nome da Equipe</th>
-                    <th>Descrição</th>
+                    <th>Equipe</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -46,25 +47,66 @@
         </table>
     </div>
 
-    <!-- ================= MODAL VINCULAR EQUIPE ================= -->
-    <div id="modal-vincular-equipe" class="card-modal-overlay" style="display:none;">
-        <div class="card-modal">
-            <h3>Vincular Equipe ao Evento</h3>
+    <!-- ================= PESSOAS DO EVENTO ================= -->
+    <div class="card">
+        <div class="bloco-header">
+            <h2>▶ Pessoas do Evento</h2>
+            <p id="info-pessoas-evento"></p>
+        </div>
 
-            <label>Equipes</label>
+        <button onclick="abrirModalVincularPessoa()">Vincular Pessoa ao Evento</button>
+        <br><br>
 
-            <label class="checkbox-item checkbox-select-all">
-                <input type="checkbox" id="selectAllEquipes" />
-                Selecionar todas as equipes
-            </label>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Equipe</th>
+                    <th>Função</th>
+                    <th>Pago</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-pessoas-evento"></tbody>
+        </table>
+    </div>
 
-            <div id="checkbox-equipes" class="checkbox-grid">
+    <!-- ================= MODAL VINCULAR / EDITAR PESSOA ================= -->
+    <div id="modal-vincular-pessoa" class="card-modal-overlay" style="display:none;">
+        <div class="card">
+
+            <h2 class="modal-title">Vincular Pessoa ao Evento</h2>
+
+            <div class="form-group">
+                <label>Casal:</label>
+                <select id="cadastro_id" required></select>
             </div>
 
+            <div class="form-group">
+                <label>Equipe:</label>
+                <select id="equipe_id" required></select>
+            </div>
 
-            <br><br>
-            <button onclick="salvarVinculoEquipe()">Salvar</button>
-            <button onclick="fecharModalVincularEquipe()">Cancelar</button>
+            <div class="form-group">
+                <label>Função:</label>
+                <select id="regra" required>
+                    <option value="encontreiro">Encontreiro</option>
+                    <option value="coordenador">Coordenador</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="pagou" />
+                    Pago
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="fecharModalVincularPessoa()">Cancelar</button>
+                <button onclick="salvarPessoaEvento()">Salvar</button>
+            </div>
+
         </div>
     </div>
 
@@ -87,114 +129,193 @@
     <script src="../../js/loader.js"></script>
 
     <script type="module">
+        const token = localStorage.getItem("token");
         const eventoId = localStorage.getItem("eventoId");
+        let pessoaEventoEditandoId = null;
 
-        import {
-            listarEquipesDoEvento,
-            desvincularEquipeDoEvento,
-            vincularEquipeAoEvento
-        } from "../../modules/equipes-evento.js";
-        import { listarEquipes } from "../../modules/equipes.js";
+        if (!eventoId) {
+            alert("Evento não selecionado.");
+            location.href = "../";
+        }
 
+        /* ================= EQUIPES ================= */
         async function carregarEquipesDoEvento() {
-            const vinculos = await listarEquipesDoEvento(eventoId);
-            const tbody = document.getElementById("lista-equipes-evento");
+            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
+                headers: { Authorization: "Bearer " + token }
+            });
 
+            const vinculos = (await res.json()).data || [];
+            const tbody = document.getElementById("lista-equipes-evento");
+            const info = document.getElementById("info-equipes-evento");
+
+            info.innerText = `${vinculos.length} equipe(s) vinculada(s)`;
             tbody.innerHTML = "";
 
             vinculos.forEach(v => {
                 tbody.innerHTML += `
                     <tr>
                         <td>${v.equipe.nome}</td>
-                        <td>${v.equipe.descricao ?? "-"}</td>
                         <td>
                         <button onclick="removerEquipe('${v.id}')">Remover</button>
                         </td>
                     </tr>
-                    `;
+                `;
             });
         }
 
-        async function removerEquipe(vinculoId) {
-            showConfirm("Tem certeza que deseja excluir este vínculo?", () => {
-                withLoader(async () => {
-                    await desvincularEquipeDoEvento(vinculoId);
-                    carregarEquipesDoEvento();
+        async function removerEquipe(id) {
+            showConfirm("Remover equipe do evento?", async () => {
+                await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/${id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: "Bearer " + token }
                 });
+                carregarEquipesDoEvento();
             });
         }
 
-        function abrirModalVincularEquipe() {
-            document.getElementById("modal-vincular-equipe").style.display = "block";
-            carregarSelectEquipes();
-        }
-
-        function fecharModalVincularEquipe() {
-            document.getElementById("modal-vincular-equipe").style.display = "none";
-        }
-
-        async function carregarSelectEquipes() {
-            const container = document.getElementById("checkbox-equipes");
-            container.innerHTML = "";
-
-            const checkboxSelectAll = document.getElementById("selectAllEquipes");
-            checkboxSelectAll.checked = false;
-
-            // todas as equipes
-            const equipes = await listarEquipes();
-
-            // equipes já vinculadas
-            const vinculos = await listarEquipesDoEvento(eventoId);
-            const equipesVinculadasIds = vinculos.map(v => v.equipe.id);
-
-            equipes.forEach(eq => {
-                const jaVinculada = equipesVinculadasIds.includes(eq.id);
-
-                const label = document.createElement("label");
-                label.style.display = "block";
-                label.style.marginBottom = "6px";
-
-                label.innerHTML = `
-                <label class="checkbox-item ${jaVinculada ? 'checkbox-disabled' : ''}">
-                    <input type="checkbox" value="${eq.id}" ${jaVinculada ? "checked disabled" : ""} />
-                    ${eq.nome} ${jaVinculada ? "(já vinculada)" : ""}
-                </label>`;
-
-                container.appendChild(label);
+        /* ================= PESSOAS ================= */
+        async function carregarPessoasDoEvento() {
+            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/evento/${eventoId}`, {
+                headers: { Authorization: "Bearer " + token }
             });
 
-            // selecionar todos
-            checkboxSelectAll.onchange = () => {
-                const checkboxes = container.querySelectorAll(
-                    'input[type="checkbox"]:not(:disabled)'
-                );
-                checkboxes.forEach(cb => cb.checked = checkboxSelectAll.checked);
+            const pessoas = (await res.json()).data || [];
+            const tbody = document.getElementById("lista-pessoas-evento");
+            const info = document.getElementById("info-pessoas-evento");
+
+            info.innerText = `${pessoas.length} pessoa(s) no evento`;
+            tbody.innerHTML = "";
+
+            pessoas.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${p.cadastro?.nome_completo_esposo ?? "-"} <br> ${p.cadastro?.nome_completo_esposa ?? "-"}</td>
+                        <td>${p.equipe?.nome ?? "-"}</td>
+                        <td>${p.is_leader ? "Coordenador" : "Encontreiro"}</td>
+                        <td>${p.pagou ? "SIM" : "NÃO"}</td>
+                        <td>
+                        <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
+                        <button onclick="removerPessoaEvento('${p.id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function abrirModalVincularPessoa() {
+            pessoaEventoEditandoId = null;
+            document.getElementById("modal-vincular-pessoa").style.display = "flex";
+            document.getElementById("cadastro_id").disabled = false;
+            document.getElementById("pagou").checked = false;
+            await carregarSelects();
+        }
+
+        function fecharModalVincularPessoa() {
+            document.getElementById("modal-vincular-pessoa").style.display = "none";
+        }
+
+        async function carregarSelects() {
+            const [cadastrosRes, equipesRes] = await Promise.all([
+                fetch(`${APP_CONFIG.API_BASE_URL}/cadastro`, { headers: { Authorization: "Bearer " + token } }),
+                fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, { headers: { Authorization: "Bearer " + token } })
+            ]);
+
+            const cadastros = (await cadastrosRes.json()).data || [];
+            const equipes = (await equipesRes.json()).data || [];
+
+            const cadastroSelect = document.getElementById("cadastro_id");
+            const equipeSelect = document.getElementById("equipe_id");
+
+            cadastroSelect.innerHTML = `<option value="">Selecione</option>`;
+            equipeSelect.innerHTML = `<option value="">Selecione</option>`;
+
+            cadastros.forEach(c => {
+                cadastroSelect.innerHTML += `<option value="${c.id}">${c.nome_completo_esposo} e ${c.nome_completo_esposa}</option>`;
+            });
+
+            equipes.forEach(e => {
+                equipeSelect.innerHTML += `<option value="${e.equipe.id}">${e.equipe.nome}</option>`;
+            });
+        }
+
+        async function salvarPessoaEvento() {
+            const regra = document.getElementById("regra").value;
+
+            const payload = {
+                evento_id: eventoId,
+                cadastro_id: document.getElementById("cadastro_id").value,
+                equipe_id: document.getElementById("equipe_id").value,
+                is_leader: regra === "coordenador",
+                pagou: document.getElementById("pagou").checked
             };
+
+            if (!payload.cadastro_id || !payload.equipe_id) {
+                showToast("Preencha todos os campos.");
+                return;
+            }
+
+            const url = pessoaEventoEditandoId
+                ? `${APP_CONFIG.API_BASE_URL}/teamrole/${pessoaEventoEditandoId}`
+                : `${APP_CONFIG.API_BASE_URL}/teamrole`;
+
+            const method = pessoaEventoEditandoId ? "PUT" : "POST";
+
+            await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify(payload)
+            });
+
+            fecharModalVincularPessoa();
+            carregarPessoasDoEvento();
         }
 
+        async function editarPessoaEvento(id) {
+            pessoaEventoEditandoId = id;
 
-        async function salvarVinculoEquipe() {
-            const checkboxes = document.querySelectorAll(
-                '#checkbox-equipes input[type="checkbox"]:checked:not(:disabled)'
+            const res = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/teamrole/${id}`,
+                { headers: { Authorization: "Bearer " + token } }
             );
 
-            await withLoader(async () => {
-                for (const cb of checkboxes) {
-                    await vincularEquipeAoEvento(eventoId, cb.value);
-                }
-            });
+            const json = await res.json();
+            const v = json.data;
 
-            fecharModalVincularEquipe();
-            carregarEquipesDoEvento();
+            await carregarSelects();
+
+            document.getElementById("cadastro_id").value = v.cadastro.id;
+            document.getElementById("cadastro_id").disabled = true;
+            document.getElementById("equipe_id").value = v.equipe.id;
+            document.getElementById("regra").value = v.is_leader ? "coordenador" : "encontreiro";
+            document.getElementById("pagou").checked = !!v.pagou;
+            document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
 
+
+
+        async function removerPessoaEvento(id) {
+            showConfirm("Remover pessoa do evento?", async () => {
+                await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/${id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: "Bearer " + token }
+                });
+                carregarPessoasDoEvento();
+            });
+        }
+
         window.removerEquipe = removerEquipe;
-        window.abrirModalVincularEquipe = abrirModalVincularEquipe;
-        window.fecharModalVincularEquipe = fecharModalVincularEquipe;
-        window.salvarVinculoEquipe = salvarVinculoEquipe;
+        window.abrirModalVincularPessoa = abrirModalVincularPessoa;
+        window.fecharModalVincularPessoa = fecharModalVincularPessoa;
+        window.salvarPessoaEvento = salvarPessoaEvento;
+        window.editarPessoaEvento = editarPessoaEvento;
+        window.removerPessoaEvento = removerPessoaEvento;
 
         carregarEquipesDoEvento();
+        carregarPessoasDoEvento();
     </script>
 
 </body>

@@ -222,7 +222,7 @@ export async function listarTeamrolePorId(req, res) {
         id,
         is_leader,
         pagou,
-        pessoa:pessoa_id (id, nome, email, telefone),
+        cadastro:cadastro_id (id, nome_completo_esposo, email_esposo, celular_esposo),
         equipe:equipe_id (id, nome),
         evento:evento_id (id, nome)
       `)
