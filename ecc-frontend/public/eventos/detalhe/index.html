@@ -192,7 +192,20 @@
                         <td>${p.cadastro?.nome_completo_esposo ?? "-"} <br> ${p.cadastro?.nome_completo_esposa ?? "-"}</td>
                         <td>${p.equipe?.nome ?? "-"}</td>
                         <td>${p.is_leader ? "Coordenador" : "Encontreiro"}</td>
-                        <td>${p.pagou ? "SIM" : "NÃO"}</td>
+                        <td>
+                            ${p.pagou
+                        ? `<span class="badge badge-success">Pago</span>`
+                        : `
+                                <span class="badge badge-danger">Não</span>
+                                <button
+                                    class="btn-pagamento"
+                                    onclick="gerarPagamento('${p.id}')"
+                                >
+                                    Gerar Pagamento
+                                </button>
+                                `
+                    }
+                            </td>
                         <td>
                         <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
                         <button onclick="removerPessoaEvento('${p.id}')">Excluir</button>
@@ -294,9 +307,6 @@
             document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
-
-
-
         async function removerPessoaEvento(id) {
             showConfirm("Remover pessoa do evento?", async () => {
                 await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/${id}`, {
@@ -307,12 +317,48 @@
             });
         }
 
+        async function gerarPagamento(teamroleId) {
+            showConfirm("Gerar pagamento PIX?", async () => {
+
+                withLoader(async () => {
+                    try {
+                        const res = await fetch(`${APP_CONFIG.API_BASE_URL}/pagamento/encontreiro/${teamroleId}`, {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({}) // ensure body exists
+                        });
+
+                        const json = await res.json();
+
+                        if (!res.ok) {
+                            alert(json.error || "Erro ao gerar pagamento");
+                            return;
+                        }
+
+                        const { payment_id } = json;
+
+                        // Redireciona para página que exibe QR Code (abre em nova aba)
+                        window.open(`pagamento_encontreiro.html?teamrole_id=${teamroleId}&payment_id=${payment_id}`, '_blank');
+
+                    } catch (err) {
+                        alert("Erro ao gerar pagamento.");
+                        console.error(err);
+                    }
+                });
+            });
+        }
+
         window.removerEquipe = removerEquipe;
         window.abrirModalVincularPessoa = abrirModalVincularPessoa;
         window.fecharModalVincularPessoa = fecharModalVincularPessoa;
         window.salvarPessoaEvento = salvarPessoaEvento;
         window.editarPessoaEvento = editarPessoaEvento;
         window.removerPessoaEvento = removerPessoaEvento;
+
+        window.gerarPagamento = gerarPagamento;
 
         carregarEquipesDoEvento();
         carregarPessoasDoEvento();

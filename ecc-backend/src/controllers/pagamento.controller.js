@@ -15,9 +15,9 @@ export async function gerarPagamentoEncontreiro(req, res) {
       .from("teamrole")
       .select(`
         id,
-        pessoa_id,
+        cadastro_id,
         evento_id,
-        pessoa:pessoa_id (nome, email),
+        cadastro:cadastro_id (id, nome_completo_esposo, nome_completo_esposa, email_esposo, email_esposa, celular_esposo, celular_esposa),
         evento:evento_id (nome, valor_encontreiro)
       `)
       .eq("id", teamrole_id)
@@ -27,8 +27,9 @@ export async function gerarPagamentoEncontreiro(req, res) {
       return res.status(404).json({ error: "Vínculo do encontreiro não encontrado." });
     }
 
-    const nome = tr.pessoa?.nome || "Encontreiro";
-    const email = tr.pessoa?.email;
+    const id = tr.cadastro?.id;
+    const nome = tr.cadastro?.nome_completo_esposo || "Encontreiro";
+    const email = tr.cadastro?.email_esposo;
     const valor = Number(tr.evento?.valor_encontreiro || 0);
 
     if (!email) {
@@ -38,7 +39,6 @@ export async function gerarPagamentoEncontreiro(req, res) {
     if (valor <= 0) {
       return res.status(400).json({ error: "Valor do evento inválido." });
     }
-
 
     // URL que será enviada ao Mercado Pago (para debug)
     console.log(
@@ -72,7 +72,7 @@ export async function gerarPagamentoEncontreiro(req, res) {
     const { error: insertErr } = await supabase
       .from("pagamentos_encontreiro_evento")
       .insert({
-        pessoa_id: tr.pessoa_id,
+        pessoa_id: id,
         evento_id: tr.evento_id,
         teamrole_id: tr.id,
         valor,
