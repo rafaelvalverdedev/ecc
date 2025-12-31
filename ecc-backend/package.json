@@ -1,20 +1,18 @@
 {
   "name": "ecc-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "next build",
-    "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "nodemon ./src/server.js",
+    "start": "node ./src/server.js",
+    "start:prod": "cross-env NODE_ENV=production node ./src/server.js",
+    "lint": "echo \"Lint ainda não configurado\""
+  },
   "dependencies": {
-    "@faker-js/faker": "^10.1.0",
     "@supabase/supabase-js": "^2.86.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -27,7 +25,9 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
     "@types/express": "^5.0.5",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "cross-env": "^7.0.3"
   }
 }

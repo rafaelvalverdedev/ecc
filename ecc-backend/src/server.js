@@ -1,5 +1,4 @@
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -16,99 +15,64 @@ import momentosRoutes from "./routes/momentos.routes.js";
 import equipesEventoRoutes from "./routes/equipesEvento.routes.js";
 import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
-import cadastro from "./routes/cadastro.routes.js"; // Nova Rota para Cadastro de Pessoas, Futuros encontreiros e encontristas
+import cadastro from "./routes/cadastro.routes.js";
 import pagamentoRoutes from "./routes/pagamento.routes.js";
-// rota teste
 import rotateste from "./routes/rotateste.routes.js";
-
-
-import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
-
 import devRoutes from "./routes/dev.routes.js";
 
+import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
 import { authMiddleware } from "./middlewares/auth.js";
 
 const app = express();
 
-// ===========================
-//  WEBHOOK — PRECISA VIR ANTES DE QUALQUER PARSER
-// ===========================
+// WEBHOOK — antes de qualquer parser
 app.post(
   "/webhook/mercadopago",
-  bodyParser.raw({ type: "*/*" }), // aceita qualquer tipo enviado pelo MP
+  express.raw({ type: "*/*" }),
   webhookMercadoPago
 );
 
-// ===========================
-
-// PARA DEIXAR A ROTA PROTEGIDA COM AUTENTICAÇÃO
-// USAER O   authMiddleware,
-// ===========================
-
-
-
-// ===========================
-// PARSERS NORMAIS DO EXPRESS
-// (Sempre depois do webhook)
-// ===========================
+// Parsers globais
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// JSON normal para todas as rotas
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ======================================================
-// ROTAS PÚBLICAS
-// ======================================================
+// Rotas públicas
 app.use("/auth", authRoutes);
 app.use("/dev", devRoutes);
-
-// ======================================================
-// ROTAS DE CADASTRO (PÚBLICAS)
-// ======================================================
-app.use("/cadastro", cadastro);  // por enquanto ainda é pública
-// ROTA TESTE
-app.use("/rotateste", authMiddleware, rotateste); // rota para testes
-
-// Pagamento público (apenas geração do PIX é protegida)
+app.use("/cadastro", cadastro);
 app.use("/pagamento", pagamentoRoutes);
 
-// ======================================================
-// ROTAS PROTEGIDAS (LOGIN OBRIGATÓRIO)
-// ======================================================
+// Rotas protegidas
 app.use("/pessoas", authMiddleware, pessoasRoutes);
 app.use("/eventos", authMiddleware, eventosRoutes);
 app.use("/equipes", authMiddleware, equipeRoutes);
 app.use("/equipes-evento", authMiddleware, equipesEventoRoutes);
 app.use("/teamrole", authMiddleware, teamroleRoutes);
 app.use("/momentos", authMiddleware, momentosRoutes);
-
-// inscrições comuns são públicas (mantido como você usava)
-app.use("/inscricoes", authMiddleware,inscricoesRoutes);
-
+app.use("/inscricoes", authMiddleware, inscricoesRoutes);
 app.use("/coordenadores", authMiddleware, coordenadoresRoutes);
+app.use("/encontrista_inscricao", authMiddleware, encontristaInscricaoRoutes);
+app.use("/admin", authMiddleware, adminRoutes);
 
-// Encontrista-inscrição é protegida por auth
-app.use("/encontrista_inscricao",  authMiddleware, encontristaInscricaoRoutes);
-
-// Admin
-app.use("/admin",  adminRoutes);
-
-// ======================================================
-// ROOT ROUTE
-// ======================================================
+// Root
 app.get("/", (req, res) => {
-  res.send("🚀 Backend ECC funcionando!");
+  res.send("Backend ECC funcionando");
 });
 
-// ======================================================
-// SERVIDOR
-// ======================================================
+// 404 (rota não encontrada)
+app.use((req, res) => {
+  res.status(404).json({ error: "Rota não encontrada" });
+});
+
+// Middleware global de erro
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
+// Servidor
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-// ========================================================
