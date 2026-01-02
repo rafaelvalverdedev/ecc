@@ -12,6 +12,8 @@ const router = Router();
 
 router.get("/", listarEventos);
 router.get("/:id", buscarEvento);
+
+// protegidas (criar/editar/excluir)
 router.post("/", authMiddleware, criarEvento);
 router.put("/:id", authMiddleware, atualizarEvento);
 router.delete("/:id", authMiddleware, deletarEvento);
