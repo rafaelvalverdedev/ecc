@@ -3,9 +3,12 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard • ECC</title>
+  <title>Gerenciar Equipes • ECC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/media-queries.css">
+  <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 </head>
 
@@ -17,15 +20,43 @@
     requireAuth();
   </script>
 
-  <button class="logout-btn" onclick="logout()">Sair</button>
-  <br><br>
+<!-- Navegação -->
+<!-- <nav class="topbar">
+  <div class="topbar-left">
+    <span class="nav-title">Encontro de Casais</span>
+  </div>
 
-  <!-- Navegação -->
-  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
-  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
-  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('cadastro')">Cadastro</button>
-  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <div class="nav-links">
+    <button onclick="goTo('dashboard')">Dashboard</button>
+    <button onclick="goTo('eventos')">Eventos</button>
+    <button onclick="goTo('equipes')">Equipes</button>
+    <button onclick="goTo('cadastro')">Cadastro</button>
+    <button onclick="goTo('pessoas')">Pessoas</button>
+  </div>
+
+  <div class="nav-right">
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
+</nav> -->
+
+
+<nav role="navigation">
+  <div id="menuToggle">
+
+    <input type="checkbox" id="menuCheckbox" />
+    
+    <span></span>
+    <span></span>
+    <span></span>
+    
+    <ul id="menu">
+      <li>
+        <a href="#"><label for="menuCheckbox" onclick="this.parentNode.click();">Home</label></a>
+         <a href="#"><label for="menuCheckbox" onclick="this.parentNode.click();">About</label></a>
+      </li>
+    </ul>
+  </div>
+</nav>
 
   <h1>Dashboard Geral</h1>
 

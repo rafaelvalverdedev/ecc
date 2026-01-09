@@ -1,0 +1,49 @@
+/* =========================================================
+   Base (mobile – até ~767px)
+   Nenhuma media query necessária
+   ========================================================= */
+
+/* =========================================================
+   Small tablets / large phones
+   ========================================================= */
+@media (min-width: 576px) {
+  /* ajustes leves de espaçamento e tipografia */
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+}
+
+/* =========================================================
+   Tablets
+   ========================================================= */
+@media (min-width: 768px) {
+
+  /* grid em colunas, navegação horizontal */
+}
+
+/* =========================================================
+   Small desktops / notebooks
+   ========================================================= */
+@media (min-width: 992px) {
+  /* layouts mais largos, sidebars */
+}
+
+/* =========================================================
+   Desktops
+   ========================================================= */
+@media (min-width: 1200px) {
+  /* containers centrais, max-width */
+}
+
+/* =========================================================
+   Large screens / ultrawide
+   ========================================================= */
+@media (min-width: 1400px) {
+  /* ajustes finos para telas grandes */
+}
+
+@media (orientation: landscape) {
+  /* ajustes para paisagem */
+}

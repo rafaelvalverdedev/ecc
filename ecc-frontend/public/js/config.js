@@ -7,14 +7,14 @@ window.APP_CONFIG = {
 };
 
 // ====================================
-// 🔄 Navegação
+// Navegação
 // ====================================
 function goTo(page) {
   window.location.href = `../${page}`;
 }
 
 // ====================================
-// 🔄 Formatação de datas
+// Formatação de datas
 // ====================================
 function formatarDataString(dataString) {
   // Divide a string em um array: ["111", "11", "11"]
@@ -26,7 +26,7 @@ function formatarDataString(dataString) {
   return dataFormatada;
 }
 // ====================================
-// 🔄 Formatação de valores para real
+// Formatação de valores para real
 // ====================================
 function formatarParaReal(numero) {
   // Cria um formatador para a localidade 'pt-BR' (português do Brasil)
@@ -42,7 +42,7 @@ function formatarParaReal(numero) {
 
 
 // ====================================
-// 🔄 Toggle  Geral
+// Toggle  Geral
 // ====================================
 const ativarToggle = () => {
   document.querySelectorAll(".toggle-title").forEach(title => {
@@ -62,7 +62,7 @@ const ativarToggle = () => {
 };
 
 // ============================
-// 🔔 TOAST
+// TOAST
 // ============================
 function showToast(msg) {
   const toast = document.getElementById("toast");
@@ -75,7 +75,7 @@ function showToast(msg) {
 }
 
 // ============================
-// ❓ MODAL
+// MODAL
 // ============================
 let onConfirmCallback = null;
 

@@ -4,67 +4,56 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gerenciar Equipes • ECC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
 
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/media-queries.css">
   <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
 
   <style>
-    /* Reset básico e fonte */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
+    .container {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      background-color: #f0f2f5;
+      min-height: 100lvh;
     }
 
-    /* Contêiner da caixa de login */
-    .login-container {
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
+    /* Logo */
+    .logo {
+      display: flex;
+      flex-direction: row;
+      align-content: center;
+      justify-content: center;
     }
 
-    .login-container h2 {
-      margin-bottom: 20px;
+    .logo img {
+      width: 150px;
+      max-width: 350px;
+      object-fit: contain;
+      object-position: center;
     }
 
-    .login-container input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    .login-container button {
-      padding: 10px 20px;
-      cursor: pointer;
+    h2 {
+      color: #5A0000;
     }
   </style>
+
 </head>
 
 <body>
-
-  <div class="login-container">
-    <h2>Acesso</h2>
-    <form onsubmit="login(event)">
-      <input type="email" id="email" placeholder="E-mail" required>
-      <input type="password" id="password" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-    </form>
-
+  <div class="container">
+    <div class="card-modal-login">
+      <div class="logo">
+        <img src="../assets/Logo-v2-2025-logo.png">
+      </div>
+      <form onsubmit="login(event)">
+        <input type="email" id="email" placeholder="E-mail" required>
+        <input type="password" id="password" placeholder="Senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
     <div id="toast" class="toast"></div>
   </div>
 
@@ -84,11 +73,10 @@
 
       toast.style.display = "none";
 
-      // Validação básica frontend (já existia, mantida)
       if (!email || !password) {
         toast.innerText = "Preencha todos os campos.";
         toast.style.display = "block";
-        setTimeout(() => toast.style.display = "none", 2000);
+        setTimeout(() => toast.style.display = "block", 2000);
         hideLoader();
         return;
       }
@@ -103,7 +91,7 @@
         const data = await res.json();
 
         // ============================
-        // 🔴 TRATAMENTO DE ERROS (ZOD / API)
+        // TRATAMENTO DE ERROS (ZOD / API)
         // ============================
         if (!res.ok) {
           hideLoader();
@@ -121,7 +109,7 @@
         }
 
         // ============================
-        // ✅ LOGIN OK
+        // LOGIN OK
         // ============================
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.pessoa));

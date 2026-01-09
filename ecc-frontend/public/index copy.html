@@ -3,22 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>ECC Serrinha - Feliz Natal</title>
+    <title>ECC Serrinha 2026</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="ECC Serrinha - Feliz Natal">
-    <meta property="og:description"
-        content="Votos do casal coordenador Raimundo e Regina">
+    <meta property="og:title" content="ECC Serrinha 2026">
+    <meta property="og:description" content="Encontro de Casais com Cristo das Igrejas Batistas de Serrinha">
     <meta property="og:image" content="https://eccserrinha.vercel.app/preview-natal.jpg">
     <meta property="og:url" content="https://eccserrinha.vercel.app">
-    <meta property="og:site_name" content="Feliz Natal">
+    <meta property="og:site_name" content="ECC SERRINHA">
 
-    <!-- Fonte Natalina -->
-    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&display=swap"
-        rel="stylesheet">
-
+    <!-- Fonte elegante -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Gemstones&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -27,118 +25,98 @@
         }
 
         body {
-            min-height: 100vh;
-            background: linear-gradient(to bottom, #881202, #b61b06, #881202);
-            overflow: hidden;
-            font-family: 'Mountains of Christmas', cursive;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            padding-bottom: 120px;
-            /* espaço para o footer */
-        }
-
-        /* TOPO */
-        .top {
-            margin-top: 20px;
-            text-align: center;
-            z-index: 2;
-        }
-
-        h1 {
-            font-size: clamp(3rem, 6vw, 5rem);
-            animation: glow 2s infinite alternate;
-        }
-
-        /* CENTRO */
-        .center {
-            flex: 1;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: linear-gradient(315deg, rgb(245, 230, 166) 3%, rgb(255, 255, 255) 38%,  rgb(253, 242, 195) 68%, rgb(255, 255, 255) 98%);
+            animation: gradient 15s ease infinite;
+            background-size: 400% 400%;
+            background-attachment: fixed;
+        }
+
+        /* Logo */
+        .logo {
+            position: absolute;
+            justify-content: center;
+            z-index: 10;
+            animation: fade 2.8s both infinite;
+        }
+
+        .logo img {
+            width: 650px;
+            max-width: 65vw;
+        }
+
+        p {
+            position: absolute;
+            margin-top: 260px;
+            color: rgb(150, 81, 41);
+            font-size: 24px;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
             text-align: center;
-            max-width: 900px;
-            z-index: 2;
+            text-transform: uppercase;
+            animation: text-focus-in 1.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) infinite alternate;
         }
 
-        .message {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2rem, 3vw, 2.1rem);
-            line-height: 1.5;
-            text-align: center;
-            margin: 0 auto;
-        }
-
-
-        /* RODAPÉ */
-        .footer-logos {
-            position: fixed;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            z-index: 3;
-        }
-
-        .logo-principal img {
-            width: clamp(250px, 30vw, 220px);
-        }
-
-        .span {
-            font-size: 12px;
-        }
-
-        /* ANIMAÇÕES */
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px #fff, 0 0 20px #ff0000;
+        /* Animação */
+        @keyframes fade {
+            0% {
+                opacity: 0.8;
             }
 
-            to {
-                text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
+            50% {
                 opacity: 1;
+                scale: 1.1;
+            }
+
+            100% {
+                opacity: 0.8;
             }
         }
 
-        /* NEVE */
-        .snowflake {
-            position: fixed;
-            top: -10px;
-            color: white;
-            user-select: none;
-            pointer-events: none;
-            animation: fall linear infinite;
-        }
+        @keyframes gradient {
+            0% {
+                background-position: 0% 0%;
+            }
 
-        @keyframes fall {
-            to {
-                transform: translateY(100vh);
+            50% {
+                background-position: 100% 100%;
+            }
+
+            100% {
+                background-position: 0% 0%;
             }
         }
 
-        /* MOBILE */
-        @media (max-width: 480px) {
-            .message {
-                font-size: 1.3rem;
+        /* Responsivo */
+        @media (max-width: 800px) {
+            .logo img {
+                width: 350px;
             }
 
-            .footer-logos {
-                gap: 15px;
-                bottom: 10px;
+            p {
+                font-size: 16px;
+                margin-top: 140px;
+
+            }
+        }
+
+
+        @keyframes text-focus-in {
+            0% {
+                -webkit-filter: blur(1px);
+                filter: blur(1px);
+                opacity: 0.9;
+                text-shadow: 2px 2px 4px rgba(150, 81, 41, 0.8);
+            }
+
+            100% {
+                -webkit-filter: blur(0px);
+                filter: blur(0px);
+                opacity: 1;
+                text-shadow: 2px 2px 4px rgba(150, 81, 41, 0.8);
+
             }
         }
     </style>
@@ -146,54 +124,18 @@
 
 <body>
 
-    <!-- TOPO -->
-    <div class="top">
-        <div class="icon">
-            <h1>🎄Feliz Natal!🎄</h1>
-        </div>
+    <!-- Logo -->
+    <div class="logo">
+        <img src="Logo-v2-2025-2.png" alt="ECC - Encontro de Casais com Cristo">
     </div>
-
-    <!-- CENTRO -->
-    <div class="center">
-        <p class="message">
-            ✨ “Assim como Deus os uniu em amor, que neste Natal a presença de Jesus renove a fé, a cumplicidade e a
-            esperança do casal.” ✨
-            <br>
-            <br>
-            🕊️ “Neste Natal, que Jesus seja o alicerce do amor de vocês, trazendo paz ao lar e graça para caminhar
-            juntos.” 🕊️
-            <br><span class="span">Coordenação Geral: <strong>Raimundo e Regina</strong></span>
-        </p>
-    </div>
-
-    <!-- RODAPÉ -->
-    <footer class="footer-logos">
-        <div class="logo-principal">
-            <img src="Logo-v2-2025.png" alt="Logo Principal">
-        </div>
-    </footer>
-
-    <!-- NEVE -->
-    <script>
-        function createSnowflake() {
-            const snowflake = document.createElement("div");
-            snowflake.classList.add("snowflake");
-            snowflake.innerHTML = "❄";
-
-            snowflake.style.left = Math.random() * window.innerWidth + "px";
-            snowflake.style.animationDuration = (Math.random() * 3 + 2) + "s";
-            snowflake.style.fontSize = (Math.random() * 10 + 10) + "px";
-
-            document.body.appendChild(snowflake);
-
-            setTimeout(() => {
-                snowflake.remove();
-            }, 5000);
-        }
-
-        setInterval(createSnowflake, 200);
-    </script>
+    <p>
+        <strong>9º Encontro de Casais com Cristo <br> das Igrejas Batistas de Serrinha</strong>
+    </p>
 
 </body>
+
+<script>
+
+</script>
 
 </html>
