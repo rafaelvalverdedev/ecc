@@ -20,24 +20,9 @@
     requireAuth();
   </script>
 
-<!-- Navegação -->
-<nav class="topbar">
-  <div class="topbar-left">
-    <span class="nav-title">Encontro de Casais</span>
-  </div>
+  <!-- Navegação -->
+  <div id="navbar"></div>
 
-  <div class="nav-links">
-    <button onclick="goTo('dashboard')">Dashboard</button>
-    <button onclick="goTo('eventos')">Eventos</button>
-    <button onclick="goTo('equipes')">Equipes</button>
-    <button onclick="goTo('cadastro')">Cadastro</button>
-    <button onclick="goTo('pessoas')">Pessoas</button>
-  </div>
-
-  <div class="nav-right">
-    <button class="logout-btn" onclick="logout()">Sair</button>
-  </div>
-</nav>
 
   <h1>Dashboard Geral</h1>
 
@@ -110,6 +95,10 @@
   <script type="module">
     import { carregarDashboard } from "../modules/dashboard.js";
     import { abrirEvento } from "../modules/dashboard.js";
+
+    import { renderNavbar } from "../components/navbar.js";
+
+     renderNavbar({ active: "dashboard" });
 
     async function initDashboard() {
       try {

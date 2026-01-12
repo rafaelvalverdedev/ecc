@@ -1,0 +1,155 @@
+/* ================================
+   NAVBAR – ECC 2026
+================================ */
+
+:root {
+  --navbar-bg: #5a0000;
+  --navbar-bg-dark: #430000;
+  --navbar-text: #ffffff;
+  --navbar-accent: #f2dede;
+  --navbar-active-bg: #ffffff;
+  --navbar-active-text: #5a0000;
+  --navbar-hover-bg: rgba(255, 255, 255, 0.12);
+}
+
+/* Container principal */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: linear-gradient(
+    180deg,
+    var(--navbar-bg),
+    var(--navbar-bg-dark)
+  );
+
+  padding: 0 24px;
+  height: 64px;
+
+  color: var(--navbar-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ================================
+   LADO ESQUERDO
+================================ */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ================================
+   LINKS
+================================ */
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--navbar-text);
+
+  padding: 8px 14px;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.nav-btn:hover {
+  background: var(--navbar-hover-bg);
+}
+
+/* Link ativo */
+.nav-btn.active {
+  background: var(--navbar-active-bg);
+  color: var(--navbar-active-text);
+  font-weight: 600;
+}
+
+/* Feedback de clique */
+.nav-btn:active {
+  transform: scale(0.96);
+}
+
+/* ================================
+   LADO DIREITO
+================================ */
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Botão sair */
+.logout-btn {
+  background: transparent;
+  color: var(--navbar-text);
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 6px 14px;
+  border-radius: 6px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: var(--navbar-text);
+  color: var(--navbar-bg);
+  border-color: var(--navbar-text);
+}
+
+/* ================================
+   RESPONSIVO
+================================ */
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .navbar-links {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .navbar-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
