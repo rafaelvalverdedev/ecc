@@ -1,0 +1,187 @@
+/* ================================
+   FORMULÁRIO (CRIAR/EDITAR EVENTO)
+   ================================ */
+
+/* Container do formulário */
+.card-modal form {
+  display: grid;
+  grid-template-columns: 1fr;
+  /* Todos os campos ocupam a largura total */
+  width: 100%;
+  max-width: 500px;
+  /* Largura máxima do formulário */
+  margin: 0 auto;
+  /* Centraliza o formulário */
+}
+
+
+
+
+/* =============================
+   BOTÕES
+   ============================= */
+
+/* Estilo para os botões */
+button {
+  background-color: #C7A323;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: rgba(161, 126, 29, 0.9);
+  ;
+}
+
+/* Botões de Logout e Navegação */
+.logout-btn {
+  background: #e63946;
+  color: white;
+  float: right;
+}
+
+/* =============================
+   INPUTS E TEXTAREAS
+   ============================= */
+
+input,
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+
+
+/* Estilos para inputs e textareas */
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: #f0ebd9;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #5A0000;
+  box-sizing: border-box;
+}
+
+/* Foco nos campos de input */
+input:focus,
+textarea:focus {
+  outline: none;
+  border-bottom: 2px solid rgba(238, 222, 7, 0.9);
+  box-shadow: 0 0 4px rgba(238, 222, 7, 0.25);
+}
+
+
+
+
+
+/* Títulos do Formulário */
+.card-modal h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+/* Espaçamento entre os campos */
+label {
+  font-weight: bold;
+  display: block;
+  /* Garante que o label seja em linha com o campo */
+  color: #da0000;
+}
+
+input[type="date"],
+input[type="number"] {
+  width: 100%;
+  /* Garante que os campos de data e número ocupem toda a largura */
+}
+
+
+
+
+
+/* =============================
+   GRID DE CHECKBOXES (EM EXIBIÇÕES)
+   ============================= */
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* duas colunas */
+  gap: 8px 16px;
+  /* espaçamento entre itens */
+  max-height: 300px;
+  /* altura máxima */
+  overflow-y: auto;
+  /* scroll vertical */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* =============================
+   ESTILOS VARIADOS PARA DROPDOWN
+   ============================= */
+
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-selected {
+  padding: 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #fff;
+}
+
+.dropdown-list {
+  position: absolute;
+  width: 100%;
+  border: 1px solid #ccc;
+  background: #fff;
+  display: none;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f1f1f1;
+}
+
+.dropdown-item .titulo {
+  font-weight: bold;
+}
+
+.dropdown-item .subtitulo {
+  font-size: 12px;
+  color: #666;
+}

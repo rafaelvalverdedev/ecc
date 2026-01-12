@@ -1,13 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { AuthProvider } from './contexts/AuthContext'
-import App from './App'
-import './index.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./app/App";
+import { LoaderProvider } from "./contexts/LoaderContext";
+import { ToastProvider } from "./contexts/ToastContext";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+import "./styles/global.css";
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ToastProvider>
+      <LoaderProvider>
+        <App />
+      </LoaderProvider>
+    </ToastProvider>
   </React.StrictMode>
-)
+);

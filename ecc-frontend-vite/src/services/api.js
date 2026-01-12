@@ -1,24 +1,59 @@
-import { getToken, logout } from './authService'
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-export async function apiFetch(url, options = {}) {
-  const token = getToken()
+function getHeaders(isJson = true) {
+  const headers = {};
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  })
-
-  if (response.status === 401 || response.status === 403) {
-    logout()
-
-    // força reload para resetar contexto e rotas
-    window.location.href = '/'
-    return
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers.Authorization = "Bearer " + token;
   }
 
-  return response
+  if (isJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
+}
+
+async function handleResponse(res) {
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw json;
+  }
+
+  return json.data ?? json;
+}
+
+export async function apiGet(path) {
+  const res = await fetch(API_BASE + path, {
+    headers: getHeaders(false)
+  });
+  return handleResponse(res);
+}
+
+export async function apiPost(path, body) {
+  const res = await fetch(API_BASE + path, {
+    method: "POST",
+    headers: getHeaders(true),
+    body: JSON.stringify(body)
+  });
+  return handleResponse(res);
+}
+
+export async function apiPut(path, body) {
+  const res = await fetch(API_BASE + path, {
+    method: "PUT",
+    headers: getHeaders(true),
+    body: JSON.stringify(body)
+  });
+  return handleResponse(res);
+}
+
+export async function apiDelete(path) {
+  const res = await fetch(API_BASE + path, {
+    method: "DELETE",
+    headers: getHeaders(false)
+  });
+  return handleResponse(res);
 }
