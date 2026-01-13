@@ -9,33 +9,62 @@ export function renderNavbar({ active }) {
     { page: "equipes", label: "Equipes" },
     { page: "cadastro", label: "Cadastro" }
   ];
-
+  
   container.innerHTML = `
-    <nav class="navbar">
-      <div class="navbar-left">
-        <span class="navbar-title">ECC 2026</span>
-      </div>
+  <nav>
+    <ul>
+        // <li class="logotipo">
+        //     <img src="../assets/Logo-v2-2025-logo.png" with="120" alt="Logotipo ECC">
+        // </li>
 
-      <div class="navbar-links">
-        ${links
+        <li class="hideMobile">
+          ${links
           .map(
             ({ page, label }) => `
-              <button
-                class="nav-btn ${page === active ? "active" : ""}"
-                data-page="${page}"
-              >
-                ${label}
-              </button>
-            `
+                          <button
+                            class="nav-btn ${page === active ? "active" : ""}"
+                            data-page="${page}">
+                            ${label}
+                          </button>
+                          `
           )
+          
           .join("")}
-      </div>
+          <button class="logout-btn" id="btn-logout">Sair</button>
+      </li>
 
-      <div class="navbar-right">
-        <button class="logout-btn" id="btn-logout">Sair</button>
-      </div>
-    </nav>
-  `;
+      <li class="hideDesktop" onclick="showSidebar()">
+        <a href="#">
+        <img src="../assets/menu-com.svg" width="30" alt="Fechar Menu" style="margin-right: 20px;">
+        </a>
+        </li>       
+        </ul>
+        
+        <ul class="sidebar">
+        <li class="fechar" onclick=hideSidebar()>
+        <a href="#">
+            <img src="../assets/close.svg" width="30" alt="Fechar Menu" style="margin-right: 20px;">
+        </a>
+      </li>            
+        ${links
+        .map(
+          ({ page, label }) => `
+                <li>
+                  <button
+                    class="nav-btn ${page === active ? "active" : ""}"
+                    data-page="${page}">
+                    ${label}
+                    </button>
+                </li >
+              `
+      )
+      .join("")}
+      <li><button class="logout-btn" id="btn-logout">Sair</button></li>
+      </ul>
+  </nav >
+    `;
+
+
 
   /* Navegação */
   container.querySelectorAll("[data-page]").forEach(btn => {
@@ -49,4 +78,13 @@ export function renderNavbar({ active }) {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", logout);
   }
+
+
+  window.showSidebar = function () {
+    document.querySelector(".sidebar").style.display = "flex";
+  };
+
+  window.hideSidebar = function () {
+    document.querySelector(".sidebar").style.display = "none";
+  };
 }

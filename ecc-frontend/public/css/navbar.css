@@ -1,158 +1,104 @@
-/* ================================
-   NAVBAR – ECC 2026 (Sticky)
-================================ */
-
-:root {
-  --nav-bg: #ffffff;
-  --nav-border: #e5e7eb;
-  --nav-text: #1f2937;
-  --nav-muted: #6b7280;
-  --nav-accent: #cfb311;
-  --nav-hover: #f3f4f6;
+nav {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  height: 90px;
+  box-shadow: #cbccc2 0px 4px 6px -1px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* Container principal */
-.navbar {
-  position: relative;
+nav ul {
+  width: 100%;
+  list-style: none;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+nav li:first-child {
+  margin-right: auto;
+}
+
+.logotipo img {
+  width: 140px;
+  margin: 20px;
+}
+
+.sidebar {
+  position: fixed;
+  display: none;
   top: 0;
-  z-index: 1000;
-
-  display: flex;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-
-  height: 80px;
-  padding: 0 24px;
-
-  background-color: var(--nav-bg);
-  border-bottom: 1px solid var(--nav-border);
-
-  backdrop-filter: saturate(180%) blur(6px);
-}
-
-/* ================================
-   LADO ESQUERDO
-================================ */
-
-.navbar-left {
-  display: flex;
-  align-items: center;
-}
-
-.navbar-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--nav-text);
-  letter-spacing: 0.4px;
-}
-
-/* ================================
-   LINKS
-================================ */
-
-.navbar-links {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  justify-content: flex-start;
+  box-shadow: #cbccc2 0px 4px 6px -1px;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 999;
 }
 
 .nav-btn {
   position: relative;
-
+  color: #444;
   background: none;
   border: none;
-
-  padding: 8px 14px;
-  border-radius: 6px;
-
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--nav-muted);
-
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
 }
 
-.nav-btn:hover {
-  background-color: var(--nav-hover);
-  color: var(--nav-text);
-}
-
-/* Indicador ativo (underline moderno) */
 .nav-btn.active {
-  color: var(--nav-accent);
+  color: var(--color-bg);
+  background: var(--btn-login--bg);
+  font-weight: 600;
 }
 
-.nav-btn.active::after {
-  content: "";
-  position: absolute;
-  left: 10%;
-  bottom: -8px;
-
-  width: 80%;
-  height: 2px;
-  background-color: var(--nav-accent);
-  border-radius: 2px;
-}
-
-/* ================================
-   LOGOUT
-================================ */
-
-.logout-btn {
-  margin-left: 12px;
-  padding: 0px 8px;
-  background: none;
-  border: 1px solid var(--nav-border);
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--nav-text);
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.logout-btn:hover {
-  background-color: var(--nav-hover);
-  border-color: var(--nav-accent);
-}
-
-/* ================================
-   RESPONSIVO
-================================ */
-
-@media (max-width: 768px) {
-  .navbar {
-    padding: 0 16px;
-    height: auto;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .navbar-links {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
+@media (max-width: 800px) {
+  .hideMobile {
+    display: none;
   }
 
   .nav-btn {
-    flex: 1;
-    text-align: center;
+    width: 280px;
+    background-color: var(--color-bg);
   }
 
+  .nav-btn.active {
+    background: var(--btn-login--bg);
+    color: #fff;
+    padding: 14px;
+  }
+
+  .sidebar .fechar {
+    flex-direction: row;
+    width: 100%;
+    position: relative;
+    text-align: right;
+  }
 
 }
 
+@media (min-width: 800px) {
+  .hideDesktop {
+    display: none;
+  }
+}
 
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  color: #fff;
+  flex-direction: column;
+  text-align: center;
+}
 
-
-
-
-
-
-
-
+.content p {
+  max-width: 400px;
+}
