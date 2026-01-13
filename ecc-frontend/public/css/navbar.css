@@ -1,34 +1,33 @@
 /* ================================
-   NAVBAR – ECC 2026
+   NAVBAR – ECC 2026 (Sticky)
 ================================ */
 
 :root {
-  --navbar-bg: #5a0000;
-  --navbar-bg-dark: #430000;
-  --navbar-text: #ffffff;
-  --navbar-accent: #f2dede;
-  --navbar-active-bg: #ffffff;
-  --navbar-active-text: #5a0000;
-  --navbar-hover-bg: rgba(255, 255, 255, 0.12);
+  --nav-bg: #ffffff;
+  --nav-border: #e5e7eb;
+  --nav-text: #1f2937;
+  --nav-muted: #6b7280;
+  --nav-accent: #cfb311;
+  --nav-hover: #f3f4f6;
 }
 
 /* Container principal */
 .navbar {
+  position: relative;
+  top: 0;
+  z-index: 1000;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  background: linear-gradient(
-    180deg,
-    var(--navbar-bg),
-    var(--navbar-bg-dark)
-  );
-
+  height: 80px;
   padding: 0 24px;
-  height: 64px;
 
-  color: var(--navbar-text);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  background-color: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+
+  backdrop-filter: saturate(180%) blur(6px);
 }
 
 /* ================================
@@ -41,10 +40,10 @@
 }
 
 .navbar-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--nav-text);
+  letter-spacing: 0.4px;
 }
 
 /* ================================
@@ -58,71 +57,68 @@
 }
 
 .nav-btn {
-  background: transparent;
+  position: relative;
+
+  background: none;
   border: none;
-  color: var(--navbar-text);
 
   padding: 8px 14px;
   border-radius: 6px;
 
   font-size: 14px;
   font-weight: 500;
+  color: var(--nav-muted);
 
   cursor: pointer;
   transition:
-    background 0.2s ease,
     color 0.2s ease,
-    transform 0.1s ease;
+    background-color 0.2s ease;
 }
 
 .nav-btn:hover {
-  background: var(--navbar-hover-bg);
+  background-color: var(--nav-hover);
+  color: var(--nav-text);
 }
 
-/* Link ativo */
+/* Indicador ativo (underline moderno) */
 .nav-btn.active {
-  background: var(--navbar-active-bg);
-  color: var(--navbar-active-text);
-  font-weight: 600;
+  color: var(--nav-accent);
 }
 
-/* Feedback de clique */
-.nav-btn:active {
-  transform: scale(0.96);
+.nav-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  bottom: -8px;
+
+  width: 80%;
+  height: 2px;
+  background-color: var(--nav-accent);
+  border-radius: 2px;
 }
 
 /* ================================
-   LADO DIREITO
+   LOGOUT
 ================================ */
 
-.navbar-right {
-  display: flex;
-  align-items: center;
-}
-
-/* Botão sair */
 .logout-btn {
-  background: transparent;
-  color: var(--navbar-text);
-
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 6px 14px;
-  border-radius: 6px;
-
-  font-size: 13px;
+  margin-left: 12px;
+  padding: 0px 8px;
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 2px;
+  font-size: 10px;
   font-weight: 500;
-
+  color: var(--nav-text);
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    color 0.2s ease,
+    background-color 0.2s ease,
     border-color 0.2s ease;
 }
 
 .logout-btn:hover {
-  background: var(--navbar-text);
-  color: var(--navbar-bg);
-  border-color: var(--navbar-text);
+  background-color: var(--nav-hover);
+  border-color: var(--nav-accent);
 }
 
 /* ================================
@@ -131,10 +127,10 @@
 
 @media (max-width: 768px) {
   .navbar {
-    flex-wrap: wrap;
+    padding: 0 16px;
     height: auto;
-    padding: 12px 16px;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 5px;
   }
 
   .navbar-links {
@@ -148,8 +144,15 @@
     text-align: center;
   }
 
-  .navbar-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
+
 }
+
+
+
+
+
+
+
+
+
+

@@ -8,6 +8,20 @@
   --color-success: #16a34a;
   --color-danger: #dc2626;
 
+  /* Cores Botões */
+  --btn-login--bg: #C7A323;
+  --btn-login-text: #6d3722;
+
+  --btn-login-bg-hover: #6d3722;
+  --btn-login-text-hover: #ffffff;
+
+  --btn-bg: #f5f1e4;
+  --btn-text: #a58614;
+
+  --btn-bg-hover: #a58614;
+  --btn-text-hover: #f5f1e4;
+
+
   /* Tipografia */
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;

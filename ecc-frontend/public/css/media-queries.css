@@ -8,11 +8,6 @@
    ========================================================= */
 @media (min-width: 576px) {
   /* ajustes leves de espaçamento e tipografia */
-  .navbar {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
-  }
 }
 
 /* =========================================================

@@ -6,7 +6,6 @@
   <title>Gerenciar Equipes • ECC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
   <link rel="stylesheet" href="../css/estilos.css">
   <link rel="stylesheet" href="../css/media-queries.css">
   <link rel="stylesheet" href="../css/formularios.css">
@@ -38,6 +37,32 @@
     h2 {
       color: #5A0000;
     }
+
+    .btn-entrar {
+      width: 100%;
+      background-color: var(--btn-login--bg);
+      color: var(--btn-login-text);
+      font-size: 16px;
+      border-radius: 6px;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-entrar:hover {
+      width: 100%;
+      background-color: var(--btn-login-bg-hover);
+      color: var(--btn-login-text-hover);
+      font-size: 16px;
+      border-radius: 6px;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 
 </head>
@@ -49,9 +74,9 @@
         <img src="../assets/Logo-v2-2025-logo.png">
       </div>
       <form onsubmit="login(event)">
-        <input type="email" id="email" placeholder="E-mail" required>
-        <input type="password" id="password" placeholder="Senha" required>
-        <button type="submit">Entrar</button>
+        <input type="email" id="email" placeholder="E-mail" autocomplete="off" required>
+        <input type="password" id="password" placeholder="Senha" autocomplete="off" required>
+        <button type="submit" class="btn-entrar">Entrar</button>
       </form>
     </div>
     <div id="toast" class="toast"></div>

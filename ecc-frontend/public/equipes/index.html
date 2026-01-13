@@ -3,10 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard • ECC</title>
+  <title>Gerenciar Equipes • ECC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/media-queries.css">
   <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
@@ -14,23 +15,22 @@
 
 <body>
 
-  <button class="logout-btn" onclick="logout()">Sair</button>
-  <br><br>
+  <!-- Auth -->
+  <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
+  <script src="../js/auth-check.js"></script>
+  <script>
+    requireAuth();
+  </script>
 
   <!-- Navegação -->
-  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
-  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
-  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('cadastro')">Cadastro</button>
-  <button class="nav-btn" onclick="goTo('encontreiro')">Encontreiro</button>
-  <!-- <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
-  <button class="nav-btn" onclick="goTo('pessoa_equipe')">Pessoas x Equipe</button>
-  <button class="nav-btn" onclick="goTo('inscricoes')">Inscrições</button> -->
+  <div id="navbar"></div>
 
-  <h1>Gerenciar Equipes</h1> <span><a href="../dashboard"> ← Voltar</a></span>
   <br>
-  <button class="nav-btn" id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
-  <button class="nav-btn" onclick="mostrarCardVinculo();"> Vincular Equipe a Evento </button>
+  <button id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
+  <button onclick="mostrarCardVinculo();"> Vincular Equipe a Evento </button>
+<br>
+<br>
 
   <div class="card-modal-overlay" id="card" style="display:none;">
     <div class="card-modal">
@@ -118,11 +118,16 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <script src="../js/loader.js"></script>
-  <script src="../js/auth-check.js"></script>
+  <!-- ================= SCRIPTS ================= -->
   <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
+
+  <script type="module">
+    import { renderNavbar } from "../components/navbar.js";
+    renderNavbar({ active: "equipes" });
+  </script>
+
   <script>
-    requireAuth();
     const token = localStorage.getItem("token");
     const API_URL = `${APP_CONFIG.API_BASE_URL}/equipes`;
 

@@ -3,10 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard • ECC</title>
+  <title>Gerenciar Equipes • ECC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="../css/estilos.css">
+  <link rel="stylesheet" href="../css/navbar.css">
   <link rel="stylesheet" href="../css/media-queries.css">
   <link rel="stylesheet" href="../css/formularios.css">
   <link rel="stylesheet" href="../css/loader.css">
@@ -14,21 +15,16 @@
 
 <body>
 
-  <!-- 🔐 Auth -->
+  <!-- Auth -->
+  <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
   <script src="../js/auth-check.js"></script>
   <script>
     requireAuth();
   </script>
 
-  <button class="logout-btn" onclick="logout()">Sair</button>
-  <br><br>
-
   <!-- Navegação -->
-  <button class="nav-btn" onclick="goTo('dashboard')">Dashboard</button>
-  <button class="nav-btn" onclick="goTo('eventos')">Eventos</button>
-  <button class="nav-btn" onclick="goTo('equipes')">Equipes</button>
-  <button class="nav-btn" onclick="goTo('cadastro')">Cadastro</button>
-  <button class="nav-btn" onclick="goTo('pessoas')">Pessoas</button>
+  <div id="navbar"></div>
 
   <h1>Gerenciar Eventos</h1>
 
@@ -116,6 +112,10 @@
     } from "../modules/eventos.js";
 
     import { abrirEvento } from "../modules/dashboard.js";
+    import { renderNavbar } from "../components/navbar.js";
+
+    renderNavbar({ active: "eventos" });
+
 
     let eventoEditandoId = null;
     window.abrirEvento = abrirEvento;

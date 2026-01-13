@@ -14,74 +14,45 @@
   /* Centraliza o formulário */
 }
 
-
-
-
 /* =============================
    BOTÕES
    ============================= */
 
 /* Estilo para os botões */
 button {
-  background-color: #C7A323;
-  color: white;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
   font-size: 16px;
   border-radius: 6px;
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin-top: 10px;
+  padding: 8px 8px;
+  font-size: small;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: rgba(161, 126, 29, 0.9);
-  ;
-}
-
-/* Botões de Logout e Navegação */
-.logout-btn {
-  background: #e63946;
-  color: white;
-  float: right;
+  background-color: var(--btn-bg-hover);
+  color: var(--btn-text-hover);
 }
 
 /* =============================
    INPUTS E TEXTAREAS
    ============================= */
 
-input,
-textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  box-sizing: border-box;
-}
-
-input {
-  width: 90%;
-  padding: 10px;
-  margin-top: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-}
-
-
-
 /* Estilos para inputs e textareas */
 input,
 textarea {
+  box-sizing: border-box;
+  margin-top: 8px;
   width: 100%;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
-  background-color: #f0ebd9;
+  background-color: #f5f2e6;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #5A0000;
-  box-sizing: border-box;
 }
 
 /* Foco nos campos de input */
@@ -91,10 +62,6 @@ textarea:focus {
   border-bottom: 2px solid rgba(238, 222, 7, 0.9);
   box-shadow: 0 0 4px rgba(238, 222, 7, 0.25);
 }
-
-
-
-
 
 /* Títulos do Formulário */
 .card-modal h2 {
@@ -117,10 +84,6 @@ input[type="number"] {
   width: 100%;
   /* Garante que os campos de data e número ocupem toda a largura */
 }
-
-
-
-
 
 /* =============================
    GRID DE CHECKBOXES (EM EXIBIÇÕES)
