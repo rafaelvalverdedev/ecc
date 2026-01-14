@@ -15,6 +15,7 @@ nav ul {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  padding: 0 20px;
 }
 
 nav li:first-child {
@@ -31,21 +32,21 @@ nav li:first-child {
   display: none;
   top: 0;
   right: 0;
-  width: 280px;
+  width: 230px;
   height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  box-shadow: #cbccc2 0px 4px 6px -1px;
-  background: rgba(255, 255, 255, 0.9);
   z-index: 999;
+  padding-top: 30px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: #cbccc2 -3px 0px 6px 0px;
 }
 
 .nav-btn {
   position: relative;
   color: #444;
   background: none;
-  border: none;
   padding: 10px 14px;
   font-size: 15px;
   font-weight: 600;
@@ -64,15 +65,61 @@ nav li:first-child {
   }
 
   .nav-btn {
-    width: 280px;
-    background-color: var(--color-bg);
+    position: relative;
+    width: 240px;
+    color: #444;
+    background: #f6f6f6;
+    padding: 10px 24px;
+    margin-top: 5px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .nav-btn:hover {
+    position: relative;
+    width: 230px;
+    border-radius: 0px;
+    color: #302929;
+    background: #e7e2e2;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .nav-btn::before {
+    content: "";
+    position: absolute;
+    left: 0px;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--color-primary);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-color: #cc1f1f;
+    transition: background 0.3s ease;
+  }
+
+  .nav-btn:hover::before {
+    content: "";
+    position: absolute;
+    left: 0px;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    border-radius: 0px;
+    background: var(--color-primary);
+    transition: background 0.3s ease;
   }
 
   .nav-btn.active {
+    color: var(--color-bg);
     background: var(--btn-login--bg);
-    color: #fff;
-    padding: 14px;
+    font-weight: 600;
   }
+
 
   .sidebar .fechar {
     flex-direction: row;
@@ -80,25 +127,10 @@ nav li:first-child {
     position: relative;
     text-align: right;
   }
-
 }
 
 @media (min-width: 800px) {
   .hideDesktop {
     display: none;
   }
-}
-
-.content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 90vh;
-  color: #fff;
-  flex-direction: column;
-  text-align: center;
-}
-
-.content p {
-  max-width: 400px;
 }

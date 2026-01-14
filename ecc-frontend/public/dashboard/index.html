@@ -15,14 +15,6 @@
 
 <body>
 
-  <!-- Auth -->
-  <script src="../js/config.js"></script>
-  <script src="../js/loader.js"></script>
-  <script src="../js/auth-check.js"></script>
-  <script>
-    requireAuth();
-  </script>
-
   <!-- Navegação -->
   <div id="navbar"></div>
 
@@ -91,11 +83,16 @@
   </div>
 
   <!-- ================= SCRIPTS ================= -->
+  <script src="../js/config.js"></script>
+  <script src="../js/loader.js"></script>
+  <script src="../js/auth-check.js"></script>
+
   <script type="module">
     import { abrirEvento, carregarDashboard } from "../modules/dashboard.js";
     import { renderNavbar } from "../components/navbar.js";
 
     renderNavbar({ active: "dashboard" });
+    requireAuth();
 
     async function initDashboard() {
       try {

@@ -15,16 +15,10 @@
 
 <body>
 
-  <!-- Auth -->
-  <script src="../js/config.js"></script>
-  <script src="../js/loader.js"></script>
-  <script src="../js/auth-check.js"></script>
-  <script>
-    requireAuth();
-  </script>
-
   <!-- Navegação -->
   <div id="navbar"></div>
+
+  <h1>Gerenciar Cadastro</h1>
 
   <br>
   <button id="btnCadastrar" onclick="mostrarCadastro()">Cadastrar Pessoas</button>
@@ -237,10 +231,13 @@
   <!-- ================= SCRIPTS ================= -->
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
+  <script src="../js/auth-check.js"></script>
 
   <script type="module">
     import { renderNavbar } from "../components/navbar.js";
     renderNavbar({ active: "cadastro" });
+
+    requireAuth();
   </script>
 
   <script>
@@ -251,273 +248,273 @@
     let currentStep = 1;
 
     function showStep(n) {
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step' + n).classList.add('active');
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + n).classList.add('active');
     }
 
     function validarStep(stepId) {
-    const step = document.getElementById(stepId);
-    const fields = step.querySelectorAll('input, select');
-    for (const f of fields) {
-    if (!f.checkValidity()) {
-    f.reportValidity();
-    return false;
-    }
-    }
-    return true;
+      const step = document.getElementById(stepId);
+      const fields = step.querySelectorAll('input, select');
+      for (const f of fields) {
+        if (!f.checkValidity()) {
+          f.reportValidity();
+          return false;
+        }
+      }
+      return true;
     }
 
     function nextStep() {
-    if (validarStep('step' + currentStep)) {
-    currentStep++;
-    showStep(currentStep);
-    }
+      if (validarStep('step' + currentStep)) {
+        currentStep++;
+        showStep(currentStep);
+      }
     }
 
     function prevStep() {
-    currentStep--;
-    showStep(currentStep);
+      currentStep--;
+      showStep(currentStep);
     }
 
     function toggleFilhos() {
-    const possui = document.getElementById('possui_filhos').value === 'true';
-    const bloco = document.getElementById('dados_filhos');
-    bloco.style.display = possui ? 'block' : 'none';
-    bloco.querySelectorAll('input').forEach(i => i.required = possui);
+      const possui = document.getElementById('possui_filhos').value === 'true';
+      const bloco = document.getElementById('dados_filhos');
+      bloco.style.display = possui ? 'block' : 'none';
+      bloco.querySelectorAll('input').forEach(i => i.required = possui);
     }
 
     function montarDTOInscricao() {
 
-    const fotoInput = document.getElementById("foto_casal");
-    const foto = fotoInput.files[0];
+      const fotoInput = document.getElementById("foto_casal");
+      const foto = fotoInput.files[0];
 
-    if (!foto) {
-    alert("Selecione a foto do casal");
-    return;
-    }
+      if (!foto) {
+        alert("Selecione a foto do casal");
+        return;
+      }
 
-    if (!foto.type.startsWith("image/")) {
-    alert("Arquivo inválido");
-    return;
-    }
+      if (!foto.type.startsWith("image/")) {
+        alert("Arquivo inválido");
+        return;
+      }
 
-    const possuiFilhos = document.getElementById("possui_filhos").value === "true";
+      const possuiFilhos = document.getElementById("possui_filhos").value === "true";
 
-    const casal = {
-    endereco: document.getElementById("endereco").value.trim(),
-    cidade: document.getElementById("cidade").value.trim(),
-    uf: document.getElementById("uf").value.trim().toUpperCase(),
-    dataCasamento: document.getElementById("data_casamento").value,
-    possuiConducao: document.getElementById("possui_conducao").value === "true",
-    possuiFilhos
-    };
+      const casal = {
+        endereco: document.getElementById("endereco").value.trim(),
+        cidade: document.getElementById("cidade").value.trim(),
+        uf: document.getElementById("uf").value.trim().toUpperCase(),
+        dataCasamento: document.getElementById("data_casamento").value,
+        possuiConducao: document.getElementById("possui_conducao").value === "true",
+        possuiFilhos
+      };
 
-    if (possuiFilhos) {
-    casal.quantidade_filhos = parseInt(document.getElementById("quantidade_filhos").value.trim());
-    casal.nome_responsavel_filhos = document.getElementById("nome_responsavel_filhos").value.trim();
-    casal.grau_parentesco_responsavel_filhos =
-    document.getElementById("grau_parentesco_responsavel_filhos").value.trim();
-    casal.endereco_responsavel = document.getElementById("endereco_responsavel").value.trim();
-    casal.telefone_responsavel = document.getElementById("telefone_responsavel").value.trim();
-    }
+      if (possuiFilhos) {
+        casal.quantidade_filhos = parseInt(document.getElementById("quantidade_filhos").value.trim());
+        casal.nome_responsavel_filhos = document.getElementById("nome_responsavel_filhos").value.trim();
+        casal.grau_parentesco_responsavel_filhos =
+          document.getElementById("grau_parentesco_responsavel_filhos").value.trim();
+        casal.endereco_responsavel = document.getElementById("endereco_responsavel").value.trim();
+        casal.telefone_responsavel = document.getElementById("telefone_responsavel").value.trim();
+      }
 
-    return {
-    esposo: {
-    nomeCompleto: document.getElementById("nome_completo_esposo").value.trim(),
-    dataNascimento: document.getElementById("data_nascimento_esposo").value,
-    profissao: document.getElementById("profissao_esposo").value.trim(),
-    como_chamar_esposo: document.getElementById("como_chamar_esposo").value.trim(),
-    igreja: document.getElementById("igreja_esposo").value.trim(),
-    local_trabalho: document.getElementById("local_trabalho_esposo").value.trim(),
-    email_esposo: document.getElementById("email_esposo").value.trim(),
-    celular: document.getElementById("celular_esposo").value.trim(),
-    redesocial: document.getElementById("redesocial_esposo").value.trim(),
-    restricoes_alimentares: document.getElementById("restricoes_alimentares_esposo").value.trim(),
-    medicamentos_alergias: document.getElementById("medicamentos_alergias_esposo").value.trim(),
-    religiao: document.getElementById("religiao_esposo").value,
-    escolaridade: document.getElementById("escolaridade_esposo").value
-    },
+      return {
+        esposo: {
+          nomeCompleto: document.getElementById("nome_completo_esposo").value.trim(),
+          dataNascimento: document.getElementById("data_nascimento_esposo").value,
+          profissao: document.getElementById("profissao_esposo").value.trim(),
+          como_chamar_esposo: document.getElementById("como_chamar_esposo").value.trim(),
+          igreja: document.getElementById("igreja_esposo").value.trim(),
+          local_trabalho: document.getElementById("local_trabalho_esposo").value.trim(),
+          email_esposo: document.getElementById("email_esposo").value.trim(),
+          celular: document.getElementById("celular_esposo").value.trim(),
+          redesocial: document.getElementById("redesocial_esposo").value.trim(),
+          restricoes_alimentares: document.getElementById("restricoes_alimentares_esposo").value.trim(),
+          medicamentos_alergias: document.getElementById("medicamentos_alergias_esposo").value.trim(),
+          religiao: document.getElementById("religiao_esposo").value,
+          escolaridade: document.getElementById("escolaridade_esposo").value
+        },
 
-    esposa: {
-    nomeCompleto: document.getElementById("nome_completo_esposa").value.trim(),
-    dataNascimento: document.getElementById("data_nascimento_esposa").value,
-    profissao: document.getElementById("profissao_esposa").value.trim(),
-    como_chamar_esposa: document.getElementById("como_chamar_esposa").value.trim(),
-    igreja: document.getElementById("igreja_esposa").value.trim(),
-    local_trabalho: document.getElementById("local_trabalho_esposa").value.trim(),
-    email_esposa: document.getElementById("email_esposa").value.trim(),
-    celular: document.getElementById("celular_esposa").value.trim(),
-    redesocial: document.getElementById("redesocial_esposa").value.trim(),
-    restricoes_alimentares: document.getElementById("restricoes_alimentares_esposa").value.trim(),
-    medicamentos_alergias: document.getElementById("medicamentos_alergias_esposa").value.trim(),
-    religiao: document.getElementById("religiao_esposa").value,
-    escolaridade: document.getElementById("escolaridade_esposa").value
-    },
+        esposa: {
+          nomeCompleto: document.getElementById("nome_completo_esposa").value.trim(),
+          dataNascimento: document.getElementById("data_nascimento_esposa").value,
+          profissao: document.getElementById("profissao_esposa").value.trim(),
+          como_chamar_esposa: document.getElementById("como_chamar_esposa").value.trim(),
+          igreja: document.getElementById("igreja_esposa").value.trim(),
+          local_trabalho: document.getElementById("local_trabalho_esposa").value.trim(),
+          email_esposa: document.getElementById("email_esposa").value.trim(),
+          celular: document.getElementById("celular_esposa").value.trim(),
+          redesocial: document.getElementById("redesocial_esposa").value.trim(),
+          restricoes_alimentares: document.getElementById("restricoes_alimentares_esposa").value.trim(),
+          medicamentos_alergias: document.getElementById("medicamentos_alergias_esposa").value.trim(),
+          religiao: document.getElementById("religiao_esposa").value,
+          escolaridade: document.getElementById("escolaridade_esposa").value
+        },
 
-    casal
-    };
+        casal
+      };
     }
 
     document.getElementById("formInscricao").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      e.preventDefault();
 
-    if (!validarStep("step3")) return;
+      if (!validarStep("step3")) return;
 
-    const dto = montarDTOInscricao();
+      const dto = montarDTOInscricao();
 
-    const foto = document.getElementById("foto_casal").files[0];
-    if (!foto || !foto.type.startsWith("image/")) {
-    alert("Selecione uma foto válida do casal");
-    return;
-    }
+      const foto = document.getElementById("foto_casal").files[0];
+      if (!foto || !foto.type.startsWith("image/")) {
+        alert("Selecione uma foto válida do casal");
+        return;
+      }
 
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(dto));
-    formData.append("foto_casal", foto);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(dto));
+      formData.append("foto_casal", foto);
 
-    const res = await fetch(API_BASE + "/cadastro", {
-    method: "POST",
-    body: formData
-    });
+      const res = await fetch(API_BASE + "/cadastro", {
+        method: "POST",
+        body: formData
+      });
 
-    if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    alert(err.error || "Erro ao enviar inscrição");
-    return;
-    }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Erro ao enviar inscrição");
+        return;
+      }
 
-    alert("Inscrição enviada com sucesso!");
-    window.location.href = "cadastro_sucesso.html";
+      alert("Inscrição enviada com sucesso!");
+      window.location.href = "cadastro_sucesso.html";
     });
 
 
     function preencherMock() {
 
-    // ===== helpers internos =====
-    const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      // ===== helpers internos =====
+      const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-    const randomDate = (startYear, endYear) => {
-    const y = randInt(startYear, endYear);
-    const m = String(randInt(1, 12)).padStart(2, "0");
-    const d = String(randInt(1, 28)).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-    };
+      const randomDate = (startYear, endYear) => {
+        const y = randInt(startYear, endYear);
+        const m = String(randInt(1, 12)).padStart(2, "0");
+        const d = String(randInt(1, 28)).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      };
 
-    const randomPhone = () => "11" + randInt(900000000, 999999999);
+      const randomPhone = () => "11" + randInt(900000000, 999999999);
 
-    const randomEmail = (nome) =>
-    nome
-    .toLowerCase()
-    .replace(/\s/g, ".")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") +
-    randInt(1, 999) +
-    "@teste.com";
+      const randomEmail = (nome) =>
+        nome
+          .toLowerCase()
+          .replace(/\s/g, ".")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") +
+        randInt(1, 999) +
+        "@teste.com";
 
-    // ===== dados base =====
-    const NOMES_M = ["João", "Carlos", "Pedro", "Lucas", "Rafael", "Marcos"];
-    const NOMES_F = ["Maria", "Ana", "Juliana", "Paula", "Fernanda", "Camila"];
-    const SOBRENOMES = ["Silva", "Santos", "Oliveira", "Pereira", "Costa"];
-    const PROFISSOES = ["Engenheiro", "Professor", "Comerciante", "Autônomo"];
-    const IGREJAS = ["Paróquia Central", "São José", "Nossa Senhora"];
-    const ESCOLARIDADE = ["fundamental", "medio", "superior"];
+      // ===== dados base =====
+      const NOMES_M = ["João", "Carlos", "Pedro", "Lucas", "Rafael", "Marcos"];
+      const NOMES_F = ["Maria", "Ana", "Juliana", "Paula", "Fernanda", "Camila"];
+      const SOBRENOMES = ["Silva", "Santos", "Oliveira", "Pereira", "Costa"];
+      const PROFISSOES = ["Engenheiro", "Professor", "Comerciante", "Autônomo"];
+      const IGREJAS = ["Paróquia Central", "São José", "Nossa Senhora"];
+      const ESCOLARIDADE = ["fundamental", "medio", "superior"];
 
-    // ===== nomes =====
-    const nomeEsposo = `${rand(NOMES_M)} ${rand(SOBRENOMES)}`;
-    const nomeEsposa = `${rand(NOMES_F)} ${rand(SOBRENOMES)}`;
+      // ===== nomes =====
+      const nomeEsposo = `${rand(NOMES_M)} ${rand(SOBRENOMES)}`;
+      const nomeEsposa = `${rand(NOMES_F)} ${rand(SOBRENOMES)}`;
 
-    // ===== ESPOSO =====
-    document.getElementById("nome_completo_esposo").value = nomeEsposo;
-    document.getElementById("data_nascimento_esposo").value = randomDate(1965, 1995);
-    document.getElementById("profissao_esposo").value = rand(PROFISSOES);
-    document.getElementById("como_chamar_esposo").value = nomeEsposo.split(" ")[0];
-    document.getElementById("igreja_esposo").value = rand(IGREJAS);
-    document.getElementById("local_trabalho_esposo").value = "Empresa " + rand(["X", "Y", "Z"]);
-    document.getElementById("email_esposo").value = randomEmail(nomeEsposo);
-    document.getElementById("celular_esposo").value = randomPhone();
-    document.getElementById("redesocial_esposo").value = "@" + nomeEsposo.split(" ")[0].toLowerCase();
-    document.getElementById("restricoes_alimentares_esposo").value = "Nenhuma";
-    document.getElementById("medicamentos_alergias_esposo").value = "Nenhum";
-    document.getElementById("religiao_esposo").value = "catolico";
-    document.getElementById("escolaridade_esposo").value = rand(ESCOLARIDADE);
+      // ===== ESPOSO =====
+      document.getElementById("nome_completo_esposo").value = nomeEsposo;
+      document.getElementById("data_nascimento_esposo").value = randomDate(1965, 1995);
+      document.getElementById("profissao_esposo").value = rand(PROFISSOES);
+      document.getElementById("como_chamar_esposo").value = nomeEsposo.split(" ")[0];
+      document.getElementById("igreja_esposo").value = rand(IGREJAS);
+      document.getElementById("local_trabalho_esposo").value = "Empresa " + rand(["X", "Y", "Z"]);
+      document.getElementById("email_esposo").value = randomEmail(nomeEsposo);
+      document.getElementById("celular_esposo").value = randomPhone();
+      document.getElementById("redesocial_esposo").value = "@" + nomeEsposo.split(" ")[0].toLowerCase();
+      document.getElementById("restricoes_alimentares_esposo").value = "Nenhuma";
+      document.getElementById("medicamentos_alergias_esposo").value = "Nenhum";
+      document.getElementById("religiao_esposo").value = "catolico";
+      document.getElementById("escolaridade_esposo").value = rand(ESCOLARIDADE);
 
-    // ===== ESPOSA =====
-    document.getElementById("nome_completo_esposa").value = nomeEsposa;
-    document.getElementById("data_nascimento_esposa").value = randomDate(1968, 1998);
-    document.getElementById("profissao_esposa").value = rand(PROFISSOES);
-    document.getElementById("como_chamar_esposa").value = nomeEsposa.split(" ")[0];
-    document.getElementById("igreja_esposa").value = rand(IGREJAS);
-    document.getElementById("local_trabalho_esposa").value = "Empresa " + rand(["A", "B", "C"]);
-    document.getElementById("email_esposa").value = randomEmail(nomeEsposa);
-    document.getElementById("celular_esposa").value = randomPhone();
-    document.getElementById("redesocial_esposa").value = "@" + nomeEsposa.split(" ")[0].toLowerCase();
-    document.getElementById("restricoes_alimentares_esposa").value = "Nenhuma";
-    document.getElementById("medicamentos_alergias_esposa").value = "Nenhum";
-    document.getElementById("religiao_esposa").value = "catolico";
-    document.getElementById("escolaridade_esposa").value = rand(ESCOLARIDADE);
+      // ===== ESPOSA =====
+      document.getElementById("nome_completo_esposa").value = nomeEsposa;
+      document.getElementById("data_nascimento_esposa").value = randomDate(1968, 1998);
+      document.getElementById("profissao_esposa").value = rand(PROFISSOES);
+      document.getElementById("como_chamar_esposa").value = nomeEsposa.split(" ")[0];
+      document.getElementById("igreja_esposa").value = rand(IGREJAS);
+      document.getElementById("local_trabalho_esposa").value = "Empresa " + rand(["A", "B", "C"]);
+      document.getElementById("email_esposa").value = randomEmail(nomeEsposa);
+      document.getElementById("celular_esposa").value = randomPhone();
+      document.getElementById("redesocial_esposa").value = "@" + nomeEsposa.split(" ")[0].toLowerCase();
+      document.getElementById("restricoes_alimentares_esposa").value = "Nenhuma";
+      document.getElementById("medicamentos_alergias_esposa").value = "Nenhum";
+      document.getElementById("religiao_esposa").value = "catolico";
+      document.getElementById("escolaridade_esposa").value = rand(ESCOLARIDADE);
 
-    // ===== CASAL =====
-    document.getElementById("endereco").value = `Rua ${rand(SOBRENOMES)}, ${randInt(10, 999)}`;
-    document.getElementById("cidade").value = "São Paulo";
-    document.getElementById("uf").value = "SP";
-    document.getElementById("data_casamento").value = randomDate(1995, 2020);
+      // ===== CASAL =====
+      document.getElementById("endereco").value = `Rua ${rand(SOBRENOMES)}, ${randInt(10, 999)}`;
+      document.getElementById("cidade").value = "São Paulo";
+      document.getElementById("uf").value = "SP";
+      document.getElementById("data_casamento").value = randomDate(1995, 2020);
 
-    document.getElementById("possui_conducao").value = rand(["true", "false"]);
-    document.getElementById("possui_filhos").value = rand(["true", "false"]);
+      document.getElementById("possui_conducao").value = rand(["true", "false"]);
+      document.getElementById("possui_filhos").value = rand(["true", "false"]);
 
-    // se tiver filhos
-    if (document.getElementById("possui_filhos").value === "true") {
-    document.getElementById("quantidade_filhos").value = randInt(1, 4);
-    document.getElementById("nome_responsavel_filhos").value = "Avó";
-    document.getElementById("grau_parentesco_responsavel_filhos").value = "Avó";
-    document.getElementById("endereco_responsavel").value = `Rua ${rand(SOBRENOMES)}, ${randInt(10, 999)}`;
-    document.getElementById("telefone_responsavel").value = randomPhone();
-    }
+      // se tiver filhos
+      if (document.getElementById("possui_filhos").value === "true") {
+        document.getElementById("quantidade_filhos").value = randInt(1, 4);
+        document.getElementById("nome_responsavel_filhos").value = "Avó";
+        document.getElementById("grau_parentesco_responsavel_filhos").value = "Avó";
+        document.getElementById("endereco_responsavel").value = `Rua ${rand(SOBRENOMES)}, ${randInt(10, 999)}`;
+        document.getElementById("telefone_responsavel").value = randomPhone();
+      }
     }
 
     // Função para exibir o card de criação/edição
     function ocultarCadastro() {
-    document.getElementById("card-cadastro").style.display = "none";
-    document.getElementById("btnCadastrar").style.display = "block";
-    const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
+      document.getElementById("card-cadastro").style.display = "none";
+      document.getElementById("btnCadastrar").style.display = "block";
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
     }
 
     function mostrarCadastro() {
-    document.getElementById("card-cadastro").style.display = "block";
-    const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
-    document.getElementById("btnCadastrar").style.display = "none";
+      document.getElementById("card-cadastro").style.display = "block";
+      const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
+      document.getElementById("btnCadastrar").style.display = "none";
     }
 
     async function carregarCadastro() {
-    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/cadastro`, {
-    headers: { Authorization: "Bearer " + token }
-    });
-    const cadastro_res = await res.json();
-    const cadastro = cadastro_res.data;
+      const res = await fetch(`${APP_CONFIG.API_BASE_URL}/cadastro`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const cadastro_res = await res.json();
+      const cadastro = cadastro_res.data;
 
-    const tbody = document.getElementById("cadastro-list");
-    tbody.innerHTML = "";
+      const tbody = document.getElementById("cadastro-list");
+      tbody.innerHTML = "";
 
-    cadastro.forEach(c => {
-    tbody.innerHTML += `
+      cadastro.forEach(c => {
+        tbody.innerHTML += `
     <tr>
       <td>${c.nome_completo_esposo ?? "-"} <BR> ${c.nome_completo_esposa ?? "-"}</td>
       <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
       <td>${c.celular_esposo ?? "-"} <br> ${c.celular_esposa ?? "-"}</td>
     </tr>
     `;
-    });
+      });
     }
     // ====================================
     // ▶ INICIALIZAR
     // ====================================
     withLoader(async () => {
-    await carregarCadastro();
-    ativarToggle();
+      await carregarCadastro();
+      ativarToggle();
     });
 
-    </script>
+  </script>
 </body>
 
 </html>
