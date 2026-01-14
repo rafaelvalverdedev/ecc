@@ -71,6 +71,18 @@ body {
   color: var(--color-text);
 }
 
+.card {
+  background: white;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+  overflow: auto;
+  height: auto;
+  min-height: 0;
+}
+
 /* =============================
    MODAIS
    ============================= */
@@ -126,14 +138,6 @@ body {
   display: none;
 }
 
-.card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-}
-
 /* =============================
    ESTILOS PARA CHECKBOXES
    ============================= */
@@ -187,21 +191,17 @@ body {
 .checkbox-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  /* duas colunas */
   gap: 8px 16px;
-  /* espaçamento entre itens */
   max-height: 300px;
-  /* altura máxima */
   overflow-y: auto;
-  /* scroll vertical */
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
 
 /* =============================
-   SELECT (DROP-DOWN)
-   ============================= */
+    SELECT (DROP-DOWN)
+============================= */
 
 select {
   width: 100%;
@@ -237,9 +237,10 @@ select {
    ============================= */
 
 table {
-  width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
+
+  table-layout: fixed;
 }
 
 th,
@@ -247,9 +248,15 @@ td {
   border: 1px solid #ccc;
   padding: 8px;
   text-align: left;
+  line-height: 1.4;
+  vertical-align: middle;
+  min-width: 72px;
+  white-space: normal;
+
 }
 
 th {
+  width: 100%;
   background-color: #f0f0f0;
 }
 
