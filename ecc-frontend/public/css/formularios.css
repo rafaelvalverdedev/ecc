@@ -77,7 +77,7 @@ label {
   font-weight: bold;
   display: block;
   /* Garante que o label seja em linha com o campo */
-  color: #da0000;
+  color: #66655f;
 }
 
 input[type="date"],
