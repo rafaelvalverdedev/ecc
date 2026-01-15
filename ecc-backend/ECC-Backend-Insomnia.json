@@ -1,239 +1,171 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2025-02-15T00:00:00.000Z",
-  "__export_source": "chatgpt-insomnia-generator",
+  "__export_date": "2026-01-15T00:00:00.000Z",
+  "__export_source": "chatgpt",
   "resources": [
     {
-      "_id": "env_main",
+      "_id": "wrk_ecc_backend",
+      "_type": "workspace",
+      "name": "ECC Backend API",
+      "description": "Workspace para testes do backend ECC"
+    },
+
+    {
+      "_id": "env_base",
       "_type": "environment",
+      "parentId": "wrk_ecc_backend",
       "name": "Base Environment",
       "data": {
         "base_url": "http://localhost:3001",
         "token": ""
       }
     },
+
+    
+
     {
-      "_id": "req_2",
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_ecc_backend",
+      "name": "Auth"
+    },
+
+    {
+      "_id": "req_auth_register",
       "_type": "request",
-      "name": "Login",
+      "parentId": "fld_auth",
+      "name": "POST /auth/register",
       "method": "POST",
-      "url": "{{ _.base_url }}/auth/login",
+      "url": "{{ base_url }}/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\"email\": \"admin@ecc.com\", \"password\": \"123456\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+        "text": "{\n  \"nome\": \"João da Silva\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"11999999999\",\n  \"password\": \"123456\"\n}"
+      }
     },
+
     {
-      "_id": "req_3",
+      "_id": "req_auth_login",
       "_type": "request",
-      "name": "Listar Pessoas",
+      "parentId": "fld_auth",
+      "name": "POST /auth/login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"joao@email.com\",\n  \"password\": \"123456\"\n}"
+      }
+    },
+
+ 
+
+    {
+      "_id": "fld_admin",
+      "_type": "request_group",
+      "parentId": "wrk_ecc_backend",
+      "name": "Admin"
+    },
+
+    {
+      "_id": "req_admin_create_user",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "POST /admin/create-user",
+      "method": "POST",
+      "url": "{{ base_url }}/admin/create-user",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Maria Admin\",\n  \"email\": \"maria@email.com\",\n  \"telefone\": \"11988888888\",\n  \"password\": \"123456\",\n  \"role\": \"user\"\n}"
+      }
+    },
+
+
+
+    {
+      "_id": "fld_eventos",
+      "_type": "request_group",
+      "parentId": "wrk_ecc_backend",
+      "name": "Eventos"
+    },
+
+    {
+      "_id": "req_eventos_listar",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "name": "GET /eventos",
       "method": "GET",
-      "url": "{{ _.base_url }}/pessoas",
-      "body": {},
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+      "url": "{{ base_url }}/eventos"
     },
+
     {
-      "_id": "req_4",
+      "_id": "req_eventos_buscar",
       "_type": "request",
-      "name": "Criar Pessoa",
-      "method": "POST",
-      "url": "{{ _.base_url }}/pessoas",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\"nome\": \"Maria\", \"email\": \"maria@teste.com\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
-    },
-    {
-      "_id": "req_5",
-      "_type": "request",
-      "name": "Listar Eventos",
+      "parentId": "fld_eventos",
+      "name": "GET /eventos/:id",
       "method": "GET",
-      "url": "{{ _.base_url }}/eventos",
-      "body": {},
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+      "url": "{{ base_url }}/eventos/1"
     },
+
     {
-      "_id": "req_6",
+      "_id": "req_eventos_criar",
       "_type": "request",
-      "name": "Criar Evento",
+      "parentId": "fld_eventos",
+      "name": "POST /eventos",
       "method": "POST",
-      "url": "{{ _.base_url }}/eventos",
+      "url": "{{ base_url }}/eventos",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\"nome\": \"ECC\", \"local\": \"Par\\u00f3quia\", \"start_date\": \"2025-10-01\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+        "text": "{\n  \"nome\": \"ECC 2026\",\n  \"descricao\": \"Encontro de Casais\",\n  \"local\": \"Paróquia Central\",\n  \"start_date\": \"2026-06-01\",\n  \"end_date\": \"2026-06-03\",\n  \"capacity\": 100\n}"
+      }
     },
+
+
+
     {
-      "_id": "req_7",
+      "_id": "fld_equipes",
+      "_type": "request_group",
+      "parentId": "wrk_ecc_backend",
+      "name": "Equipes"
+    },
+
+    {
+      "_id": "req_equipes_listar",
       "_type": "request",
-      "name": "Listar Equipes",
+      "parentId": "fld_equipes",
+      "name": "GET /equipes",
       "method": "GET",
-      "url": "{{ _.base_url }}/equipes",
-      "body": {},
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+      "url": "{{ base_url }}/equipes"
     },
+
     {
-      "_id": "req_8",
+      "_id": "req_equipes_criar",
       "_type": "request",
-      "name": "Criar Equipe",
+      "parentId": "fld_equipes",
+      "name": "POST /equipes",
       "method": "POST",
-      "url": "{{ _.base_url }}/equipes",
+      "url": "{{ base_url }}/equipes",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ token }}" }
+      ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\"nome\": \"Cozinha\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
-    },
-    {
-      "_id": "req_9",
-      "_type": "request",
-      "name": "Vincular Equipe a Evento",
-      "method": "POST",
-      "url": "{{ _.base_url }}/equipes-evento",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\"equipe_id\": \"uuid\", \"evento_id\": \"uuid\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
-    },
-    {
-      "_id": "req_10",
-      "_type": "request",
-      "name": "Vincular Pessoa \u00e0 Equipe",
-      "method": "POST",
-      "url": "{{ _.base_url }}/teamrole",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\"pessoa_id\": \"uuid\", \"equipe_id\": \"uuid\", \"evento_id\": \"uuid\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
-    },
-    {
-      "_id": "req_11",
-      "_type": "request",
-      "name": "Criar Inscri\u00e7\u00e3o",
-      "method": "POST",
-      "url": "{{ _.base_url }}/inscricoes",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\"pessoa_id\": \"uuid\", \"evento_id\": \"uuid\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
-    },
-    {
-      "_id": "req_12",
-      "_type": "request",
-      "name": "Gerar Pagamento",
-      "method": "POST",
-      "url": "{{ _.base_url }}/pagamento/gerar-pagamento",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\"inscricao_id\": \"uuid\", \"valor\": 200, \"metodo\": \"pix\"}"
-      },
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ _.token }}"
-        }
-      ]
+        "text": "{\n  \"nome\": \"Equipe de Liturgia\",\n  \"descricao\": \"Equipe responsável pela liturgia\"\n}"
+      }
     }
   ]
 }
