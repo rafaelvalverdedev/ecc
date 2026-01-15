@@ -14,7 +14,7 @@ export function renderNavbar({ active }) {
     <nav>
       <ul>
         <li class="logotipo">
-             <img src="../assets/Logo-v2-2025-logo.png" width="120" alt="Logotipo ECC">
+             <img src="/assets/Logo-v2-2025-logo.png" width="120" alt="Logotipo ECC">
         </li>
 
         <li class="hideMobile">
@@ -34,7 +34,7 @@ export function renderNavbar({ active }) {
 
         <li class="hideDesktop" onclick="showSidebar()">
           <a href="#">
-            <img src="../assets/menu-com.svg" width="20" alt="Abrir Menu" style="margin-right: 20px;">
+            <img src="/assets/menu-com.svg" width="20" alt="Abrir Menu" style="margin-right: 20px;">
           </a>
         </li>
       </ul>
@@ -42,7 +42,7 @@ export function renderNavbar({ active }) {
       <ul class="sidebar">
         <li class="fechar" onclick="hideSidebar()">
           <a href="#">
-            <img src="../assets/close.svg" width="30" alt="Fechar Menu" style="margin-right: 20px;">
+            <img src="/assets/close.svg" width="30" alt="Fechar Menu" style="margin-right: 20px;">
           </a>
         </li>
 

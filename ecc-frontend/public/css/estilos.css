@@ -237,29 +237,26 @@ select {
    ============================= */
 
 table {
+  width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
-  margin-top: 10px;
-
-  table-layout: fixed;
-}
-
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
-  line-height: 1.4;
-  vertical-align: middle;
-  min-width: 72px;
-  white-space: normal;
-
+  
 }
 
 th {
-  width: 100%;
   background-color: #f0f0f0;
 }
+th,
+td {
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
 
+td {
+  white-space: nowrap;
+  font-weight: 400;
+}
 /* =============================
    TOAST (MENSAGENS DE ALERTA)
    ============================= */

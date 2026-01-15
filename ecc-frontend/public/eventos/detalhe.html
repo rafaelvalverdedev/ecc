@@ -6,11 +6,11 @@
     <title>Gerenciar Equipes • ECC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="../../css/estilos.css">
-    <link rel="stylesheet" href="../../css/navbar.css">
-    <link rel="stylesheet" href="../../css/media-queries.css">
-    <link rel="stylesheet" href="../../css/formularios.css">
-    <link rel="stylesheet" href="../../css/loader.css">
+    <link rel="stylesheet" href="../css/estilos.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/media-queries.css">
+    <link rel="stylesheet" href="../css/formularios.css">
+    <link rel="stylesheet" href="../css/loader.css">
 </head>
 
 <body>
@@ -65,12 +65,34 @@
         </table>
     </div>
 
+
+    <!-- ================= MODAL VINCULAR / EDITAR EQUIPE  ================= -->
+    <div id="modal-vincular-equipe" class="card-modal-overlay" style="display:none;">
+        <div class="card">
+            <h2>Criar/Atualizar Vínculos</h2>
+
+            <!-- SELECIONAR TODOS -->
+            <div>
+                <label>Equipes:</label>
+                <label class="checkbox-item checkbox-select-all">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                    <span>Selecionar todos</span>
+                </label>
+                <div id="checkboxContainer" class="checkbox-grid"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="fecharModal()">Cancelar</button>
+                <button onclick="salvarVinculosEquipeEvento()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- ================= MODAL VINCULAR / EDITAR PESSOA ================= -->
     <div id="modal-vincular-pessoa" class="card-modal-overlay" style="display:none;">
         <div class="card">
-
             <h2 class="modal-title">Vincular Pessoa ao Evento</h2>
-
             <div class="form-group">
                 <label>Casal:</label>
                 <select id="cadastro_id" required></select>
@@ -97,7 +119,7 @@
             </div>
 
             <div class="modal-actions">
-                <button onclick="fecharModalVincularPessoa()">Cancelar</button>
+                <button onclick="fecharModal()">Cancelar</button>
                 <button onclick="salvarPessoaEvento()">Salvar</button>
             </div>
 
@@ -119,12 +141,12 @@
     <div class="toast" id="toast"></div>
 
     <!-- ================= SCRIPTS ================= -->
-    <script src="../../js/config.js"></script>
-    <script src="../../js/loader.js"></script>
-    <script src="../../js/auth-check.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/loader.js"></script>
+    <script src="../js/auth-check.js"></script>
 
     <script type="module">
-        import { renderNavbar } from "../../components/navbar.js";
+        import { renderNavbar } from "../components/navbar.js";
         renderNavbar({ active: "eventos" });
         requireAuth();
     </script>
@@ -215,6 +237,17 @@
             });
         }
 
+        async function abrirModalVincularEquipe() {
+            await carregarSelects();
+
+            const modal = document.getElementById("modal-vincular-equipe");
+            modal.style.display = "flex";
+
+            await carregarDadosVinculoEquipe();
+            let equipesVinculadasOriginais = [];
+
+
+        }
         async function abrirModalVincularPessoa() {
             pessoaEventoEditandoId = null;
             document.getElementById("modal-vincular-pessoa").style.display = "flex";
@@ -223,8 +256,9 @@
             await carregarSelects();
         }
 
-        function fecharModalVincularPessoa() {
+        function fecharModal() {
             document.getElementById("modal-vincular-pessoa").style.display = "none";
+            document.getElementById("modal-vincular-equipe").style.display = "none";
         }
 
         async function carregarSelects() {
@@ -282,7 +316,7 @@
                 body: JSON.stringify(payload)
             });
 
-            fecharModalVincularPessoa();
+            fecharModal();
             carregarPessoasDoEvento();
         }
 
@@ -352,9 +386,160 @@
             });
         }
 
+        let equipesTodas = [];
+        let vinculosEvento = [];
+
+        async function carregarDadosVinculoEquipe() {
+            const [equipesRes, vinculosRes] = await Promise.all([
+                fetch(`${APP_CONFIG.API_BASE_URL}/equipes`, {
+                    headers: { Authorization: "Bearer " + token }
+                }),
+                fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
+                    headers: { Authorization: "Bearer " + token }
+                })
+            ]);
+
+            equipesTodas = (await equipesRes.json()).data || [];
+            vinculosEvento = (await vinculosRes.json()).data || [];
+
+            // 🔒 snapshot do estado inicial
+            equipesVinculadasOriginais = vinculosEvento.map(v => v.equipe.id);
+
+            renderizarCheckboxesVinculo();
+        }
+
+
+        function renderizarCheckboxesVinculo() {
+            const container = document.getElementById("checkboxContainer");
+            const selectAll = document.getElementById("selectAll");
+
+            container.innerHTML = "";
+            selectAll.checked = false;
+
+            const equipesVinculadasIds = vinculosEvento.map(v => v.equipe.id);
+
+            equipesTodas.forEach(eq => {
+                const checked = equipesVinculadasIds.includes(eq.id) ? "checked" : "";
+
+                container.innerHTML += `
+            <label class="checkbox-item">
+                <input
+                    type="checkbox"
+                    value="${eq.id}"
+                    ${checked}
+                    onchange="syncSelectAll()"
+                >
+                <span>${eq.nome}</span>
+            </label>
+        `;
+            });
+
+            syncSelectAll();
+        }
+
+        function syncSelectAll() {
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            document.getElementById("selectAll").checked = allChecked;
+        }
+
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+
+            checkboxes.forEach(cb => {
+                const equipeId = cb.value;
+
+                if (master.checked) {
+                    // Marcar todos
+                    cb.checked = true;
+                } else {
+                    // 🔑 Desmarcar apenas os que NÃO eram originais
+                    if (!equipesVinculadasOriginais.includes(equipeId)) {
+                        cb.checked = false;
+                    }
+                }
+            });
+
+            syncSelectAll();
+        }
+
+        // 🔵 Sincronizar estado do selectAll
+        function syncSelectAll() {
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            document.getElementById("selectAll").checked = allChecked;
+        }
+
+
+        async function salvarVinculosEquipeEvento() {
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+
+            // Estado atual selecionado
+            const selecionadasAgora = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            // Estado original
+            const vinculadasAntes = equipesVinculadasOriginais;
+
+            // Diferenças
+            const paraCriar = selecionadasAgora.filter(
+                id => !vinculadasAntes.includes(id)
+            );
+
+            const paraRemover = vinculadasAntes.filter(
+                id => !selecionadasAgora.includes(id)
+            );
+
+            try {
+                withLoader(async () => {
+
+                    // ➕ Criar novos vínculos
+                    for (const equipeId of paraCriar) {
+                        await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + token
+                            },
+                            body: JSON.stringify({
+                                evento_id: eventoId,
+                                equipe_id: equipeId
+                            })
+                        });
+                    }
+
+                    // ➖ Remover vínculos
+                    for (const equipeId of paraRemover) {
+                        const vinculo = vinculosEvento.find(
+                            v => v.equipe.id === equipeId
+                        );
+
+                        if (vinculo) {
+                            await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/${vinculo.id}`, {
+                                method: "DELETE",
+                                headers: {
+                                    Authorization: "Bearer " + token
+                                }
+                            });
+                        }
+                    }
+
+                    // UI
+                    fecharModal();
+                    carregarEquipesDoEvento();
+                    showToast("Vínculos atualizados com sucesso.");
+                });
+
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao salvar vínculos.");
+            }
+        }
+
         window.removerEquipe = removerEquipe;
         window.abrirModalVincularPessoa = abrirModalVincularPessoa;
-        window.fecharModalVincularPessoa = fecharModalVincularPessoa;
+        // window.fecharModalVincularPessoa = fecharModalVincularPessoa;
         window.salvarPessoaEvento = salvarPessoaEvento;
         window.editarPessoaEvento = editarPessoaEvento;
         window.removerPessoaEvento = removerPessoaEvento;
