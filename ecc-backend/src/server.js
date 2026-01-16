@@ -17,7 +17,7 @@ import coordenadoresRoutes from "./routes/coordenadores.routes.js";
 import encontristaInscricaoRoutes from "./routes/encontristaInscricao.routes.js";
 import cadastro from "./routes/cadastro.routes.js";
 import pagamentoRoutes from "./routes/pagamento.routes.js";
-import rotateste from "./routes/rotateste.routes.js";
+
 import devRoutes from "./routes/dev.routes.js";
 
 import { webhookMercadoPago } from "./controllers/pagamento.controller.js";
