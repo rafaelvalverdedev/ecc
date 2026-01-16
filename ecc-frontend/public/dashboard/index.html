@@ -76,6 +76,7 @@
         <tr>
           <th>Nome</th>
           <th>Email</th>
+          <th>Perfil</th>
         </tr>
       </thead>
       <tbody id="lista-pessoas"></tbody>
@@ -156,7 +157,8 @@
             <tr>
               <td>${p.nome}</td>
               <td>${p.email ?? "-"}</td>
-            </tr>
+              <td>${p.role ?? "-"}</td>
+              </tr>
           `;
         });
 
