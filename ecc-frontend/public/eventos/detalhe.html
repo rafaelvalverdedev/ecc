@@ -21,7 +21,7 @@
     <h1>Gerenciar Eventos</h1>
 
     <!-- ================= EQUIPES DO EVENTO ================= -->
-    <div class="card">
+    <div class="card" id="card-equipes-do-evento">
         <div class="bloco-header">
             <h2>▶ Equipes do Evento</h2>
             <p id="info-equipes-evento"></p>
@@ -147,10 +147,23 @@
 
     <script type="module">
         import { renderNavbar } from "../components/navbar.js";
+
         renderNavbar({ active: "eventos" });
         requireAuth();
+        hasPermission("createEvent");
     </script>
     <script>
+
+        //PROTEGE A PÁGINA POR PERFIL
+        (function protectPage() {
+            const user = getCurrentUser();
+
+            if (!user || user.role === "coordenador") {
+                document.getElementById("card-equipes-do-evento").style.display = "none";
+            }
+        })();
+
+
         const token = localStorage.getItem("token");
         const eventoId = localStorage.getItem("eventoId");
         let pessoaEventoEditandoId = null;

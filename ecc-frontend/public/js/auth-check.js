@@ -1,3 +1,30 @@
+const PERMISSIONS = {
+  admin: {
+    viewAdmin: true,
+    createUser: true,
+    createEvent: true,
+    editEvent: true,
+    deleteEvent: true,
+  },
+
+  coordenador: {
+    viewAdmin: false,
+    createUser: false,
+    createEvent: false,
+    editEvent: false,
+    deleteEvent: false,
+  },
+
+  user: {
+    viewAdmin: false,
+    createUser: false,
+    createEvent: false,
+    editEvent: false,
+    deleteEvent: false,
+  },
+};
+
+
 // ======================================
 // 🔐 Autenticação
 // ======================================
@@ -19,4 +46,17 @@ function logout() {
   localStorage.removeItem("eventoId");
   window.location.href = `${window.location.origin}/auth`;
 }
+
+function getCurrentUser() {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+}
+
+function hasPermission(permission) {
+  const user = getCurrentUser();
+  if (!user) return false;
+
+  return PERMISSIONS[user.role]?.[permission] === true;
+}
+
 

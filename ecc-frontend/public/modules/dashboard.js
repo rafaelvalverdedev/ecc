@@ -28,5 +28,5 @@ export async function carregarDashboard() {
 
 export function abrirEvento(eventoId) {
   localStorage.setItem("eventoId", eventoId);
-  window.location.href = `${window.location.origin}/eventos/detalhe.html`;
+  window.location.href = `/eventos/detalhe.html`;
 }

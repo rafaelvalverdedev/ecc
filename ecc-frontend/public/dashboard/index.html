@@ -21,7 +21,7 @@
   <h1>Dashboard Geral</h1>
 
   <!-- ================= EVENTOS ================= -->
-  <div class="card">
+  <div class="card" id="card-eventos">
     <h2 onclick="goTo('eventos');" style="cursor: pointer;">Eventos</h2>
     <p id="total-eventos">0</p>
     <table>
@@ -38,7 +38,7 @@
   </div>
 
   <!-- ================= EQUIPES ================= -->
-  <div class="card">
+  <div class="card" id="card-equipes">
     <h2 onclick="goTo('equipes');" style="cursor: pointer;">Equipes</h2>
     <p id="total-equipes">0</p>
     <table>
@@ -53,7 +53,7 @@
   </div>
 
   <!-- ================= CADASTROS ================= -->
-  <div class="card">
+  <div class="card" id="card-cadastros">
     <h2 onclick="goTo('cadastro');" style="cursor: pointer;">Usuários Cadastrados</h2>
     <p id="total-cadastros">0</p>
     <table>
@@ -68,7 +68,7 @@
   </div>
 
   <!-- ================= PESSOAS ================= -->
-  <div class="card">
+  <div class="card" id="card-pessoas">
     <h2>Pessoas</h2>
     <p id="total-pessoas">0</p>
     <table>
@@ -83,6 +83,16 @@
     </table>
   </div>
 
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <p id="modalMessage"></p>
+      <div class="modal-actions">
+        <button onclick="confirmAction()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SCRIPTS ================= -->
   <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
@@ -94,6 +104,23 @@
 
     renderNavbar({ active: "dashboard" });
     requireAuth();
+
+    //PROTEGE A PÁGINA POR PERFIL
+    (function protectPage() {
+      const user = getCurrentUser();
+
+      if (!user || user.role !== "admin") {
+        document.getElementById("card-eventos").style.display = "none";
+        document.getElementById("card-equipes").style.display = "none";
+        document.getElementById("card-cadastros").style.display = "none";
+        document.getElementById("card-pessoas").style.display = "none";
+
+        showConfirm("Você não tem permissão para acessar esta página.", () => {
+          window.location.href = "/eventos";
+        });
+      }
+    })();
+
 
     async function initDashboard() {
       try {

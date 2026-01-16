@@ -57,7 +57,7 @@
   <!-- ================= LISTAGEM ================= -->
   <div class="card">
     <h2>Eventos Cadastrados</h2>
-    <button onclick="document.getElementById('card').style = 'display: block'">Eventos</button>
+    <button onclick="document.getElementById('card').style = 'display: block'">Cadastrar Novo Eventos</button>
 
     <table>
       <thead>
@@ -96,7 +96,6 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module">
-
     import {
       listarEventos,
       criarEvento,
@@ -111,9 +110,25 @@
     renderNavbar({ active: "eventos" });
     requireAuth();
 
-
     let eventoEditandoId = null;
     window.abrirEvento = abrirEvento;
+
+    //PROTEGE A PÁGINA POR PERFIL
+     await withLoader(async () => { (function protectPage() {
+      const user = getCurrentUser();
+
+      if (!user || user.role === "coordenador") {
+        window.location.href = "/eventos/detalhe.html";
+      } 
+      else if (user.role === "admin") {
+          return;
+      }
+
+
+
+    })(); });
+
+
     // =====================
     // LISTAR
     // =====================

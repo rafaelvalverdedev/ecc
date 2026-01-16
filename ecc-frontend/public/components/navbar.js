@@ -3,6 +3,10 @@
 export function renderNavbar({ active }) {
   const container = document.getElementById("navbar");
 
+  const user = getCurrentUser();
+  const role = user.role;
+  const usuario = user.nome;
+
   const links = [
     { page: "dashboard", label: "Dashboard" },
     { page: "eventos", label: "Eventos" },
@@ -14,21 +18,29 @@ export function renderNavbar({ active }) {
     <nav>
       <ul>
         <li class="logotipo">
-             <img src="/assets/Logo-v2-2025-logo.png" width="120" alt="Logotipo ECC">
+             <img src="/assets/Logo-v2-2025-logo.png" width="120" alt="Logotipo ECC"> 
         </li>
+
+
+        <li style="margin-left: auto; margin-right: 20px;">
+          <span class="logado">Olá, ${usuario}</span>
+
+          <span class="logado">(${role})</span>
+        </li>
+
 
         <li class="hideMobile">
           ${links
-            .map(
-              ({ page, label }) => `
+      .map(
+        ({ page, label }) => `
                 <button
                   class="nav-btn ${page === active ? "active" : ""}"
                   data-page="${page}">
                   ${label}
                 </button>
               `
-            )
-            .join("")}
+      )
+      .join("")}
           <button class="btn-logout">Sair</button>
         </li>
 
@@ -39,6 +51,12 @@ export function renderNavbar({ active }) {
         </li>
       </ul>
 
+
+
+
+
+
+      
       <ul class="sidebar">
         <li class="fechar" onclick="hideSidebar()">
           <a href="#">
@@ -47,8 +65,8 @@ export function renderNavbar({ active }) {
         </li>
 
         ${links
-          .map(
-            ({ page, label }) => `
+      .map(
+        ({ page, label }) => `
               <li>
                 <button
                   class="nav-btn ${page === active ? "active" : ""}"
@@ -57,8 +75,8 @@ export function renderNavbar({ active }) {
                 </button>
               </li>
             `
-          )
-          .join("")}
+      )
+      .join("")}
 
         <button class="btn-logout">Sair</button>
       </ul>
