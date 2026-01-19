@@ -82,12 +82,33 @@
     <div id="toast" class="toast"></div>
   </div>
 
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="../js/config.js"></script>
   <script src="../js/loader.js"></script>
   <script src="../js/auth-check.js"></script>
-  <script src="../js/config.js"></script>
+
   <script>
+
     const API = APP_CONFIG.API_BASE_URL;
     const toast = document.getElementById("toast");
+
+    const token = localStorage.getItem("token");
+    const usuario = JSON.parse(localStorage.getItem("user"));
+
+    if (token && usuario) {
+      console.log("Token encontrado, redirecionando... " + token);
+      console.log("Usuário: " + usuario.nome);
+      console.log("Regra: " + usuario.role);
+    }
+
+    // if (usuario || usuario.role === "coordenador") {
+    //   window.location.href = "/eventos/detalhe.html";
+    // }
+    // else if (usuario.role === "admin") {
+    //   window.location.href = "/dashboard";
+    // }
+
 
     async function login() {
       event.preventDefault();

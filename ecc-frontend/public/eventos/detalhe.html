@@ -147,31 +147,15 @@
 
     <script type="module">
         import { renderNavbar } from "../components/navbar.js";
-
         renderNavbar({ active: "eventos" });
         requireAuth();
-        hasPermission("createEvent");
     </script>
+
     <script>
-
-        //PROTEGE A PÁGINA POR PERFIL
-        (function protectPage() {
-            const user = getCurrentUser();
-
-            if (!user || user.role === "coordenador") {
-                document.getElementById("card-equipes-do-evento").style.display = "none";
-            }
-        })();
-
-
         const token = localStorage.getItem("token");
         const eventoId = localStorage.getItem("eventoId");
         let pessoaEventoEditandoId = null;
 
-        if (!eventoId) {
-            alert("Evento não selecionado.");
-            location.href = "../";
-        }
 
         /* ================= EQUIPES ================= */
         async function carregarEquipesDoEvento() {
@@ -285,6 +269,7 @@
 
             const cadastroSelect = document.getElementById("cadastro_id");
             const equipeSelect = document.getElementById("equipe_id");
+
 
             cadastroSelect.innerHTML = `<option value="">Selecione</option>`;
             equipeSelect.innerHTML = `<option value="">Selecione</option>`;

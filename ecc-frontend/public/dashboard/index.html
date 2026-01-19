@@ -54,7 +54,7 @@
 
   <!-- ================= CADASTROS ================= -->
   <div class="card" id="card-cadastros">
-    <h2 onclick="goTo('cadastro');" style="cursor: pointer;">Usuários Cadastrados</h2>
+    <h2 onclick="goTo('cadastro');" style="cursor: pointer;">Pessoas Cadastradas</h2>
     <p id="total-cadastros">0</p>
     <table>
       <thead>
@@ -63,13 +63,13 @@
           <th>Email</th>
         </tr>
       </thead>
-      <tbody id="lista-cadastros"></tbody>
+      <tbody id="lista-pessoas"></tbody>
     </table>
   </div>
 
   <!-- ================= PESSOAS ================= -->
   <div class="card" id="card-pessoas">
-    <h2>Pessoas</h2>
+    <h2>Usuários Cadastrados</h2>
     <p id="total-pessoas">0</p>
     <table>
       <thead>
@@ -79,7 +79,7 @@
           <th>Perfil</th>
         </tr>
       </thead>
-      <tbody id="lista-pessoas"></tbody>
+      <tbody id="lista-usuarios"></tbody>
     </table>
   </div>
 
@@ -104,23 +104,6 @@
 
     renderNavbar({ active: "dashboard" });
     requireAuth();
-
-    //PROTEGE A PÁGINA POR PERFIL
-    (function protectPage() {
-      const user = getCurrentUser();
-
-      if (!user || user.role !== "admin") {
-        document.getElementById("card-eventos").style.display = "none";
-        document.getElementById("card-equipes").style.display = "none";
-        document.getElementById("card-cadastros").style.display = "none";
-        document.getElementById("card-pessoas").style.display = "none";
-
-        showConfirm("Você não tem permissão para acessar esta página.", () => {
-          window.location.href = "/eventos";
-        });
-      }
-    })();
-
 
     async function initDashboard() {
       try {
@@ -165,19 +148,19 @@
         });
 
         // 📋 CADASTROS
-        const tbodyCadastros = document.getElementById("lista-cadastros");
+        const tbodyCadastros = document.getElementById("lista-pessoas");
         tbodyCadastros.innerHTML = "";
         cadastros.forEach(c => {
           tbodyCadastros.innerHTML += `
             <tr>
-              <td>${c.nome_completo_esposo} & ${c.nome_completo_esposa}</td>
-              <td>${c.email_esposo ?? "-"}</td>
+              <td>${c.nome_completo_esposo} <br> ${c.nome_completo_esposa}</td>
+              <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
             </tr>
           `;
         });
 
         // 📋 PESSOAS
-        const tbodyPessoas = document.getElementById("lista-pessoas");
+        const tbodyPessoas = document.getElementById("lista-usuarios");
         tbodyPessoas.innerHTML = "";
         pessoas.forEach(p => {
           tbodyPessoas.innerHTML += `
