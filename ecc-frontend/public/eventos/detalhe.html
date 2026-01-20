@@ -122,7 +122,6 @@
                 <button onclick="fecharModal()">Cancelar</button>
                 <button onclick="salvarPessoaEvento()">Salvar</button>
             </div>
-
         </div>
     </div>
 
@@ -293,6 +292,64 @@
                 is_leader: regra === "coordenador",
                 pagou: document.getElementById("pagou").checked
             };
+
+            // Buscar cadastro
+            const cadastroRes = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/cadastro/${payload.cadastro_id}`,
+                { headers: { Authorization: "Bearer " + token } }
+            );
+
+            if (!cadastroRes.ok) {
+                showToast("Erro ao buscar cadastro.");
+                return;
+            }
+
+            const cadastro = (await cadastroRes.json()).data;
+
+            // Criar pessoa ESPOSO
+            const pessoaPayload_esposo = {
+                nome: cadastro.nome_completo_esposo,
+                email: cadastro.email_esposo,
+                telefone: cadastro.celular_esposo,
+                password: "123456",
+                role: payload.is_leader ? "coordenador" : "encontreiro"
+            };
+
+            // Criar pessoa ESPOSA
+            const pessoaPayload_esposa = {
+                nome: cadastro.nome_completo_esposa,
+                email: cadastro.email_esposa,
+                telefone: cadastro.celular_esposa,
+                password: "123456",
+                role: payload.is_leader ? "coordenador" : "encontreiro"
+            };
+
+
+            const pessoaRes_esposo = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/auth/register`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(pessoaPayload_esposo)
+                }
+            );
+            const pessoaJson_esposo = await pessoaRes_esposo.json();
+
+            const pessoaRes_esposa = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/auth/register`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(pessoaPayload_esposa)
+                }
+            );
+            const pessoaJson_esposa = await pessoaRes_esposa.json();
 
             if (!payload.cadastro_id || !payload.equipe_id) {
                 showToast("Preencha todos os campos.");

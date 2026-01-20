@@ -98,12 +98,14 @@
   <script src="../js/loader.js"></script>
   <script src="../js/auth-check.js"></script>
 
-  <script type="module">
+  <script type="module" defer>
+    requireAuth();
+
     import { abrirEvento, carregarDashboard } from "../modules/dashboard.js";
     import { renderNavbar } from "../components/navbar.js";
 
     renderNavbar({ active: "dashboard" });
-    requireAuth();
+
 
     async function initDashboard() {
       try {

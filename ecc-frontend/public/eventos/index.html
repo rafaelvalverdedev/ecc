@@ -95,7 +95,9 @@
   <script src="../js/loader.js"></script>
   <script src="../js/auth-check.js"></script>
 
-  <script type="module">
+  <script type="module" defer>
+    requireAuth();
+
     import {
       listarEventos,
       criarEvento,
@@ -108,7 +110,6 @@
     import { renderNavbar } from "../components/navbar.js";
 
     renderNavbar({ active: "eventos" });
-    requireAuth();
 
     let eventoEditandoId = null;
     window.abrirEvento = abrirEvento;
