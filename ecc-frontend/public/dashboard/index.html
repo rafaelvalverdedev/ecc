@@ -99,7 +99,7 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module" defer>
-    requireAuth();
+    requireRole(["admin"]); // Apenas administradores podem acessar
 
     import { abrirEvento, carregarDashboard } from "../modules/dashboard.js";
     import { renderNavbar } from "../components/navbar.js";

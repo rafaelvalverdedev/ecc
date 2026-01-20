@@ -1,32 +1,5 @@
-const PERMISSIONS = {
-  admin: {
-    viewAdmin: true,
-    createUser: true,
-    createEvent: true,
-    editEvent: true,
-    deleteEvent: true,
-  },
-
-  coordenador: {
-    viewAdmin: false,
-    createUser: false,
-    createEvent: false,
-    editEvent: false,
-    deleteEvent: false,
-  },
-
-  user: {
-    viewAdmin: false,
-    createUser: false,
-    createEvent: false,
-    editEvent: false,
-    deleteEvent: false,
-  },
-};
-
-
 // ======================================
-// 🔐 Autenticação
+// Autenticação
 // ======================================
 
 function requireAuth() {
@@ -36,28 +9,29 @@ function requireAuth() {
   if (!token || !user) {
     window.location.href = `/auth`;
   }
+  return user;
 }
 
 // ====================================
-// 🔓 Logout
+// Logout
 // ====================================
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("eventoId");
+
   window.location.href = `/auth`;
 }
 
-function getCurrentUser() {
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+// ====================================
+// Controle de Acesso por Perfil
+// ====================================
+function requireRole(rolesPermitidos = []) {
+  const user = requireAuth();
+
+  if (!rolesPermitidos.includes(user.role)) {
+    // página de acesso negado ou redirecionamento
+    window.location.href = "/403.html";
+  }
+  return user;
 }
-
-function hasPermission(permission) {
-  const user = getCurrentUser();
-  if (!user) return false;
-
-  return PERMISSIONS[user.role]?.[permission] === true;
-}
-
-

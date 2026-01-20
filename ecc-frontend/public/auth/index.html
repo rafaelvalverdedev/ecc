@@ -93,25 +93,9 @@
     const API = APP_CONFIG.API_BASE_URL;
     const toast = document.getElementById("toast");
 
-    const token = localStorage.getItem("token");
-    const usuario = JSON.parse(localStorage.getItem("user"));
-
-    if (token && usuario) {
-      console.log("Token encontrado, redirecionando... " + token);
-      console.log("Usuário: " + usuario.nome);
-      console.log("Regra: " + usuario.role);
-    }
-
-    // if (usuario || usuario.role === "coordenador") {
-    //   window.location.href = "/eventos/detalhe.html";
-    // }
-    // else if (usuario.role === "admin") {
-    //   window.location.href = "/dashboard";
-    // }
-
-
     async function login() {
       event.preventDefault();
+
       showLoader();
 
       const email = document.getElementById("email").value.trim();
@@ -160,7 +144,14 @@
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.pessoa));
 
-        window.location.href = "../dashboard/";
+        if (data.pessoa.role === "admin") {
+          window.location.href = "../dashboard/";
+        } else if (data.pessoa.role === "coordenador") {
+          window.location.href = "../eventos/";
+        } else {
+          window.location.href = "../encontreiro/";
+        }
+
 
       } catch (error) {
         hideLoader();

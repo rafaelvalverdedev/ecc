@@ -57,7 +57,7 @@
   <!-- ================= LISTAGEM ================= -->
   <div class="card">
     <h2>Eventos Cadastrados</h2>
-    <button onclick="document.getElementById('card').style = 'display: block'">Cadastrar Novo Eventos</button>
+    <button onclick="document.getElementById('card').style = 'display: block'">Cadastrar Novo Evento</button>
 
     <table>
       <thead>
@@ -96,7 +96,21 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module" defer>
-    requireAuth();
+    requireRole(["admin", "coordenador"]); // Apenas administradores podem acessar
+
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log(user.id);
+
+
+    // Buscar cadastro
+    const cadastroRes = await fetch(
+      `${APP_CONFIG.API_BASE_URL}/teamrole/${user.id}`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
+    const cadastro = (await cadastroRes.json()).data;
+
+    console.log(cadastro);
 
     import {
       listarEventos,

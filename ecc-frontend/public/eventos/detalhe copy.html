@@ -226,7 +226,7 @@
                             </td>
                         <td>
                         <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
-                        <button onclick="removerPessoaEvento('${p.id}','${p.email_esposo}',${p.email_esposa})">Excluir</button>
+                        <button onclick="removerPessoaEvento('${p.id}')">Excluir</button>
                         </td>
                     </tr>
                 `;
@@ -293,12 +293,13 @@
                 pagou: document.getElementById("pagou").checked
             };
 
-            if (payload.is_leader) {
+            if (payload.is_leader){
                 payload.role = "coordenador";
             } else {
-                payload.role = "user";
+                payload.role = "user";   
             };
 
+            
             // Buscar cadastro
             const cadastroRes = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/cadastro/${payload.cadastro_id}`,
@@ -309,20 +310,8 @@
                 showToast("Erro ao buscar cadastro.");
                 return;
             }
+
             const cadastro = (await cadastroRes.json()).data;
-
-
-            // Buscar Pessoas
-            const pessoasRes = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/pessoas`,
-                { headers: { Authorization: "Bearer " + token } }
-            );
-            const pessoas = (await pessoasRes.json()).data;
-
-
-
-            const methodPessoas = cadastro.email_esposo ? "PUT" : "POST";
-
 
             // Criar pessoa ESPOSO
             const pessoaPayload_esposo = {
@@ -335,7 +324,7 @@
             const pessoaRes_esposo = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/auth/register`,
                 {
-                    method: methodPessoas,
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: "Bearer " + token
@@ -357,7 +346,7 @@
             const pessoaRes_esposa = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/auth/register`,
                 {
-                    method: methodPessoas,
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: "Bearer " + token
@@ -366,7 +355,7 @@
                 }
             );
             const pessoaJson_esposa = await pessoaRes_esposa.json();
-
+            
             if (!payload.cadastro_id || !payload.equipe_id) {
                 showToast("Preencha todos os campos.");
                 return;
@@ -412,19 +401,9 @@
             document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
-        async function removerPessoaEvento(id, email_esposo, email_esposa) {
+        async function removerPessoaEvento(id) {
             showConfirm("Remover pessoa do evento?", async () => {
                 await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/${id}`, {
-                    method: "DELETE",
-                    headers: { Authorization: "Bearer " + token }
-                });
-
-                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/${email_esposo}`, {
-                    method: "DELETE",
-                    headers: { Authorization: "Bearer " + token }
-                });
-
-                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/${email_esposo}`, {
                     method: "DELETE",
                     headers: { Authorization: "Bearer " + token }
                 });
@@ -483,7 +462,7 @@
             equipesTodas = (await equipesRes.json()).data || [];
             vinculosEvento = (await vinculosRes.json()).data || [];
 
-            // snapshot do estado inicial
+            // 🔒 snapshot do estado inicial
             equipesVinculadasOriginais = vinculosEvento.map(v => v.equipe.id);
 
             renderizarCheckboxesVinculo();
@@ -534,7 +513,7 @@
                     // Marcar todos
                     cb.checked = true;
                 } else {
-                    //  Desmarcar apenas os que NÃO eram originais
+                    // 🔑 Desmarcar apenas os que NÃO eram originais
                     if (!equipesVinculadasOriginais.includes(equipeId)) {
                         cb.checked = false;
                     }
@@ -544,12 +523,13 @@
             syncSelectAll();
         }
 
-        // Sincronizar estado do selectAll
+        // 🔵 Sincronizar estado do selectAll
         function syncSelectAll() {
             const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             document.getElementById("selectAll").checked = allChecked;
         }
+
 
         async function salvarVinculosEquipeEvento() {
             const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');

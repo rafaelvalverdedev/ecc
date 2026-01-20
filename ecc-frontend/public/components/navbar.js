@@ -3,7 +3,10 @@
 export function renderNavbar({ active }) {
   const container = document.getElementById("navbar");
 
-  const user = getCurrentUser();
+
+  const consolea = localStorage.getItem("user");
+  const user = JSON.parse(consolea);
+
   const role = user.role;
   const usuario = user.nome;
 

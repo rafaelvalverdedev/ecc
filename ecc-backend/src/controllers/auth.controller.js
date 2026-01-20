@@ -17,6 +17,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   telefone: z.string().optional(),
   password: z.string().min(6),
+  role: z.enum(["user", "admin", "coordenador"]).default("user")
 });
 
 const loginSchema = z.object({
@@ -35,11 +36,55 @@ function gerarToken(pessoa) {
     { expiresIn: JWT_EXPIRES_IN }
   );
 }
+// Atualização
+export async function atualiza(req, res) {
+  try {
+    // Validação dos dados
+    const { email, role } = registerSchema.parse(req.body);
+
+    console.log(email);  // Verifica o email
+
+    // Atualiza o registro no banco de dados
+    const { data, error } = await supabase
+      .from("pessoas")
+      .update({
+        role
+      })
+      .eq("email", email)  // Atualiza pelo email
+      .select()  // Seleciona o campo atualizado
+      .single();  // Espera que apenas um registro seja retornado
+
+    // Verifica se houve erro na atualização
+    if (error) {
+      console.error("REGISTER DB ERROR:", error);
+      return res.status(500).json({ error: "Erro ao atualizar o registro." });
+    }
+
+    // Verifica se o dado foi encontrado
+    if (!data) {
+      return res.status(404).json({ error: "Pessoa não encontrada." });
+    }
+
+    // Gera o token para a pessoa
+    const token = gerarToken(data);
+
+    // Retorna o sucesso com os dados da pessoa e o token gerado
+    return res.status(200).json({ pessoa: data, token });
+
+  } catch (err) {
+    console.error(err);  // Log de erro
+    return res.status(400).json({ error: err.message });
+  }
+}
+
 
 // Registro
 export async function register(req, res) {
   try {
-    const { nome, email, telefone, password } = registerSchema.parse(req.body);
+    const { nome, email, telefone, password, role } = registerSchema.parse(req.body);
+
+    console.error(role);
+
 
     const { data: existente } = await supabase
       .from("pessoas")
@@ -60,7 +105,7 @@ export async function register(req, res) {
         email,
         telefone,
         password_hash,
-        role: "user",
+        role
       })
       .select()
       .single();
