@@ -60,6 +60,28 @@ export async function buscarPessoa(req, res) {
 }
 
 // ========================================================
+// BUSCAR PESSOA POR EMAIL
+// ========================================================
+export async function buscarPessoaPorEmail(req, res) {
+  try {
+    const { email } = req.params;
+
+    const { data, error } = await supabase
+      .from("pessoas")
+      .select("id, nome, email, telefone, role, created_at, updated_at")
+      .eq("email", email)
+      .single();
+
+    if (error) return res.status(404).json({ error: "Pessoa não encontrada." });
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("BUSCAR PESSOA ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ========================================================
 // CRIAR PESSOA
 // ========================================================
 export async function criarPessoa(req, res) {
@@ -206,3 +228,26 @@ export async function deletarPessoa(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+// ========================================================
+// DELETAR PESSOA por EMAIL (apenas admin)
+// ========================================================
+export const deletarPessoaPorEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const { error } = await supabase
+      .from("pessoas")
+      .delete()
+      .eq("email", email);
+
+    if (error) throw error;
+
+    return res.json({ message: "Pessoa removida com sucesso" });
+
+  } catch (err) {
+    console.error("DELETAR PESSOA ERROR:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};

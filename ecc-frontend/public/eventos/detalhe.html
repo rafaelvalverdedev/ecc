@@ -226,7 +226,7 @@
                             </td>
                         <td>
                         <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
-                        <button onclick="removerPessoaEvento('${p.id}','${p.email_esposo}',${p.email_esposa})">Excluir</button>
+                        <button onclick="removerPessoaEvento('${p.id}', '${p.cadastro?.email_esposo}', '${p.cadastro?.email_esposa}')">Excluir</button>
                         </td>
                     </tr>
                 `;
@@ -304,68 +304,11 @@
                 `${APP_CONFIG.API_BASE_URL}/cadastro/${payload.cadastro_id}`,
                 { headers: { Authorization: "Bearer " + token } }
             );
-
             if (!cadastroRes.ok) {
                 showToast("Erro ao buscar cadastro.");
                 return;
             }
             const cadastro = (await cadastroRes.json()).data;
-
-
-            // Buscar Pessoas
-            const pessoasRes = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/pessoas`,
-                { headers: { Authorization: "Bearer " + token } }
-            );
-            const pessoas = (await pessoasRes.json()).data;
-
-
-
-            const methodPessoas = cadastro.email_esposo ? "PUT" : "POST";
-
-
-            // Criar pessoa ESPOSO
-            const pessoaPayload_esposo = {
-                nome: cadastro.nome_completo_esposo,
-                email: cadastro.email_esposo,
-                telefone: cadastro.celular_esposo,
-                password: "123456",
-                role: payload.role
-            };
-            const pessoaRes_esposo = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/auth/register`,
-                {
-                    method: methodPessoas,
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: "Bearer " + token
-                    },
-                    body: JSON.stringify(pessoaPayload_esposo)
-                }
-            );
-            const pessoaJson_esposo = await pessoaRes_esposo.json();
-
-
-            // Criar pessoa ESPOSA
-            const pessoaPayload_esposa = {
-                nome: cadastro.nome_completo_esposa,
-                email: cadastro.email_esposa,
-                telefone: cadastro.celular_esposa,
-                password: "123456",
-                role: payload.role
-            };
-            const pessoaRes_esposa = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/auth/register`,
-                {
-                    method: methodPessoas,
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: "Bearer " + token
-                    },
-                    body: JSON.stringify(pessoaPayload_esposa)
-                }
-            );
-            const pessoaJson_esposa = await pessoaRes_esposa.json();
 
             if (!payload.cadastro_id || !payload.equipe_id) {
                 showToast("Preencha todos os campos.");
@@ -387,6 +330,62 @@
                 body: JSON.stringify(payload)
             });
 
+
+
+            // Buscar Pessoa
+            const pessoaRes = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/pessoas/email/${cadastro.email_esposo}`,
+                { headers: { Authorization: "Bearer " + token } }
+            );
+            if (!pessoaRes.ok) {
+                showToast("Erro ao buscar pessoa.");
+
+            }
+            const pessoa = (await pessoaRes.json()).data;
+
+            const methodPessoa = pessoa.email ? "PUT" : "POST";
+
+            // Criar pessoa ESPOSO
+            const pessoaPayload_esposo = {
+                nome: cadastro.nome_completo_esposo,
+                email: cadastro.email_esposo,
+                telefone: cadastro.celular_esposo,
+                password: "123456",
+                role: payload.role
+            };
+            const pessoaRes_esposo = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/auth/register`,
+                {
+                    method: methodPessoa,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(pessoaPayload_esposo)
+                }
+            );
+            const pessoaJson_esposo = await pessoaRes_esposo.json();
+
+            // Criar pessoa ESPOSA
+            const pessoaPayload_esposa = {
+                nome: cadastro.nome_completo_esposa,
+                email: cadastro.email_esposa,
+                telefone: cadastro.celular_esposa,
+                password: "123456",
+                role: payload.role
+            };
+            const pessoaRes_esposa = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/auth/register`,
+                {
+                    method: methodPessoa,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(pessoaPayload_esposa)
+                }
+            );
+            const pessoaJson_esposa = await pessoaRes_esposa.json();
             fecharModal();
             carregarPessoasDoEvento();
         }
@@ -419,12 +418,12 @@
                     headers: { Authorization: "Bearer " + token }
                 });
 
-                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/${email_esposo}`, {
+                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/email/${email_esposo}`, {
                     method: "DELETE",
                     headers: { Authorization: "Bearer " + token }
                 });
 
-                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/${email_esposo}`, {
+                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/email/${email_esposa}`, {
                     method: "DELETE",
                     headers: { Authorization: "Bearer " + token }
                 });
