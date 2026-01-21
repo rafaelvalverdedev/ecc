@@ -155,7 +155,6 @@
         const eventoId = localStorage.getItem("eventoId");
         let pessoaEventoEditandoId = null;
 
-
         /* ================= EQUIPES ================= */
         async function carregarEquipesDoEvento() {
             const res = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
@@ -226,7 +225,7 @@
                             </td>
                         <td>
                         <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
-                        <button onclick="removerPessoaEvento('${p.id}')">Excluir</button>
+                        <button onclick="removerPessoaEvento('${p.id}', '${p.cadastro?.email_esposo}', '${p.cadastro?.email_esposa}')">Excluir</button>
                         </td>
                     </tr>
                 `;
@@ -293,25 +292,43 @@
                 pagou: document.getElementById("pagou").checked
             };
 
-            if (payload.is_leader){
+            if (payload.is_leader) {
                 payload.role = "coordenador";
             } else {
-                payload.role = "user";   
+                payload.role = "user";
             };
 
-            
             // Buscar cadastro
             const cadastroRes = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/cadastro/${payload.cadastro_id}`,
                 { headers: { Authorization: "Bearer " + token } }
             );
-
             if (!cadastroRes.ok) {
                 showToast("Erro ao buscar cadastro.");
                 return;
             }
-
             const cadastro = (await cadastroRes.json()).data;
+
+            if (!payload.cadastro_id || !payload.equipe_id) {
+                showToast("Preencha todos os campos.");
+                return;
+            }
+
+            const url = pessoaEventoEditandoId
+                ? `${APP_CONFIG.API_BASE_URL}/teamrole/${pessoaEventoEditandoId}`
+                : `${APP_CONFIG.API_BASE_URL}/teamrole`;
+
+            const method = pessoaEventoEditandoId ? "PUT" : "POST";
+
+            await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify(payload)
+            });
+
 
             // Criar pessoa ESPOSO
             const pessoaPayload_esposo = {
@@ -334,7 +351,6 @@
             );
             const pessoaJson_esposo = await pessoaRes_esposo.json();
 
-
             // Criar pessoa ESPOSA
             const pessoaPayload_esposa = {
                 nome: cadastro.nome_completo_esposa,
@@ -355,27 +371,6 @@
                 }
             );
             const pessoaJson_esposa = await pessoaRes_esposa.json();
-            
-            if (!payload.cadastro_id || !payload.equipe_id) {
-                showToast("Preencha todos os campos.");
-                return;
-            }
-
-            const url = pessoaEventoEditandoId
-                ? `${APP_CONFIG.API_BASE_URL}/teamrole/${pessoaEventoEditandoId}`
-                : `${APP_CONFIG.API_BASE_URL}/teamrole`;
-
-            const method = pessoaEventoEditandoId ? "PUT" : "POST";
-
-            await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + token
-                },
-                body: JSON.stringify(payload)
-            });
-
             fecharModal();
             carregarPessoasDoEvento();
         }
@@ -401,9 +396,19 @@
             document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
-        async function removerPessoaEvento(id) {
+        async function removerPessoaEvento(id, email_esposo, email_esposa) {
             showConfirm("Remover pessoa do evento?", async () => {
                 await fetch(`${APP_CONFIG.API_BASE_URL}/teamrole/${id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: "Bearer " + token }
+                });
+
+                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/email/${email_esposo}`, {
+                    method: "DELETE",
+                    headers: { Authorization: "Bearer " + token }
+                });
+
+                await fetch(`${APP_CONFIG.API_BASE_URL}/pessoas/email/${email_esposa}`, {
                     method: "DELETE",
                     headers: { Authorization: "Bearer " + token }
                 });
@@ -462,7 +467,7 @@
             equipesTodas = (await equipesRes.json()).data || [];
             vinculosEvento = (await vinculosRes.json()).data || [];
 
-            // 🔒 snapshot do estado inicial
+            // snapshot do estado inicial
             equipesVinculadasOriginais = vinculosEvento.map(v => v.equipe.id);
 
             renderizarCheckboxesVinculo();
@@ -513,7 +518,7 @@
                     // Marcar todos
                     cb.checked = true;
                 } else {
-                    // 🔑 Desmarcar apenas os que NÃO eram originais
+                    //  Desmarcar apenas os que NÃO eram originais
                     if (!equipesVinculadasOriginais.includes(equipeId)) {
                         cb.checked = false;
                     }
@@ -523,13 +528,12 @@
             syncSelectAll();
         }
 
-        // 🔵 Sincronizar estado do selectAll
+        // Sincronizar estado do selectAll
         function syncSelectAll() {
             const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             document.getElementById("selectAll").checked = allChecked;
         }
-
 
         async function salvarVinculosEquipeEvento() {
             const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');

@@ -88,7 +88,6 @@
         </div>
     </div>
 
-
     <!-- ================= MODAL VINCULAR / EDITAR PESSOA ================= -->
     <div id="modal-vincular-pessoa" class="card-modal-overlay" style="display:none;">
         <div class="card">
@@ -143,6 +142,7 @@
     <script src="../js/config.js"></script>
     <script src="../js/loader.js"></script>
     <script src="../js/auth-check.js"></script>
+    <script src="./detalhe.js"></script>
 
     <script type="module">
         requireAuth();
@@ -155,6 +155,26 @@
         const eventoId = localStorage.getItem("eventoId");
         let pessoaEventoEditandoId = null;
 
+        async function abrirModalVincularEquipe() {
+            const modal = document.getElementById("modal-vincular-equipe");
+            modal.style.display = "flex";
+            await carregarSelects();
+            await carregarDadosVinculoEquipe();
+            let equipesVinculadasOriginais = [];
+        }
+
+        async function abrirModalVincularPessoa() {
+            pessoaEventoEditandoId = null;
+            document.getElementById("modal-vincular-pessoa").style.display = "flex";
+            document.getElementById("cadastro_id").disabled = false;
+            document.getElementById("pagou").checked = false;
+            await carregarSelects();
+        }
+
+        function fecharModal() {
+            document.getElementById("modal-vincular-pessoa").style.display = "none";
+            document.getElementById("modal-vincular-equipe").style.display = "none";
+        }
 
         /* ================= EQUIPES ================= */
         async function carregarEquipesDoEvento() {
@@ -174,14 +194,79 @@
                     <tr>
                         <td>${v.equipe.nome}</td>
                         <td>
-                        <button onclick="removerEquipe('${v.id}')">Remover</button>
+                        <button onclick="removerEquipeDoEvento('${v.id}')">Remover</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        async function removerEquipe(id) {
+        async function salvarVinculosEquipeEvento() {
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
+
+            // Estado atual selecionado
+            const selecionadasAgora = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            // Estado original
+            const vinculadasAntes = equipesVinculadasOriginais;
+
+            // Diferenças
+            const paraCriar = selecionadasAgora.filter(
+                id => !vinculadasAntes.includes(id)
+            );
+
+            const paraRemover = vinculadasAntes.filter(
+                id => !selecionadasAgora.includes(id)
+            );
+
+            try {
+                withLoader(async () => {
+                    // ➕ Criar novos vínculos
+                    for (const equipeId of paraCriar) {
+                        await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + token
+                            },
+                            body: JSON.stringify({
+                                evento_id: eventoId,
+                                equipe_id: equipeId
+                            })
+                        });
+                    }
+
+                    // ➖ Remover vínculos
+                    for (const equipeId of paraRemover) {
+                        const vinculo = vinculosEvento.find(
+                            v => v.equipe.id === equipeId
+                        );
+
+                        if (vinculo) {
+                            await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/${vinculo.id}`, {
+                                method: "DELETE",
+                                headers: {
+                                    Authorization: "Bearer " + token
+                                }
+                            });
+                        }
+                    }
+
+                    // UI
+                    fecharModal();
+                    carregarEquipesDoEvento();
+                    showToast("Vínculos atualizados com sucesso.");
+                });
+
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao salvar vínculos.");
+            }
+        }
+
+        async function removerEquipeDoEvento(id) {
             showConfirm("Remover equipe do evento?", async () => {
                 await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/${id}`, {
                     method: "DELETE",
@@ -190,6 +275,7 @@
                 carregarEquipesDoEvento();
             });
         }
+
 
         /* ================= PESSOAS ================= */
         async function carregarPessoasDoEvento() {
@@ -211,77 +297,25 @@
                         <td>${p.equipe?.nome ?? "-"}</td>
                         <td>${p.is_leader ? "Coordenador" : "Encontreiro"}</td>
                         <td>
-                            ${p.pagou
-                        ? `<span class="badge badge-success">Pago</span>`
+                        ${p.pagou
+                        ? ` <span class="badge badge-success">Pago</span>`
                         : `
-                                <span class="badge badge-danger">Não</span>
-                                <button
-                                    class="btn-pagamento"
-                                    onclick="gerarPagamento('${p.id}')"
-                                >
-                                    Gerar Pagamento
-                                </button>
-                                `
+                            <span class="badge badge-danger">Não</span>
+                            <button class="btn-pagamento" onclick="gerarPagamento('${p.id}')">
+                                Gerar Pagamento
+                            </button>
+                            `
                     }
-                            </td>
+                        </td>
                         <td>
-                        <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
-                        <button onclick="removerPessoaEvento('${p.id}', '${p.cadastro?.email_esposo}', '${p.cadastro?.email_esposa}')">Excluir</button>
+                            <button onclick="editarPessoaEvento('${p.id}')">Editar</button>
+                            <button onclick="removerPessoaEvento('${p.id}', '${p.cadastro?.email_esposo}', '${p.cadastro?.email_esposa}')">Excluir</button>
                         </td>
                     </tr>
                 `;
             });
         }
-
-        async function abrirModalVincularEquipe() {
-            await carregarSelects();
-
-            const modal = document.getElementById("modal-vincular-equipe");
-            modal.style.display = "flex";
-
-            await carregarDadosVinculoEquipe();
-            let equipesVinculadasOriginais = [];
-
-
-        }
-        async function abrirModalVincularPessoa() {
-            pessoaEventoEditandoId = null;
-            document.getElementById("modal-vincular-pessoa").style.display = "flex";
-            document.getElementById("cadastro_id").disabled = false;
-            document.getElementById("pagou").checked = false;
-            await carregarSelects();
-        }
-
-        function fecharModal() {
-            document.getElementById("modal-vincular-pessoa").style.display = "none";
-            document.getElementById("modal-vincular-equipe").style.display = "none";
-        }
-
-        async function carregarSelects() {
-            const [cadastrosRes, equipesRes] = await Promise.all([
-                fetch(`${APP_CONFIG.API_BASE_URL}/cadastro`, { headers: { Authorization: "Bearer " + token } }),
-                fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, { headers: { Authorization: "Bearer " + token } })
-            ]);
-
-            const cadastros = (await cadastrosRes.json()).data || [];
-            const equipes = (await equipesRes.json()).data || [];
-
-            const cadastroSelect = document.getElementById("cadastro_id");
-            const equipeSelect = document.getElementById("equipe_id");
-
-
-            cadastroSelect.innerHTML = `<option value="">Selecione</option>`;
-            equipeSelect.innerHTML = `<option value="">Selecione</option>`;
-
-            cadastros.forEach(c => {
-                cadastroSelect.innerHTML += `<option value="${c.id}">${c.nome_completo_esposo} e ${c.nome_completo_esposa}</option>`;
-            });
-
-            equipes.forEach(e => {
-                equipeSelect.innerHTML += `<option value="${e.equipe.id}">${e.equipe.nome}</option>`;
-            });
-        }
-
+        
         async function salvarPessoaEvento() {
             const regra = document.getElementById("regra").value;
 
@@ -331,20 +365,6 @@
             });
 
 
-
-            // Buscar Pessoa
-            const pessoaRes = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/pessoas/email/${cadastro.email_esposo}`,
-                { headers: { Authorization: "Bearer " + token } }
-            );
-            if (!pessoaRes.ok) {
-                showToast("Erro ao buscar pessoa.");
-
-            }
-            const pessoa = (await pessoaRes.json()).data;
-
-            const methodPessoa = pessoa.email ? "PUT" : "POST";
-
             // Criar pessoa ESPOSO
             const pessoaPayload_esposo = {
                 nome: cadastro.nome_completo_esposo,
@@ -356,7 +376,7 @@
             const pessoaRes_esposo = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/auth/register`,
                 {
-                    method: methodPessoa,
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: "Bearer " + token
@@ -377,7 +397,7 @@
             const pessoaRes_esposa = await fetch(
                 `${APP_CONFIG.API_BASE_URL}/auth/register`,
                 {
-                    method: methodPessoa,
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: "Bearer " + token
@@ -388,27 +408,6 @@
             const pessoaJson_esposa = await pessoaRes_esposa.json();
             fecharModal();
             carregarPessoasDoEvento();
-        }
-
-        async function editarPessoaEvento(id) {
-            pessoaEventoEditandoId = id;
-
-            const res = await fetch(
-                `${APP_CONFIG.API_BASE_URL}/teamrole/${id}`,
-                { headers: { Authorization: "Bearer " + token } }
-            );
-
-            const json = await res.json();
-            const v = json.data;
-
-            await carregarSelects();
-
-            document.getElementById("cadastro_id").value = v.cadastro.id;
-            document.getElementById("cadastro_id").disabled = true;
-            document.getElementById("equipe_id").value = v.equipe.id;
-            document.getElementById("regra").value = v.is_leader ? "coordenador" : "encontreiro";
-            document.getElementById("pagou").checked = !!v.pagou;
-            document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
         async function removerPessoaEvento(id, email_esposo, email_esposa) {
@@ -429,6 +428,29 @@
                 });
                 carregarPessoasDoEvento();
             });
+        }
+
+
+
+        async function editarPessoaEvento(id) {
+            pessoaEventoEditandoId = id;
+
+            const res = await fetch(
+                `${APP_CONFIG.API_BASE_URL}/teamrole/${id}`,
+                { headers: { Authorization: "Bearer " + token } }
+            );
+
+            const json = await res.json();
+            const v = json.data;
+
+            await carregarSelects();
+
+            document.getElementById("cadastro_id").value = v.cadastro.id;
+            document.getElementById("cadastro_id").disabled = true;
+            document.getElementById("equipe_id").value = v.equipe.id;
+            document.getElementById("regra").value = v.is_leader ? "coordenador" : "encontreiro";
+            document.getElementById("pagou").checked = !!v.pagou;
+            document.getElementById("modal-vincular-pessoa").style.display = "flex";
         }
 
         async function gerarPagamento(teamroleId) {
@@ -469,86 +491,6 @@
         let equipesTodas = [];
         let vinculosEvento = [];
 
-        async function carregarDadosVinculoEquipe() {
-            const [equipesRes, vinculosRes] = await Promise.all([
-                fetch(`${APP_CONFIG.API_BASE_URL}/equipes`, {
-                    headers: { Authorization: "Bearer " + token }
-                }),
-                fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
-                    headers: { Authorization: "Bearer " + token }
-                })
-            ]);
-
-            equipesTodas = (await equipesRes.json()).data || [];
-            vinculosEvento = (await vinculosRes.json()).data || [];
-
-            // snapshot do estado inicial
-            equipesVinculadasOriginais = vinculosEvento.map(v => v.equipe.id);
-
-            renderizarCheckboxesVinculo();
-        }
-
-
-        function renderizarCheckboxesVinculo() {
-            const container = document.getElementById("checkboxContainer");
-            const selectAll = document.getElementById("selectAll");
-
-            container.innerHTML = "";
-            selectAll.checked = false;
-
-            const equipesVinculadasIds = vinculosEvento.map(v => v.equipe.id);
-
-            equipesTodas.forEach(eq => {
-                const checked = equipesVinculadasIds.includes(eq.id) ? "checked" : "";
-
-                container.innerHTML += `
-            <label class="checkbox-item">
-                <input
-                    type="checkbox"
-                    value="${eq.id}"
-                    ${checked}
-                    onchange="syncSelectAll()"
-                >
-                <span>${eq.nome}</span>
-            </label>
-        `;
-            });
-
-            syncSelectAll();
-        }
-
-        function syncSelectAll() {
-            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            document.getElementById("selectAll").checked = allChecked;
-        }
-
-        function toggleSelectAll(master) {
-            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
-
-            checkboxes.forEach(cb => {
-                const equipeId = cb.value;
-
-                if (master.checked) {
-                    // Marcar todos
-                    cb.checked = true;
-                } else {
-                    //  Desmarcar apenas os que NÃO eram originais
-                    if (!equipesVinculadasOriginais.includes(equipeId)) {
-                        cb.checked = false;
-                    }
-                }
-            });
-
-            syncSelectAll();
-        }
-
-        // Sincronizar estado do selectAll
-        function syncSelectAll() {
-            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            document.getElementById("selectAll").checked = allChecked;
-        }
 
         async function salvarVinculosEquipeEvento() {
             const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]');
@@ -572,7 +514,6 @@
 
             try {
                 withLoader(async () => {
-
                     // ➕ Criar novos vínculos
                     for (const equipeId of paraCriar) {
                         await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento`, {
@@ -616,9 +557,8 @@
             }
         }
 
-        window.removerEquipe = removerEquipe;
+        window.removerEquipeDoEvento = removerEquipeDoEvento;
         window.abrirModalVincularPessoa = abrirModalVincularPessoa;
-        // window.fecharModalVincularPessoa = fecharModalVincularPessoa;
         window.salvarPessoaEvento = salvarPessoaEvento;
         window.editarPessoaEvento = editarPessoaEvento;
         window.removerPessoaEvento = removerPessoaEvento;
