@@ -160,3 +160,52 @@ export async function login(req, res) {
     return res.status(400).json({ error: err.message });
   }
 }
+
+// teamroleCadastro
+export async function teamroleCadastro(req, res) {
+  try {
+  const email = req.params.email; // pega o email da URL
+
+    const {data: pessoa, error } = await supabase
+      .from("pessoas")
+      .select(`
+        email,
+        cadastro:cadastro!inner(
+          email_esposo,
+          email_esposa,
+          teamrole:teamrole!left(
+            evento_id,
+            cadastro_id,
+            eventos:eventos!left(
+              id,
+              nome
+            )
+          )
+        )
+      `)
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message + email);
+    }
+
+    if (!email) {
+      return res.status(404).json({ error: "Pessoa não encontrada." + email  });
+    }
+
+    return res.status(200).json({
+      pessoa: {
+        id: pessoa.id,
+        nome: pessoa.nome,
+        email: pessoa.email,
+        telefone: pessoa.telefone,
+        role: pessoa.role,
+        cadastro: pessoa.cadastro, // inclui cadastro + teamrole + evento
+      },
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}
+
