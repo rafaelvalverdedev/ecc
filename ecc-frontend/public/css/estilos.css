@@ -67,7 +67,6 @@ body {
     linear-gradient(90deg, var(--c1) calc(100%/6), var(--c2) 0 50%,
       var(--c1) 0 calc(500%/6), var(--c2) 0);
   background-size: calc(1.732*var(--s)) var(--s);
-
   color: var(--color-text);
 }
 
@@ -96,7 +95,6 @@ a:active {
   text-decoration: underline;
 }
 
-
 .card {
   background: white;
   padding: 20px;
@@ -112,6 +110,17 @@ a:active {
 .logado {
   font-size: 10px;
 }
+
+
+.nome-evento {
+  color: var(--color-primary);
+  text-shadow: var(--btn-bg-hover) 1px 1px 2px;
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+
 /* =============================
    MODAIS
    ============================= */
@@ -164,7 +173,6 @@ a:active {
   font-size: 18px;
   margin-bottom: 10px;
 }
-
 
 /* Mensagem de erro no Modal */
 #erro {
@@ -276,12 +284,13 @@ table {
   width: 100%;
   table-layout: auto;
   border-collapse: collapse;
-  
+
 }
 
 th {
   background-color: #f0f0f0;
 }
+
 th,
 td {
   padding: 8px;
@@ -293,6 +302,7 @@ td {
   white-space: nowrap;
   font-weight: 400;
 }
+
 /* =============================
    TOAST (MENSAGENS DE ALERTA)
    ============================= */

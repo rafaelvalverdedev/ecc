@@ -18,10 +18,10 @@
     <!-- Navegação -->
     <div id="navbar"></div>
 
-    <h1>Gerenciar Eventos</h1>
+    <h1 style="margin-left: 10px;">Gerenciar Eventos <span class="nome-evento" id="nome-evento"></span></h1> 
 
     <!-- ================= EQUIPES DO EVENTO ================= -->
-    <div class="card" id="card-equipes-do-evento">
+    <div class="card" style="max-height: 300px; overflow-y: auto;">
         <div class="bloco-header">
             <h2>▶ Equipes do Evento</h2>
             <p id="info-equipes-evento"></p>
@@ -30,7 +30,7 @@
         <button onclick="abrirModalVincularEquipe()">Vincular Equipe ao Evento</button>
         <br><br>
 
-        <table>
+        <table >
             <thead>
                 <tr>
                     <th>Equipe</th>
@@ -42,7 +42,7 @@
     </div>
 
     <!-- ================= PESSOAS DO EVENTO ================= -->
-    <div class="card">
+    <div class="card" style="max-height: 300px; overflow-y: auto;">
         <div class="bloco-header">
             <h2>▶ Pessoas do Evento</h2>
             <p id="info-pessoas-evento"></p>
@@ -81,7 +81,7 @@
                 <div id="checkboxContainer" class="checkbox-grid"></div>
             </div>
 
-            <div class="modal-actions">
+            <div class="form-button">
                 <button onclick="fecharModal()">Cancelar</button>
                 <button onclick="salvarVinculosEquipeEvento()">Salvar</button>
             </div>
@@ -117,7 +117,7 @@
                 </label>
             </div>
 
-            <div class="modal-actions">
+            <div class="form-button">
                 <button onclick="fecharModal()">Cancelar</button>
                 <button onclick="salvarPessoaEvento()">Salvar</button>
             </div>
@@ -178,6 +178,13 @@
 
         /* ================= EQUIPES ================= */
         async function carregarEquipesDoEvento() {
+            const resNomeEvento = await fetch(`${APP_CONFIG.API_BASE_URL}/eventos/${eventoId}`, {
+                headers: { Authorization: "Bearer " + token }
+            });
+
+            const nomeEvento = (await resNomeEvento.json()).data.nome;
+            document.getElementById("nome-evento").innerText = nomeEvento;
+    
             const res = await fetch(`${APP_CONFIG.API_BASE_URL}/equipes-evento/evento/${eventoId}`, {
                 headers: { Authorization: "Bearer " + token }
             });
@@ -199,6 +206,8 @@
                     </tr>
                 `;
             });
+
+            ativarToggle();
         }
 
         async function salvarVinculosEquipeEvento() {
