@@ -18,17 +18,14 @@
   <!-- Navegação -->
   <div id="navbar"></div>
 
-  <h1>Gerenciar Equipes</h1>
+  <h1 style="margin-left: 10px;">Gerenciar Equipes</h1>
 
-  <br>
-  <button id="nav-btn" onclick="mostrarCardEquipe()">Cadastrar Equipes</button>
+  <button id="nav-btn" onclick="mostrarCardEquipe()" style="margin-left: 10px;">Cadastrar Equipes</button>
   <button onclick="mostrarCardVinculo();"> Vincular Equipe a Evento </button>
-  <br>
-  <br>
 
+  <!-- FORM EDITAR / CRIAR EQUIPE -->
   <div class="card-modal-overlay" id="card" style="display:none;">
     <div class="card-modal">
-      <!-- FORM EDITAR / CRIAR EQUIPE -->
       <h2>Criar / Editar Equipe</h2>
       <form id="form-equipe" onsubmit="withLoader(() => salvarEquipe(event))">
         <input type="hidden" id="equipe_id">
@@ -38,9 +35,10 @@
 
         <label>Descrição:</label>
         <input id="descricao" required>
-
-        <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
-        <button type="submit" id="btnSalvar">Salvar</button>
+        <div class="form-button">
+          <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+          <button type="submit" id="btnSalvar">Salvar</button>
+        </div>
       </form>
     </div>
   </div>
@@ -64,13 +62,13 @@
           </label>
           <div id="checkboxContainer" class="checkbox-grid"></div>
         </div>
-
-        <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
-        <button type="submit" id="btnSalvar">Salvar Vínculos</button>
+        <div class="form-button">
+          <button type="button" id="btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+          <button type="submit" id="btnSalvar">Salvar Vínculos</button>
+        </div>
       </form>
     </div>
   </div>
-
 
   <!-- LISTA DE VÍNCULOS -->
   <div class="card">
@@ -116,7 +114,7 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module">
-    requireRole(["admin","coordenador"]); // Apenas administradores podem acessar
+    requireRole(["admin", "coordenador"]); // Apenas administradores podem acessar
 
     import { renderNavbar } from "../components/navbar.js";
     renderNavbar({ active: "equipes" });
@@ -299,8 +297,8 @@
         // HEADER (toggle principal)
         tbody.innerHTML += `
               <tr>
-                <td>
-                  <span class="toggle-title" data-id="${id}">
+                <td class="toggle-title" data-id="${id}" style="background-color: #f9f9f9;">
+                  <span>
                     ▶ ${eventoNome} — ${lista.length} equipe(s)
                   </span>
                 </td>
@@ -309,9 +307,9 @@
 
         // CONTAINER ÚNICO DOS SUBITENS (OBRIGATÓRIO)
         tbody.innerHTML += `
-              <tr class="grupo-${id}" style="display: none;">
-                <td>
-                  <table>
+              <tr>
+                <td style="padding: 0;">
+                  <table class="grupo-${id}" style="display: none;">
                       ${lista.map(v => `
                         <tr>
                           <td>

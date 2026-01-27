@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Equipes • ECC</title>
+  <title>Gerenciador • ECC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="../css/estilos.css">
@@ -60,6 +60,7 @@
       <thead>
         <tr>
           <th>Casal</th>
+          <th>Telefone</th>
           <th>Email</th>
         </tr>
       </thead>
@@ -156,6 +157,11 @@
           tbodyCadastros.innerHTML += `
             <tr>
               <td>${c.nome_completo_esposo} <br> ${c.nome_completo_esposa}</td>
+              <td>
+                  <a target="_blank" href="https://wa.me/55${c.celular_esposo}"> <img src="../assets/whatsapp.png" alt="WhatsApp" width="15"> ${c.celular_esposo ?? "-"} </a>
+                  <br>
+                  <a target="_blank" href="https://wa.me/55${c.celular_esposa}"> <img src="../assets/whatsapp.png" alt="WhatsApp" width="15"> ${c.celular_esposa ?? "-"} </a>
+              </td>
               <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
             </tr>
           `;

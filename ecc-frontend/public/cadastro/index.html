@@ -18,18 +18,15 @@
   <!-- Navegação -->
   <div id="navbar"></div>
 
-  <h1>Gerenciar Cadastro</h1>
+  <h1 style="margin-left: 10px;">Gerenciar Cadastro</h1>
 
-  <br>
-  <button id="btnCadastrar" onclick="mostrarCadastro()">Cadastrar Pessoas</button>
+  <button id="btnCadastrar" onclick="mostrarCadastro()" style="margin-left: 10px;">Cadastrar Pessoas</button>
 
   <div class="card-modal-overlay" id="card-cadastro" style="display:none;">
     <div class="card-modal">
 
       <form id="formInscricao">
-
         <!-- ===================== ETAPA 1 - ESPOSO ====================== -->
-
         <div class="step active" id="step1">
           <h2>Dados do Esposo</h2>
 
@@ -85,9 +82,10 @@
             <option value="superior">Ensino Superior</option>
             <option value="nenhuma">Nenhuma</option>
           </select>
-
-          <button type="button" class="nav-btn" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-          <button type="button" class="nav-btn" onclick="nextStep()">Próximo</button>
+          <div class="form-button">
+            <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+            <button type="button" onclick="nextStep()">Próximo</button>
+          </div>
         </div>
 
         <!-- ===================== ETAPA 2 - ESPOSA ====================== -->
@@ -144,10 +142,11 @@
             <option value="medio">Ensino Médio</option>
             <option value="superior">Ensino Superior</option>
           </select>
-
-          <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-          <button type="button" onclick="prevStep()">Voltar</button>
-          <button type="button" onclick="nextStep()">Próximo</button>
+          <div class="form-button">
+            <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+            <button type="button" onclick="prevStep()">Voltar</button>
+            <button type="button" onclick="nextStep()">Próximo</button>
+          </div>
         </div>
 
         <!-- ===================== ETAPA 3 - CASAL ====================== -->
@@ -202,10 +201,11 @@
           <label>Foto do Casal</label>
           <input type="file" id="foto_casal" accept="image/*" required />
 
-
-          <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
-          <button type="button" onclick="prevStep()">Voltar</button>
-          <button type="submit">Enviar</button>
+          <div class="form-button">
+            <button type="button" id="btn-cancelar" onclick="ocultarCadastro()">Cancelar</button>
+            <button type="button" onclick="prevStep()">Voltar</button>
+            <button type="submit">Enviar</button>
+          </div>
         </div>
 
       </form>
@@ -218,9 +218,9 @@
     <table class="grupo-cadastro">
       <thead>
         <tr>
-          <th>Nome</th>
-          <th>Email</th>
+          <th>Casal</th>
           <th>Telefone</th>
+          <th>Email</th>
         </tr>
       </thead>
       <tbody id="cadastro-list"></tbody>
@@ -234,7 +234,7 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module">
-    requireRole(["admin","coordenador"]); // Apenas administradores podem acessar
+    requireRole(["admin", "coordenador"]); // Apenas administradores podem acessar
 
     import { renderNavbar } from "../components/navbar.js";
     renderNavbar({ active: "cadastro" });
@@ -478,6 +478,7 @@
     function ocultarCadastro() {
       document.getElementById("card-cadastro").style.display = "none";
       document.getElementById("btnCadastrar").style.display = "block";
+      document.getElementById("formInscricao").reset();
       const btnCadastrar = document.querySelector("button[onclick='mostrarCadastro()']");
     }
 
@@ -499,11 +500,15 @@
 
       cadastro.forEach(c => {
         tbody.innerHTML += `
-    <tr>
-      <td>${c.nome_completo_esposo ?? "-"} <BR> ${c.nome_completo_esposa ?? "-"}</td>
-      <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
-      <td>${c.celular_esposo ?? "-"} <br> ${c.celular_esposa ?? "-"}</td>
-    </tr>
+            <tr>
+              <td>${c.nome_completo_esposo} <br> ${c.nome_completo_esposa}</td>
+              <td>
+                  <a target="_blank" href="https://wa.me/55${c.celular_esposo}"> <img src="../assets/whatsapp.png" alt="WhatsApp" width="15"> ${c.celular_esposo ?? "-"} </a>
+                  <br>
+                  <a target="_blank" href="https://wa.me/55${c.celular_esposa}"> <img src="../assets/whatsapp.png" alt="WhatsApp" width="15"> ${c.celular_esposa ?? "-"} </a>
+              </td>
+              <td>${c.email_esposo ?? "-"} <br> ${c.email_esposa ?? "-"}</td>
+            </tr>
     `;
       });
     }

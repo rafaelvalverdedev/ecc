@@ -71,6 +71,32 @@ body {
   color: var(--color-text);
 }
 
+
+a:link {
+  color: var(--color-text);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: var(--color-text);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-text);
+  background-color: var(--c2);
+  text-decoration: none;
+}
+
+a:active {
+  color: var(--color-text);
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+
 .card {
   background: white;
   padding: 20px;
@@ -132,6 +158,13 @@ body {
   top: 50%;
   left: 50%;
 }
+
+.toggle-title {
+  cursor: pointer;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
 
 /* Mensagem de erro no Modal */
 #erro {

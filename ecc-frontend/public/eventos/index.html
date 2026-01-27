@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Equipes • ECC</title>
+  <title>Gerenciar Eventos • ECC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="../css/estilos.css">
@@ -18,7 +18,9 @@
   <!-- Navegação -->
   <div id="navbar"></div>
 
-  <h1>Gerenciar Eventos</h1>
+  <h1 style="margin-left: 10px;">Gerenciar Eventos</h1>
+
+  <button onclick="document.getElementById('card').style = 'display: block'" style="margin-bottom: 5px; margin-left: 10px;">Cadastrar Novo Evento</button>
 
   <!-- ================= FORM EVENTO ================= -->
   <div class="card-modal-overlay" id="card" style="display:none;">
@@ -41,23 +43,22 @@
         <label>Capacidade</label>
         <input type="number" id="capacity" required>
 
-        <label>Valor Inscrições:</label>
+        <label>Valor Inscrições Encontreiro:</label>
         <input type="number" id="valor_encontreiro" min="0" required>
 
-        <label>Valor Inscrições:</label>
+        <label>Valor Inscrições Encontrista:</label>
         <input type="number" id="valor_encontrista" min="0" required>
 
-        <br><br>
-        <button type="submit">Salvar</button>
-        <button type="button" onclick="limparFormulario()">Cancelar</button>
+        <div class="form-button">
+          <button type="button" onclick="limparFormulario()">Cancelar</button>
+          <button type="submit">Salvar</button>
+        </div>
       </form>
     </div>
   </div>
 
   <!-- ================= LISTAGEM ================= -->
   <div class="card">
-    <h2>Eventos Cadastrados</h2>
-    <button onclick="document.getElementById('card').style = 'display: block'">Cadastrar Novo Evento</button>
 
     <table>
       <thead>
@@ -96,21 +97,7 @@
   <script src="../js/auth-check.js"></script>
 
   <script type="module" defer>
-    requireRole(["admin", "coordenador"]); // Apenas administradores podem acessar
-
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
-    console.log(user.id);
-
-
-    // Buscar cadastro
-    const cadastroRes = await fetch(
-      `${APP_CONFIG.API_BASE_URL}/teamrole/${user.id}`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const cadastro = (await cadastroRes.json()).data;
-
-    console.log(cadastro);
+    requireRole(["admin", "coordenador"]); // Apenas administradores e coordenadores podem acessar
 
     import {
       listarEventos,
@@ -216,10 +203,20 @@
     // DELETE
     // =====================
     async function deletar(id) {
-      showConfirm("Tem certeza que deseja excluir este equipe?", async () => {
+      showConfirm("Tem certeza que deseja excluir este evento?", async () => {
         withLoader(async () => {
-          await excluirEvento(id);
-          carregarEventos();
+
+          try {
+            await excluirEvento(id);
+            carregarEventos();
+          } catch (error) {
+            if (error.error?.includes("violates foreign key constraint")) {
+              showToast("Não é possível excluir este evento porque ele possui registros vinculados.");
+            } else {
+              showToast("Erro ao excluir evento.");
+            }
+          }
+
         });
       });
     }
